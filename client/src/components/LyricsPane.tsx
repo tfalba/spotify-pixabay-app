@@ -39,19 +39,21 @@ export default function LyricsPane({
 
   if (!artist || !title) {
     return (
-      <div className="text-sm text-slate-500">
-        Select a track to view lyrics.
+      <div className="text-sm text-slate-400">
+        Select a track to view lyrics and image prompts will appear here.
       </div>
     );
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 text-slate-200">
       {/* Lyrics */}
       <div className="whitespace-pre-wrap text-sm leading-relaxed">
         {text || <span className="text-slate-500">Lyrics not available.</span>}
         {source && (
-          <div className="mt-3 text-xs text-slate-400">Source: {source}</div>
+          <div className="mt-3 text-xs uppercase tracking-wide text-slate-500">
+            Source: {source}
+          </div>
         )}
       </div>
     </div>

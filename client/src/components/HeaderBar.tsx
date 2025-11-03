@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { get } from "../lib/fetcher";
-import type { Track } from "../types/types";
 
 type SpotifyUser = {
   id: string;
@@ -47,20 +46,28 @@ export default function HeaderBar() {
     : user?.id;
 
   return (
-    <header className="w-full flex items-center justify-between py-3 px-4 border-b bg-white sticky top-0 z-50">
-      <h2 className="font-semibold tracking-tight">Spotify + Pixabay</h2>
+    <header className="sticky top-0 z-50 -mx-6 flex items-center justify-between rounded-3xl border border-white/10 bg-black/20 px-6 py-5 backdrop-blur-lg shadow-soft lg:-mx-10 lg:px-10">
+      <div>
+        <p className="text-xs uppercase tracking-[0.4em] text-teal/70">
+          Portfolio Studio
+        </p>
+        <h1 className="text-2xl font-semibold tracking-tight text-white">
+          Spotify x Pixabay Showcase
+        </h1>
+      </div>
 
-      <div className="flex items-center gap-3 text-sm text-slate-600">
+      <div className="flex items-center gap-3 text-sm text-slate-300">
         {!checkedAuth
           ? null
           : user && displayName ? (
               <>
-                <span>
-                  Logged in as <span className="font-medium">{displayName}</span>
+                <span className="hidden sm:inline">
+                  <span className="text-slate-500">Logged in as</span>{" "}
+                  <span className="font-medium text-white">{displayName}</span>
                 </span>
                 <button
                   onClick={logout}
-                  className="px-3 py-1.5 rounded-lg border hover:bg-slate-50"
+                  className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-xs uppercase tracking-wide text-slate-200 transition hover:border-teal/60 hover:bg-teal/20"
                   type="button"
                 >
                   Logout
@@ -69,7 +76,7 @@ export default function HeaderBar() {
             ) : (
               <a
                 href="/auth/login"
-                className="px-3 py-1.5 rounded-lg border hover:bg-slate-50"
+                className="rounded-full border border-white/10 bg-accent/80 px-4 py-2 text-xs font-semibold uppercase tracking-wide text-white shadow-glow transition hover:bg-accent"
               >
                 Login to Spotify
               </a>
