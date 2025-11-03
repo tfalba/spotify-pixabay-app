@@ -1,0 +1,12 @@
+export async function get<T>(url: string): Promise<T> {
+const res = await fetch(url, { credentials: "include" });
+if (!res.ok) throw new Error(await res.text());
+return res.json();
+}
+
+
+export async function post<T>(url: string, body?: any): Promise<T> {
+const res = await fetch(url, { method: "POST", body: body ? JSON.stringify(body) : undefined, headers: { "Content-Type": "application/json" }, credentials: "include" });
+if (!res.ok) throw new Error(await res.text());
+return res.json();
+}
