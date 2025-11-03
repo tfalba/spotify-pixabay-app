@@ -47,5 +47,5 @@ export function useLyricsImages() {
     }
   };
 
-  return { fetchImages, keywords, images, setImages, loading, error };
+  return { fetchImages, keywords, setKeywords,images, setImages, loading, error };
 }

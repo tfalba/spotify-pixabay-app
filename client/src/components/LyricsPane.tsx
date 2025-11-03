@@ -22,10 +22,13 @@ export default function LyricsPane({
       return;
     }
     get<{ lyrics: string; source: string }>(
-      `/api/lyrics?artist=${encodeURIComponent(artist)}&title=${encodeURIComponent(title)}`
+      `/api/lyrics?artist=${encodeURIComponent(
+        artist
+      )}&title=${encodeURIComponent(title)}`
     )
       .then((d) => {
         setText(d.lyrics || "");
+        console.log(d.lyrics, "lyrics");
         setSource(d.source || "");
       })
       .catch(() => {
@@ -34,9 +37,12 @@ export default function LyricsPane({
       });
   }, [artist, title]);
 
-
   if (!artist || !title) {
-    return <div className="text-sm text-slate-500">Select a track to view lyrics.</div>;
+    return (
+      <div className="text-sm text-slate-500">
+        Select a track to view lyrics.
+      </div>
+    );
   }
 
   return (
@@ -48,7 +54,6 @@ export default function LyricsPane({
           <div className="mt-3 text-xs text-slate-400">Source: {source}</div>
         )}
       </div>
-
     </div>
   );
 }

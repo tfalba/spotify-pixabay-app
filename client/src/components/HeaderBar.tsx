@@ -18,7 +18,7 @@ async function logout() {
   }
 }
 
-export default function HeaderBar({ current }: { current?: Track | null }) {
+export default function HeaderBar() {
   const [user, setUser] = useState<SpotifyUser | null>(null);
   const [checkedAuth, setCheckedAuth] = useState(false);
 
@@ -48,25 +48,7 @@ export default function HeaderBar({ current }: { current?: Track | null }) {
 
   return (
     <header className="w-full flex items-center justify-between py-3 px-4 border-b bg-white sticky top-0 z-50">
-      <h1 className="font-semibold tracking-tight">Spotify + Pixabay</h1>
-          { current && current.preview_url ? (
-                    <audio
-                      controls
-                      src={current.preview_url}
-                      className="mt-2 w-full"
-                    />
-                  ) : current ? (
-                    <iframe
-                      className="mt-2 rounded-lg w-max"
-                      src={`https://open.spotify.com/embed/track/${current.id}`}
-                      width="100%"
-                      height="80"
-                      allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-                      loading="lazy"
-                      title="Spotify Player"
-                    />
-                  )
-                : null}
+      <h2 className="font-semibold tracking-tight">Spotify + Pixabay</h2>
 
       <div className="flex items-center gap-3 text-sm text-slate-600">
         {!checkedAuth
