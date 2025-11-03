@@ -85,7 +85,7 @@ export default function SpotifySearch({
           <button
             key={t.id}
             onClick={() => onPick(t)}
-            className="text-left"
+            className="text-left p-1 rounded-lg hover:bg-slate-100 w-full"
             type="button"
           >
             <TrackCard track={t} />

@@ -13,4 +13,5 @@ export const env = {
 
   PIXABAY_API_KEY: process.env.PIXABAY_API_KEY || "",
   LYRICS_PROVIDER: process.env.LYRICS_PROVIDER || "",
+  OPENAI_API_KEY: process.env.OPENAI_API_KEY || "",
 };

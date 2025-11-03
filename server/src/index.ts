@@ -10,6 +10,7 @@ import {
   transfer, play, pause, nextT, prevT,
   seek, volume, shuffle, repeat, devices, state
 } from "./player";
+import imagesRouter from "./images";
 
 const app = express();
 app.use(cors({
@@ -21,6 +22,8 @@ app.use(cors({
 }));
 app.use(express.json());
 app.use(cookieParser(env.SESSION_SECRET));
+
+app.use("/api", imagesRouter);
 
 // Health
 app.get("/api/health", (_req, res) => res.json({ ok: true }));
