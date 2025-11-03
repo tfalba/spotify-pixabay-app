@@ -46,15 +46,27 @@ export default function LyricsPane({
   }
 
   return (
-    <div className="space-y-4 text-slate-200">
-      {/* Lyrics */}
-      <div className="whitespace-pre-wrap text-sm leading-relaxed">
-        {text || <span className="text-slate-500">Lyrics not available.</span>}
-        {source && (
-          <div className="mt-3 text-xs uppercase tracking-wide text-slate-500">
-            Source: {source}
+    <div className="flex-1 overflow-hidden rounded-2xl border border-white/10 bg-sapphire/70 p-5 shadow-glow">
+      <h2 className="text-lg font-semibold tracking-tight text-slate-50">
+        Lyrics
+      </h2>
+      <p className="text-xs uppercase tracking-[0.3em] text-amber/70">
+        Storyboard
+      </p>
+      <div className="mt-4 max-h-[max(360px,calc(100vh-10rem))] overflow-y-auto pr-1">
+        <div className="space-y-4 text-slate-200">
+          {/* Lyrics */}
+          <div className="whitespace-pre-wrap text-sm leading-relaxed">
+            {text || (
+              <span className="text-slate-500">Lyrics not available.</span>
+            )}
+            {source && (
+              <div className="mt-3 text-xs uppercase tracking-wide text-slate-500">
+                Source: {source}
+              </div>
+            )}
           </div>
-        )}
+        </div>
       </div>
     </div>
   );

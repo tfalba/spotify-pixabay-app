@@ -57,46 +57,61 @@ export default function SpotifySearch({
   }
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center gap-2 rounded-2xl border border-white/10 bg-black/30 px-3 py-2 shadow-inner">
-        <input
-          ref={inputRef}
-          value={q}
-          onChange={(e) => setQ(e.target.value)}
-          placeholder="Search Spotify tracks..."
-          className="w-full rounded-xl border border-white/10 bg-black/20 px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/40"
-        />
-        {q && (
-          <button
-            type="button"
-            onClick={clearSearch}
-            className="rounded-full border border-white/10 px-3 py-1 text-xs uppercase tracking-wide text-slate-400 transition hover:border-teal/60 hover:text-teal"
-            aria-label="Clear search"
-          >
-            ×
-          </button>
-        )}
-      </div>
-
-      {loading && (
-        <div className="flex items-center gap-2 text-xs text-teal">
-          <span className="h-2 w-2 animate-ping rounded-full bg-teal" />
-          Searching Spotify…
+    <section className="col-span-4 flex min-w-0 flex-col rounded-3xl border border-red p-6 shadow-glow">
+      <div className="flex items-center gap-3 pb-4">
+        <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-card-glow text-2xl text-accent shadow-glow">
+          ♪
+        </span>
+        <div>
+          <h2 className="text-lg font-semibold tracking-tight text-slate-50">
+            Discover Tracks
+          </h2>
+          <p className="text-sm text-slate-400">
+            Search Spotify, audition previews, and set the tone.
+          </p>
         </div>
-      )}
-
-      <div className="flex flex-col gap-3">
-        {tracks.map((t) => (
-          <button
-            key={t.id}
-            onClick={() => onPick(t)}
-            className="flex w-full min-w-0 text-left rounded-2xl border border-transparent bg-white/5 p-1 transition hover:border-teal/40 hover:bg-white/10"
-            type="button"
-          >
-            <TrackCard track={t} />
-          </button>
-        ))}
       </div>
-    </div>
+      <div className="space-y-4">
+        <div className="flex items-center gap-2 rounded-2xl border border-white/10 bg-black/30 px-3 py-2 shadow-inner">
+          <input
+            ref={inputRef}
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            placeholder="Search Spotify tracks..."
+            className="w-full rounded-xl border border-white/10 bg-black/20 px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/40"
+          />
+          {q && (
+            <button
+              type="button"
+              onClick={clearSearch}
+              className="rounded-full border border-white/10 px-3 py-1 text-xs uppercase tracking-wide text-slate-400 transition hover:border-teal/60 hover:text-teal"
+              aria-label="Clear search"
+            >
+              ×
+            </button>
+          )}
+        </div>
+
+        {loading && (
+          <div className="flex items-center gap-2 text-xs text-teal">
+            <span className="h-2 w-2 animate-ping rounded-full bg-teal" />
+            Searching Spotify…
+          </div>
+        )}
+
+        <div className="flex flex-col gap-3">
+          {tracks.map((t) => (
+            <button
+              key={t.id}
+              onClick={() => onPick(t)}
+              className="flex w-full min-w-0 text-left rounded-2xl border border-transparent bg-white/5 transition hover:border-teal/40 hover:bg-white/10"
+              type="button"
+            >
+              <TrackCard track={t} />
+            </button>
+          ))}
+        </div>
+      </div>
+    </section>
   );
 }
