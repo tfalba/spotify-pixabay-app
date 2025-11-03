@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import HeaderBar from "./components/HeaderBar";
 import SpotifySearch from "./components/SpotifySearch";
 import PixabayGrid from "./components/PixabayGrid";
@@ -9,8 +9,6 @@ import { useLyricsImages } from "./hooks/useLyricsImages";
 
 export default function App() {
   const [current, setCurrent] = useState<Track | null>(null);
-  const [text, setText] = useState<string>("");
-  const [source, setSource] = useState<string>("");
 
   // hook that calls POST /api/lyrics-to-images and stores results
   const { fetchImages, keywords, images, setImages, loading, error } =
@@ -20,8 +18,6 @@ export default function App() {
   useEffect(() => {
     if (!current?.artists || !current?.name) {
       console.log("stuck in here");
-      // setText("");
-      // setSource("");
       setImages([]);
       return;
     }
@@ -31,64 +27,23 @@ export default function App() {
       )}&title=${encodeURIComponent(current.name)}`
     )
       .then((d) => {
-        // setText(d.lyrics || "");
-        // setSource(d.source || "");
         fetchImages(d.lyrics);
       })
       .catch(() => {
-        // setText("Lyrics not available.");
-        // setSource("");
         setImages([]);
       });
   }, [current]);
-
-  // const pixabayQuery = useMemo(() => {
-  //   console.log("Current track changed:", current);
-  //   if (!current) return "";
-  //   return `${current.name} ${current.artists}`;
-  // }, [current]);
 
   return (
     <div className="min-h-screen flex flex-col">
       <HeaderBar current={current} />
 
       <main className="max-w-8xl w-full mx-auto p-4 flex gap-4">
-        {/* Left column: 2/3 width */}
         <section className="col-span-2 md:col-span-1 space-y-4 flex-1">
-          {/* Top section: search + playback + title/artist */}
           <div className="p-4 rounded-2xl border bg-white">
             {current && (
               <div className="flex items-center gap-3 p-3">
-                {/* {current.image && (
-                  <img
-                    src={current.image}
-                    className="w-20 h-20 rounded-xl object-cover"
-                    alt="art"
-                  />
-                )} */}
-                  {/* <div className="font-semibold truncate">{current.name}</div>
-                  <div className="text-sm text-slate-500 truncate">
-                    {current.artists}
-                  </div> */}
 
-                  {/* Playback: prefer preview_url, fallback to Spotify embed */}
-                  {/* {current.preview_url ? (
-                    <audio
-                      controls
-                      src={current.preview_url}
-                      className="mt-2 w-full"
-                    />
-                  ) : (
-                    <iframe
-                      className="mt-2 rounded-lg"
-                      src={`https://open.spotify.com/embed/track/${current.id}`}
-                      width="100%"
-                      height="80"
-                      allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-                      loading="lazy"
-                      title="Spotify Player"
-                    />
-                  )} */}
                 </div>
             )}
             <div className="mb-4">
@@ -97,7 +52,6 @@ export default function App() {
           </div>
         </section>
 
-        {/* Right column: 1/3 width for lyrics */}
         <aside className="col-span-2 md:col-span-1 p-4 rounded-2xl border bg-white flex-1">
           <h2 className="text-sm font-semibold mb-2">Lyrics</h2>
           <LyricsPane
@@ -105,7 +59,6 @@ export default function App() {
             title={current?.name || ""}
           />
         </aside>
-        {/* Bottom section: Pixabay placeholder */}
         <div className="col-span-2 md:col-span-1 p-4 rounded-2xl border bg-white flex-3">
           <h2 className="text-sm font-semibold mb-2">Pixabay Images</h2>
           <PixabayGrid
