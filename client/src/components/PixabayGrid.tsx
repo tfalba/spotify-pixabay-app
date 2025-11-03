@@ -45,7 +45,7 @@ export default function PixabayGrid({ loading, error, keywords, images }: { load
               <img
                 src={img.thumb}
                 alt={img.alt}
-                className="w-full h-32 object-cover transition-transform duration-150 group-hover:scale-[1.03]"
+                className="w-full h-50 object-cover transition-transform duration-150 group-hover:scale-[1.03]"
                 loading="lazy"
               />
             </a>

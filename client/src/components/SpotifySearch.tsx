@@ -80,12 +80,12 @@ export default function SpotifySearch({
 
       {loading && <div className="text-xs text-slate-500">Searching…</div>}
 
-      <div className="grid gap-3">
+      <div className="flex flex-col gap-3">
         {tracks.map((t) => (
           <button
             key={t.id}
             onClick={() => onPick(t)}
-            className="text-left p-1 rounded-lg hover:bg-slate-100 w-full"
+            className="text-left p-1 rounded-lg hover:bg-slate-100"
             type="button"
           >
             <TrackCard track={t} />
