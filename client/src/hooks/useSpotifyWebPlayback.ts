@@ -1,12 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
-// Utility: fetch JSON with credentials
-async function j<T>(url: string, init?: RequestInit): Promise<T> {
-  const res = await fetch(url, { credentials: "include", ...init });
-  if (!res.ok) throw new Error(await res.text());
-  return res.json();
-}
-
 type PlayerState = Spotify.PlaybackState | null;
 
 export function useSpotifyWebPlayback() {

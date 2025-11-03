@@ -3,7 +3,7 @@ import cors from "cors";
 import cookieParser from "cookie-parser";
 import { env } from "./env";
 import { login, callback, refreshToken, logout, token } from "./auth";
-import { spotifySearch } from "./spotify";
+import { spotifySearch, spotifyProfile } from "./spotify";
 import { pixabaySearch } from "./pixabay";
 import { fetchLyrics } from "./lyrics";
 import {
@@ -37,6 +37,21 @@ app.get("/api/search", async (req, res) => {
   const q = (req.query.q as string) || "";
   const data = await spotifySearch(req, q);
   res.json(data);
+});
+
+// API: Current Spotify user profile
+app.get("/api/me", async (req, res) => {
+  try {
+    const profile = await spotifyProfile(req);
+    if (!profile) {
+      res.status(401).json({ error: "unauthorized" });
+      return;
+    }
+    res.json(profile);
+  } catch (e: any) {
+    const status = typeof e?.status === "number" ? e.status : 500;
+    res.status(status).json({ error: e?.message ?? "profile_fetch_failed" });
+  }
 });
 
 // API: Pixabay images (no auth beyond server-side key)
