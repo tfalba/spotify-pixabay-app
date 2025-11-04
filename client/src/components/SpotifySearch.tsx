@@ -5,8 +5,10 @@ import TrackCard from "./TrackCard";
 
 export default function SpotifySearch({
   onPick,
+  selectedTrackId,
 }: {
   onPick: (t: Track | null) => void;
+  selectedTrackId?: string | null;
 }) {
   const [q, setQ] = useState("");
   const [tracks, setTracks] = useState<Track[]>([]);
@@ -58,7 +60,7 @@ export default function SpotifySearch({
 
   return (
     <section className="xl:col-span-1 xl:col-start-1
-           flex min-w-0 flex-col rounded-3xl border border-teal/40 p-6 shadow-glow">
+           flex min-w-0 flex-col rounded-3xl border border-teal/40 p-6 shadow-glow max-h-[max(600px,calc(100vh-10rem))] overflow-y-scroll">
       <div className="flex items-center gap-3 pb-4">
         <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-card-glow text-2xl text-accent shadow-glow">
           ♪
@@ -85,10 +87,12 @@ export default function SpotifySearch({
             <button
               type="button"
               onClick={clearSearch}
-              className="rounded-full border border-white/10 px-3 py-1 text-xs uppercase tracking-wide text-slate-400 transition hover:border-teal/60 hover:text-teal"
+              className="group inline-flex h-9 w-9 items-center justify-center rounded-full border border-transparent bg-gradient-to-br from-amber via-amber/85 to-accent/70 shadow-[0_12px_25px_-18px_rgba(251,191,36,0.9)] transition duration-200 hover:-translate-y-0.5 hover:shadow-[0_18px_35px_-16px_rgba(124,92,252,0.55)] focus:outline-none focus:ring-2 focus:ring-amber/50"
               aria-label="Clear search"
             >
-              ×
+              <span className="text-lg font-semibold leading-none text-amber transition group-hover:rotate-90">
+                ×
+              </span>
             </button>
           )}
         </div>
@@ -101,16 +105,23 @@ export default function SpotifySearch({
         )}
 
         <div className="flex flex-col gap-3">
-          {tracks.map((t) => (
-            <button
-              key={t.id}
-              onClick={() => onPick(t)}
-              className="flex w-full min-w-0 text-left rounded-2xl border border-transparent bg-white/7 transition hover:border-teal/40 hover:bg-white/10"
-              type="button"
-            >
-              <TrackCard track={t} />
-            </button>
-          ))}
+          {tracks.map((t) => {
+            const isSelected = selectedTrackId === t.id;
+            return (
+              <button
+                key={t.id}
+                onClick={() => onPick(t)}
+                className={`flex w-full min-w-0 text-left rounded-2xl border transition ${
+                  isSelected
+                    ? "border-white/70 bg-white/10 shadow-glow"
+                    : "border-transparent bg-white/7 hover:border-teal/40 hover:bg-white/10"
+                }`}
+                type="button"
+              >
+                <TrackCard track={t} selected={isSelected} />
+              </button>
+            );
+          })}
         </div>
       </div>
     </section>
