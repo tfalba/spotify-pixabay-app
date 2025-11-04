@@ -57,7 +57,8 @@ export default function SpotifySearch({
   }
 
   return (
-    <section className="col-span-4 flex min-w-0 flex-col rounded-3xl border border-red p-6 shadow-glow">
+    <section className="xl:col-span-1 xl:col-start-1
+           flex min-w-0 flex-col rounded-3xl border border-teal/40 p-6 shadow-glow">
       <div className="flex items-center gap-3 pb-4">
         <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-card-glow text-2xl text-accent shadow-glow">
           ♪
@@ -104,7 +105,7 @@ export default function SpotifySearch({
             <button
               key={t.id}
               onClick={() => onPick(t)}
-              className="flex w-full min-w-0 text-left rounded-2xl border border-transparent bg-white/5 transition hover:border-teal/40 hover:bg-white/10"
+              className="flex w-full min-w-0 text-left rounded-2xl border border-transparent bg-white/7 transition hover:border-teal/40 hover:bg-white/10"
               type="button"
             >
               <TrackCard track={t} />

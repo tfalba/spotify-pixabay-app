@@ -2,7 +2,18 @@
 export default {
   content: ["./src/**/*.{js,jsx,ts,tsx}", "./public/index.html"],
   theme: {
+    screens: {
+      sm: "640px",
+      md: "768px",
+      lg: "1024px",
+      xl: "1280px",
+      xxl: "1300px", // custom sits between xl and 2xl if you want
+      "2xl": "1536px",
+    },
     extend: {
+      screens: {
+        xxl: "1300px",
+      },
       colors: {
         midnight: "#080B16",
         sapphire: "#111C2F",

@@ -8,7 +8,9 @@ export default function LyricPlayerContainer({
   current: Track | null;
 }) {
   return (
-    <aside className="col-span-4 flex min-w-0 flex-col rounded-3xl border border-aurora/40 bg-gradient-to-br from-sapphire/90 via-white/10 to-sapphire/70 p-6 shadow-glow">
+    <aside className="xl:col-span-1 xl:col-start-2
+           flex min-w-0 flex-col rounded-3xl border border-aurora/40
+           bg-gradient-to-br from-sapphire/90 via-white/10 to-sapphire/70 p-6 shadow-glow">
       <div className="rounded-2xl border border-white/10 bg-sapphire/60 p-4 shadow-glow">
         <h2 className="text-sm font-semibold uppercase tracking-[0.2em] text-slate-400">
           Now Playing

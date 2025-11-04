@@ -10,7 +10,9 @@ export default function PixabayGrid({
   error: string | null;
 }) {
   return (
-    <section className="col-span-4 flex min-w-0 flex-col rounded-3xl border border-teal/40 bg-gradient-to-br from-sapphire/90 via-aurora/80 to-sapphire/70 p-6 shadow-glow">
+    <section className=" xl:col-span-1 xl:col-start-3
+           flex min-w-0 flex-col rounded-3xl border border-teal/40
+           bg-gradient-to-br from-sapphire/90 via-aurora/80 to-sapphire/70 p-6 shadow-glow">
       <div>
         <h2 className="text-lg font-semibold tracking-tight text-slate-50">
           Visual Moodboard

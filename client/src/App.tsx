@@ -49,7 +49,7 @@ export default function App() {
       <div className="mx-auto flex min-h-screen w-full max-w-8xl flex-col px-6 pb-12 pt-8 lg:px-10">
         <HeaderBar />
 
-        <main className="mt-10 flex flex-1 flex-col gap-6 lg:grid lg:grid-cols-12">
+        <main className="mt-10 flex flex-1 flex-col gap-6 lg:grid lg:grid-cols-3 xl:grid xl:grid-cols-[25%_31%_41%]">
           <SpotifySearch onPick={setCurrent} />
           <LyricPlayerContainer current={current} />
           <PixabayGrid

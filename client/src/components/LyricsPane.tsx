@@ -21,6 +21,8 @@ export default function LyricsPane({
       setSource("");
       return;
     }
+    setText("Loading lyrics...");
+    setSource("");
     get<{ lyrics: string; source: string }>(
       `/api/lyrics?artist=${encodeURIComponent(
         artist
