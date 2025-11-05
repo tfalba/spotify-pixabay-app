@@ -7,6 +7,18 @@ export default function LyricPlayerContainer({
 }: {
   current: Track | null;
 }) {
+
+    async function getAccessToken() {
+  const token = localStorage.getItem("spotify_access_token");
+  const expiresAt = Number(localStorage.getItem("spotify_expires_at") || 0);
+  if (!token) throw new Error("No Spotify token");
+  if (Date.now() > expiresAt) {
+    // you’ll need a refresh here; see Option B
+    throw new Error("Spotify token expired");
+  }
+  return token;
+}
+
   return (
     <aside className="xl:col-span-1 xl:col-start-2
            flex min-w-0 flex-col rounded-3xl border border-[pink]/80
