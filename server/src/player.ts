@@ -33,10 +33,25 @@ export async function transfer(req: Request, res: Response) {
 export async function play(req: Request, res: Response) {
   try {
     const token = access(req);
-    const r = await fetch("https://api.spotify.com/v1/me/player/play", {
+    const body = (req.body || {}) as {
+      uris?: string[];
+      context_uri?: string;
+      position_ms?: number;
+      offset?: { position?: number };
+      device_id?: string;
+    };
+
+    // if device_id is present, add it to the query
+    const q = body.device_id ? `?device_id=${encodeURIComponent(body.device_id)}` : "";
+    const r = await fetch(`https://api.spotify.com/v1/me/player/play${q}`, {
       method: "PUT",
       headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
-      body: JSON.stringify(req.body || {})
+      body: JSON.stringify({
+        uris: body.uris,
+        context_uri: body.context_uri,
+        position_ms: body.position_ms,
+        offset: body.offset,
+      }),
     });
     res.status(r.status).end();
   } catch (e: any) {

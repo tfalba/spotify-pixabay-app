@@ -55,7 +55,7 @@ export default function LyricsPane({
       <p className="text-xs uppercase tracking-[0.3em] text-amber/70">
         Storyboard
       </p>
-      <div className="mt-4 max-h-[max(360px,calc(100vh-5rem))] overflow-y-auto pr-1">
+      <div className="mt-4 max-h-[max(360px,calc(100vh-5rem))] overflow-y-scroll pr-1">
         <div className="space-y-4 text-slate-200">
           {/* Lyrics */}
           <div className="whitespace-pre-wrap text-sm leading-relaxed">
