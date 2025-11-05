@@ -1,4 +1,4 @@
-import * as React from "react";
+import type { CSSProperties } from "react";
 
 type Img = {
   id: number;
@@ -27,11 +27,13 @@ function FlipCard({
       {/* flipper */}
       <span
         className="absolute inset-0 block transform-gpu preserve-3d animate-flipY"
-        style={{
-          animationDuration: `${duration}s`,
-          animationDelay: `${delay}s`,
-          willChange: "transform",
-        }}
+        style={
+          {
+            animationDuration: `${duration}s`,
+            animationDelay: `${delay}s`,
+            willChange: "transform",
+          } as CSSProperties
+        }
       >
         {/* Front face */}
         <img

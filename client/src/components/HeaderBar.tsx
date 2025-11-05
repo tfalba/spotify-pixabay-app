@@ -17,7 +17,7 @@ async function logout() {
   }
 }
 
-export default function HeaderBar() {
+export default function HeaderBar({ activePath }: { activePath?: string }) {
   const [user, setUser] = useState<SpotifyUser | null>(null);
   const [checkedAuth, setCheckedAuth] = useState(false);
 
@@ -43,6 +43,19 @@ export default function HeaderBar() {
 
   const displayName = user?.display_name?.trim() ? user.display_name : user?.id;
 
+  const currentPath =
+    activePath ??
+    (typeof window !== "undefined"
+      ? window.location.hash.replace(/^#/, "") || "/"
+      : "/");
+
+  const linkClass = (path: string) =>
+    [
+      "rounded-full border border-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-wide transition",
+      currentPath === path ? "text-amber border-amber/60" : "text-slate-300",
+      "hover:border-amber/60 hover:text-amber",
+    ].join(" ");
+
   return (
     <header className="sticky top-0 z-50 -mx-6 flex items-center justify-between rounded-3xl border border-white/10 bg-black/20 px-6 py-5 backdrop-blur-lg shadow-soft lg:-mx-10 lg:px-10">
       <div>
@@ -54,11 +67,21 @@ export default function HeaderBar() {
         </h1>
       </div>
 
-      <div className="flex items-center gap-3 text-sm text-amber-400">
-        {!checkedAuth ? null : user && displayName ? (
-          <>
-            <span className="hidden sm:inline">
-              <span className="text-white-500">Logged in as</span>{" "}
+      <div className="flex items-center gap-4">
+        <nav className="flex items-center gap-2">
+          <a href="#/" className={linkClass("/")}>
+            Home
+          </a>
+          <a href="#/mystuff" className={linkClass("/mystuff")}>
+            My Stuff
+          </a>
+        </nav>
+
+        <div className="flex items-center gap-3 text-sm text-amber-400">
+          {!checkedAuth ? null : user && displayName ? (
+            <>
+              <span className="hidden sm:inline">
+              <span className="text-slate-500">Logged in as</span>{" "}
               <span className="font-medium text-white">{displayName}</span>
             </span>
 
@@ -103,6 +126,7 @@ export default function HeaderBar() {
             </span>
           </a>
         )}
+        </div>
       </div>
     </header>
   );

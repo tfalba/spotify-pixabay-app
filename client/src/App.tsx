@@ -1,65 +1,27 @@
 import { useEffect, useState } from "react";
-import type { Track } from "./types/types";
-import { get } from "./lib/fetcher";
-import { useLyricsImages } from "./hooks/useLyricsImages";
-import HeaderBar from "./components/HeaderBar";
-import SpotifySearch from "./components/SpotifySearch";
-import PixabayGrid from "./components/PixabayGrid";
-import LyricPlayerContainer from "./components/LyricPlayerContainer";
+import Home from "./pages/Home";
+import MyStuff from "./pages/MyStuff";
+
+function getHashPath() {
+  if (typeof window === "undefined") return "/";
+  const hash = window.location.hash.replace(/^#/, "");
+  return hash || "/";
+}
 
 export default function App() {
-  const [current, setCurrent] = useState<Track | null>(null);
+  const [path, setPath] = useState<string>(getHashPath());
 
-  // hook that calls POST /api/lyrics-to-images and stores results
-  const {
-    fetchImages,
-    keywords,
-    setKeywords,
-    images,
-    setImages,
-    loading,
-    error,
-  } = useLyricsImages();
-
-  // fetch lyrics when artist/title change
   useEffect(() => {
-    if (!current?.artists || !current?.name) {
-      console.log("stuck in here");
-      setKeywords([]);
-      setImages([]);
-      return;
-    }
-    setImages([]);
-    setKeywords([]);
-    get<{ lyrics: string; source: string }>(
-      `/api/lyrics?artist=${encodeURIComponent(
-        current.artists
-      )}&title=${encodeURIComponent(current.name)}`
-    )
-      .then((d) => {
-        fetchImages(d.lyrics);
-      })
-      .catch(() => {
-        setImages([]);
-      });
-  }, [current]);
+    const onHashChange = () => setPath(getHashPath());
+    window.addEventListener("hashchange", onHashChange);
+    return () => window.removeEventListener("hashchange", onHashChange);
+  }, []);
 
-  return (
-    <div className="min-h-screen w-full bg-portfolio-gradient text-amber-400">
-      <div className="mx-auto flex min-h-screen w-full max-w-8xl flex-col px-6 pb-12 pt-8 lg:px-10">
-        <HeaderBar />
-
-        <main className="mt-4 flex flex-1 flex-col gap-6 lg:grid lg:grid-cols-3 xl:grid xl:grid-cols-[25%_31%_41%]">
-          <SpotifySearch onPick={setCurrent} selectedTrackId={current?.id} />
-          <LyricPlayerContainer current={current} />
-          <PixabayGrid
-            images={images}
-            keywords={keywords}
-            loading={loading}
-            error={error}
-          />
-        </main>
-      </div>
-    </div>
-  );
+  switch (path) {
+    case "/mystuff":
+      return <MyStuff />;
+    case "/":
+    default:
+      return <Home />;
+  }
 }
