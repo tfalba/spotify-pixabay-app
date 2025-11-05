@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import HeaderBar from "../components/HeaderBar";
 import LyricPlayerContainer from "../components/LyricPlayerContainer";
 import PixabayGrid from "../components/PixabayGrid";
 import PlayListView from "../components/PlayListView";
@@ -42,24 +41,18 @@ export default function MyStuff() {
     }, [current]);
   
   return (
-     <div className="min-h-screen w-full bg-portfolio-gradient text-slate-100">
-         <div className="mx-auto flex min-h-screen w-full max-w-8xl flex-col px-6 pb-12 pt-8 lg:px-10">
-           <HeaderBar activePath="/mystuff" />
-   
-           <main className="mt-4 flex flex-1 flex-col gap-6 lg:grid lg:grid-cols-3 xl:grid xl:grid-cols-[25%_31%_41%]">
-             <PlayListView
-               onPick={setCurrent}
-               selectedTrackId={current?.id ?? null}
-             />
-             <LyricPlayerContainer current={current} />
-             <PixabayGrid
-               images={images}
-               keywords={keywords}
-               loading={loading}
-               error={error}
-             />
-           </main>
-         </div>
-       </div>
+    <main className="mt-4 flex flex-1 flex-col gap-6 lg:grid lg:grid-cols-3 xl:grid xl:grid-cols-[25%_31%_41%]">
+      <PlayListView
+        onPick={setCurrent}
+        selectedTrackId={current?.id ?? null}
+      />
+      <LyricPlayerContainer current={current} />
+      <PixabayGrid
+        images={images}
+        keywords={keywords}
+        loading={loading}
+        error={error}
+      />
+    </main>
   );
 }

@@ -49,12 +49,15 @@ export default function HeaderBar({ activePath }: { activePath?: string }) {
       ? window.location.hash.replace(/^#/, "") || "/"
       : "/");
 
-  const linkClass = (path: string) =>
-    [
-      "rounded-full border border-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-wide transition",
-      currentPath === path ? "text-amber border-amber/60" : "text-slate-300",
-      "hover:border-amber/60 hover:text-amber",
+  const linkClass = (path: string) => {
+    const isCurrent = currentPath === path;
+    return [
+      "relative inline-flex items-center justify-center rounded-full border px-4 py-1 text-xs font-semibold uppercase tracking-wide transition-colors duration-200",
+      isCurrent
+        ? "border-amber/70 text-amber shadow-[0_0_0_2px_rgba(251,191,36,0.25)] after:absolute after:inset-0 after:-z-10 after:rounded-full after:bg-amber/15 after:content-['']"
+        : "border-white/10 text-slate-300 hover:border-amber/60 hover:text-amber",
     ].join(" ");
+  };
 
   return (
     <header className="sticky top-0 z-50 -mx-6 flex items-center justify-between rounded-3xl border border-white/10 bg-black/20 px-6 py-5 backdrop-blur-lg shadow-soft lg:-mx-10 lg:px-10">
@@ -67,8 +70,8 @@ export default function HeaderBar({ activePath }: { activePath?: string }) {
         </h1>
       </div>
 
-      <div className="flex items-center gap-4">
-        <nav className="flex items-center gap-2">
+      <div className="flex items-center gap-5">
+        <nav className="flex items-center gap-3">
           <a href="#/" className={linkClass("/")}>
             Home
           </a>
@@ -81,51 +84,51 @@ export default function HeaderBar({ activePath }: { activePath?: string }) {
           {!checkedAuth ? null : user && displayName ? (
             <>
               <span className="hidden sm:inline">
-              <span className="text-slate-500">Logged in as</span>{" "}
-              <span className="font-medium text-white">{displayName}</span>
-            </span>
+                <span className="text-slate-500">Logged in as</span>{" "}
+                <span className="font-medium text-white">{displayName}</span>
+              </span>
 
-            {/* Logout button with teal gradient border + shine-on-hover */}
-            <button
-              onClick={logout}
-              type="button"
+              {/* Logout button with teal gradient border + shine-on-hover */}
+              <button
+                onClick={logout}
+                type="button"
+                className="group relative inline-flex items-center justify-center overflow-hidden rounded-full px-[1px] py-[1px] focus:outline-none focus:ring-2 focus:ring-teal/40 transition-transform duration-200 hover:-translate-y-0.5"
+              >
+                {/* Gradient border pill */}
+                <span className="pointer-events-none absolute inset-0 z-0 rounded-full border border-amber bg-gradient-to-r from-teal/80 via-white/20 to-teal/90 opacity-90 transition duration-200 group-hover:opacity-100" />
+
+                {/* Shine sweep (animated on hover) */}
+                <span
+                  aria-hidden="true"
+                  className="pointer-events-none absolute inset-0 z-[1] -translate-x-full skew-x-12 bg-gradient-to-r from-transparent via-white/50 to-transparent opacity-0 transition duration-700 motion-safe:group-hover:translate-x-full motion-safe:group-hover:opacity-60"
+                />
+                {/* Inner pill */}
+                <span className="relative z-[2] border-amber inline-flex items-center gap-1 rounded-full bg-teal px-5 py-2 text-xs font-semibold uppercase tracking-wide text-midnight">
+                  Logout
+                </span>
+              </button>
+            </>
+          ) : (
+            /* Login link with the same effect */
+            <a
+              href="/auth/login"
               className="group relative inline-flex items-center justify-center overflow-hidden rounded-full px-[1px] py-[1px] focus:outline-none focus:ring-2 focus:ring-teal/40 transition-transform duration-200 hover:-translate-y-0.5"
             >
-              {/* Gradient border pill */}
-              <span className="absolute border border-amber inset-0 z-0 rounded-full bg-gradient-to-r from-teal/80 via-white/20 to-teal/90 opacity-90 transition duration-200 group-hover:opacity-100" />
+              {/* Gradient border pill (teal) */}
+              <span className="pointer-events-none absolute inset-0 z-0 rounded-full border border-amber bg-gradient-to-r from-teal/80 via-white/20 to-teal/90 opacity-90 transition duration-200 group-hover:opacity-100" />
 
-              {/* Shine sweep (animated on hover) */}
+              {/* Shine sweep */}
               <span
                 aria-hidden="true"
-                className="pointer-events-none absolute inset-0 z-[1] -translate-x-full skew-x-12 bg-gradient-to-r from-transparent via-white/50 to-transparent opacity-0 transition duration-700 motion-safe:group-hover:translate-x-full motion-safe:group-hover:opacity-60"
+                className="pointer-events-none absolute inset-0 z-[1] -translate-x-full skew-x-12 bg-gradient-to-r from-amber via-white/50 to-transparent opacity-0 transition duration-700 motion-safe:group-hover:translate-x-full motion-safe:group-hover:opacity-60"
               />
+
               {/* Inner pill */}
               <span className="relative z-[2] border-amber inline-flex items-center gap-1 rounded-full bg-teal px-5 py-2 text-xs font-semibold uppercase tracking-wide text-midnight">
-                Logout
+                Login to Spotify
               </span>
-            </button>
-          </>
-        ) : (
-          /* Login link with the same effect */
-          <a
-            href="/auth/login"
-            className="group relative inline-flex items-center justify-center overflow-hidden rounded-full px-[1px] py-[1px] focus:outline-none focus:ring-2 focus:ring-teal/40 transition-transform duration-200 hover:-translate-y-0.5"
-          >
-            {/* Gradient border pill (teal) */}
-            <span className="absolute border border-amber inset-0 z-0 rounded-full bg-gradient-to-r from-teal/80 via-white/20 to-teal/90 opacity-90 transition duration-200 group-hover:opacity-100" />
-
-            {/* Shine sweep */}
-            <span
-              aria-hidden="true"
-              className="pointer-events-none absolute inset-0 z-[1] -translate-x-full skew-x-12 bg-gradient-to-r from-amber via-white/50 to-transparent opacity-0 transition duration-700 motion-safe:group-hover:translate-x-full motion-safe:group-hover:opacity-60"
-            />
-
-            {/* Inner pill */}
-            <span className="relative z-[2] border-amber inline-flex items-center gap-1 rounded-full bg-teal px-5 py-2 text-xs font-semibold uppercase tracking-wide text-midnight">
-              Login to Spotify
-            </span>
-          </a>
-        )}
+            </a>
+          )}
         </div>
       </div>
     </header>

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import Home from "./pages/Home";
 import MyStuff from "./pages/MyStuff";
+import HeaderBar from "./components/HeaderBar";
 
 function getHashPath() {
   if (typeof window === "undefined") return "/";
@@ -17,11 +18,14 @@ export default function App() {
     return () => window.removeEventListener("hashchange", onHashChange);
   }, []);
 
-  switch (path) {
-    case "/mystuff":
-      return <MyStuff />;
-    case "/":
-    default:
-      return <Home />;
-  }
+  const Page = path === "/mystuff" ? MyStuff : Home;
+
+  return (
+    <div className="min-h-screen w-full bg-portfolio-gradient text-slate-100">
+      <div className="mx-auto flex min-h-screen w-full max-w-8xl flex-col px-6 pb-12 pt-8 lg:px-10">
+        <HeaderBar activePath={path} />
+        <Page />
+      </div>
+    </div>
+  );
 }

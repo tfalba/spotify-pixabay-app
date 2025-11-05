@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useSpotifyWebPlayback } from "../hooks/useSpotifyWebPlayback";
 import backgroundPlayer from "../assets/IMG_4028.jpg";
 

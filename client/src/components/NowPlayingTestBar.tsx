@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useSpotifyWebPlayback } from "../hooks/useSpotifyWebPlayback";
 
 // Some safe test URIs to try
