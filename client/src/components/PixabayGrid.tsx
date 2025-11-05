@@ -1,3 +1,5 @@
+import { FlipPhotoGrid } from "./FlipPhotoGrid";
+
 export default function PixabayGrid({
   images,
   keywords,
@@ -11,8 +13,8 @@ export default function PixabayGrid({
 }) {
   return (
     <section className=" xl:col-span-1 xl:col-start-3
-           flex min-w-0 flex-col rounded-3xl border border-teal/40
-           bg-gradient-to-br from-sapphire/90 via-aurora/80 to-sapphire/70 p-6 shadow-glow max-h-[max(600px,calc(100vh-10rem))] overflow-y-scroll">
+           flex min-w-0 flex-col rounded-3xl border border-[white]/90
+           bg-gradient-to-br from-[sapphire/90] via-[aurora/80] to-[sapphire/70] p-6 shadow-glow max-h-[max(600px,calc(100vh-10rem))] overflow-y-scroll">
       <div>
         <h2 className="text-lg font-semibold tracking-tight text-slate-50">
           Visual Moodboard
@@ -24,27 +26,12 @@ export default function PixabayGrid({
 
       <div className="mt-4 flex flex-col gap-4">
         <div className="flex flex-col gap-4">
-          {images?.length > 0 && (
-            <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
-              {images.map((img) => (
-                <a
-                  key={img.id}
-                  href={img.pageURL}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="group overflow-hidden rounded-2xl border border-white/10 bg-black/20 shadow-soft transition hover:border-teal/60 hover:shadow-glow"
-                  title={img.alt}
-                >
-                  <img
-                    src={img.thumb}
-                    alt={img.alt}
-                    className="h-32 w-full object-cover transition duration-200 ease-out group-hover:scale-[1.05]"
-                    loading="lazy"
-                  />
-                </a>
-              ))}
+          {images.length >= 2 && (
+            <div className="mt-4">
+              <FlipPhotoGrid images={images} />
             </div>
           )}
+       
         </div>
 
         <div className="rounded-2xl border border-white/10 bg-black/20 p-4 text-xs text-slate-300 shadow-inner">

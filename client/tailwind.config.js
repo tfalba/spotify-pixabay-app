@@ -7,7 +7,7 @@ export default {
       md: "768px",
       lg: "1024px",
       xl: "1280px",
-      xxl: "1300px", // custom sits between xl and 2xl if you want
+      xxl: "1300px", // custom breakpoint for wide layouts
       "2xl": "1536px",
     },
     extend: {
@@ -31,6 +31,18 @@ export default {
       boxShadow: {
         glow: "0 20px 45px -25px rgba(124,92,252,0.45)",
         soft: "0 12px 30px -18px rgba(15,23,42,0.55)",
+      },
+      keyframes: {
+        flipY: {
+          "0%": { transform: "rotateY(0deg)" },
+          "49%": { transform: "rotateY(179.9deg)" },
+          "50%": { transform: "rotateY(180deg)" },
+          "99%": { transform: "rotateY(359.9deg)" },
+          "100%": { transform: "rotateY(360deg)" },
+        },
+      },
+      animation: {
+        flipY: "flipY 10s linear infinite", // duration overridden per-card inline
       },
     },
   },

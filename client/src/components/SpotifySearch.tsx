@@ -60,7 +60,7 @@ export default function SpotifySearch({
 
   return (
     <section className="xl:col-span-1 xl:col-start-1
-           flex min-w-0 flex-col rounded-3xl border border-teal/40 p-6 shadow-glow max-h-[max(600px,calc(100vh-10rem))] overflow-y-scroll">
+           flex min-w-0 flex-col rounded-3xl border border-[sapphire]/10 p-6 shadow-glow max-h-[max(600px,calc(100vh-10rem))] overflow-y-scroll">
       <div className="flex items-center gap-3 pb-4">
         <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-card-glow text-2xl text-accent shadow-glow">
           ♪
@@ -75,13 +75,13 @@ export default function SpotifySearch({
         </div>
       </div>
       <div className="space-y-4">
-        <div className="flex items-center gap-2 rounded-2xl border border-white/10 bg-black/30 px-3 py-2 shadow-inner">
+        <div className="flex items-center gap-2 rounded-2xl shadow-glow">
           <input
             ref={inputRef}
             value={q}
             onChange={(e) => setQ(e.target.value)}
             placeholder="Search Spotify tracks..."
-            className="w-full rounded-xl border border-white/10 bg-black/20 px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/40"
+            className="w-full rounded-xl border border-transparent bg-gradient-to-br from-[sapphire]/90 via-[white]/30 to-[sapphire]/70 px-3 py-2 text-sm text-amber-100 placeholder:text-[white]-300 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/40"
           />
           {q && (
             <button

@@ -9,9 +9,9 @@ export default function LyricPlayerContainer({
 }) {
   return (
     <aside className="xl:col-span-1 xl:col-start-2
-           flex min-w-0 flex-col rounded-3xl border border-aurora/40
-           bg-gradient-to-br from-sapphire/90 via-white/10 to-sapphire/70 p-6 shadow-glow max-h-[max(600px,calc(100vh-10rem))]">
-      <div className="rounded-2xl border border-white/10 bg-sapphire/60 p-1 shadow-glow">
+           flex min-w-0 flex-col rounded-3xl border border-[pink]/80
+            p-6 shadow-glow max-h-[max(600px,calc(100vh-10rem))]">
+      <div className="rounded-2xl border border-white/10 bg-[sapphire]/60 p-1 shadow-glow">
         <h2 className="text-sm font-semibold uppercase tracking-[0.2em] text-slate-400">
           Now Playing
         </h2>
@@ -30,7 +30,7 @@ export default function LyricPlayerContainer({
             <img
               src={backgroundPlayer}
               alt="Abstract gradient record"
-              className="h-20 w-full object-cover"
+              className="h-18 w-full object-cover"
             />
           )}
         </div>

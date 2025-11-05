@@ -15,15 +15,18 @@ export async function imagesFromLyrics(lyrics: string): Promise<{
   keywords: string[];
   images: ImageCard[];
 }> {
-  const keywords = await extractDescriptiveKeywords(lyrics); // 3 items
-  const perKeyword = Math.ceil(15 / keywords.length); // 5 each
+  const keywords = await extractDescriptiveKeywords(lyrics); // now 5 items
+
+  const perKeyword = 6;   // ⬅️ six per keyword => 30 base
+  const overfetch = 2;    // small buffer to help dedupe
+  const desiredTotal = 30;
 
   const batches = await Promise.all(
-    keywords.map((k) => fetchPixabayImagesForKeyword(k, perKeyword + 2)) // overfetch to allow dedupe
+    keywords.map((k) => fetchPixabayImagesForKeyword(k, perKeyword + overfetch))
   );
 
-  const all: PixabayImage[] = dedupeById(batches.flat());
-  const picked = shuffle(all).slice(0, 15);
+  const all = dedupeById(batches.flat());
+  const picked = shuffle(all).slice(0, desiredTotal); // ⬅️ 30 images
 
   const images: ImageCard[] = picked.map((h) => ({
     id: h.id,
@@ -37,3 +40,4 @@ export async function imagesFromLyrics(lyrics: string): Promise<{
 
   return { keywords, images: shuffle(images) };
 }
+

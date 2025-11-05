@@ -8,8 +8,8 @@ export async function extractDescriptiveKeywords(lyrics: string): Promise<string
     properties: {
       keywords: {
         type: "array",
-        minItems: 5,
-        maxItems: 5,
+        minItems: 5,      // ⬅️ was 3
+        maxItems: 5,      // ⬅️ was 3
         items: {
           type: "string",
           description:
@@ -25,7 +25,7 @@ export async function extractDescriptiveKeywords(lyrics: string): Promise<string
 
   const prompt = `
 You are a music-to-image tagger.
-Given song lyrics, return exactly three to five concise, descriptive keywords that would produce evocative, literal imagery on stock photo sites.
+Given song lyrics, return exactly FIVE concise, descriptive keywords that would produce evocative, literal imagery on stock photo sites.
 Prefer concrete, visual terms over abstract emotions.
 No multi-word phrases; no punctuation; no duplicates.
 
@@ -47,5 +47,5 @@ Lyrics:
   });
 
   const json = JSON.parse(res.output_text!);
-  return json.keywords as string[]; // exactly 3
+  return json.keywords as string[]; // exactly 5
 }
