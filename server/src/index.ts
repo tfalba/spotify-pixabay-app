@@ -135,7 +135,6 @@ app.get("/api/me", async (req, res) => {
 app.get("/api/me/playlists", async (req, res) => {
   try {
     const token = await refreshIfNeeded(req, res);
-    console.log("Fetched token for playlists:", token);
     let url = "https://api.spotify.com/v1/me/playlists?limit=50";
     const items: any[] = [];
     while (url) {
@@ -199,5 +198,4 @@ app.listen(PORT, () =>
   console.log(`Server listening on http://127.0.0.1:${PORT}`)
 );
 
-// app.listen(5173, () => console.log("API listening on :5173"));
 

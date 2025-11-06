@@ -31,7 +31,9 @@ export default function TrackCard({
         </div>
 
         <div className="truncate text-xs text-slate-300">
-          {track.artists[0]?.name}
+          {Array.isArray(track.artists)
+            ? track.artists[0]?.name ?? ""
+            : (track.artists as unknown as string)}
         </div>
       </div>
     </div>

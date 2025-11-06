@@ -27,10 +27,11 @@ export default function SpotifySearch({
       const out: Track[] = items.map((it) => ({
         id: it.id,
         name: it.name,
-        artists: (it.artists || []).map((a: any) => a.name).join(", "),
+        artists: (it.artists || []).map((a: any) => ({ name: a.name })),
         image: it.album?.images?.[1]?.url || it.album?.images?.[0]?.url || null,
         preview_url: it.preview_url || null,
         external_url: it.external_urls?.spotify,
+        uri: it.uri ?? null,
       }));
       setTracks(out);
     } finally {
@@ -50,7 +51,6 @@ export default function SpotifySearch({
   }, [q]);
 
   function clearSearch() {
-    if (ctrl.current) console.log("aborting" , selectedTrackId, q);
     // if (ctrl.current) ctrl.current.abort();
     setLoading(false);
     setQ("");

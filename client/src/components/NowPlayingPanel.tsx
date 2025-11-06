@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useSpotifyWebPlayback } from "../hooks/useSpotifyWebPlayback";
 import backgroundLogo from "../assets/center-logo.svg";
 
@@ -9,18 +9,22 @@ function formatTime(ms = 0) {
   return `${m}:${String(s).padStart(2, "0")}`;
 }
 
-export function NowPlayingPanel({ current }: { current: any }) {
+export function NowPlayingPanel({
+  current,
+  onTrackFinished,
+}: {
+  current: any;
+  onTrackFinished?: () => void;
+}) {
   const {
     sdkReady,
     isConnected,
     deviceId,
     playerState,
-    transferToThisDevice,
     playUris,
     pause,
     resume,
     seek,
-    setVolume,
   } = useSpotifyWebPlayback();
 
   const [pos, setPos] = useState(0);
@@ -53,6 +57,40 @@ export function NowPlayingPanel({ current }: { current: any }) {
     }
   }, [trackUri, deviceId, isConnected, playUris]);
 
+  const finishedRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (!onTrackFinished) return;
+    const currentUri =
+      playerState?.track_window?.current_track?.uri ?? current?.uri ?? null;
+    if (!currentUri || duration === 0) {
+      finishedRef.current = null;
+      return;
+    }
+
+    const position = playerState?.position ?? pos;
+    const pausedState = playerState?.paused ?? false;
+    const nearEnd = duration > 0 && duration - position <= 1200;
+    const ended = pausedState && position === 0;
+
+    if ((nearEnd || ended) && finishedRef.current !== currentUri) {
+      finishedRef.current = currentUri;
+      onTrackFinished();
+    }
+
+    if (!nearEnd && !ended && finishedRef.current === currentUri) {
+      finishedRef.current = null;
+    }
+  }, [
+    onTrackFinished,
+    playerState?.paused,
+    playerState?.position,
+    playerState?.track_window?.current_track?.uri,
+    duration,
+    pos,
+    current?.uri,
+  ]);
+
   return (
     <div>
       {/* Controls row (small) */}
@@ -68,58 +106,16 @@ export function NowPlayingPanel({ current }: { current: any }) {
           <div className="min-w-0 min-w-70 justify-end">
             <div className="flex justify-between gap-2">
               {title && <div className="truncate text-white">{title}</div>}
-              {/* <div className="truncate text-white">{title}</div> */}
               <div className="mb-2 flex flex-wrap items-center gap-2 justify-end">
-                {/* <button
-          className="rounded-lg bg-white/50 px-3 py-1 text-xs font-semibold text-midnight disabled:opacity-50"
-          onClick={transferToThisDevice}
-          disabled={!deviceId}
-          title="Transfer playback to this browser device"
-        >
-          {isConnected ? "Connected" : "Connect Web Player"}
-        </button> */}
-
-                {/* <button
-          className="rounded-lg bg-accent px-3 py-1 text-xs font-semibold disabled:opacity-50"
-          onClick={() => trackUri && playUris([trackUri])}
-          disabled={!deviceId || !trackUri}
-        >
-          Play
-        </button> */}
-{title?.length > 0 && (
-                <button
-                  className="rounded-full bg-white/80 text-xs disabled:opacity-5 py-1 px-2 font-semibold text-midnight"
-                  onClick={paused ? resume : pause}
-                  disabled={!deviceId}
-                >
-                  {paused ? ">" : "="}
-                </button>
-              )}
-
-                {/* Volume quick buttons (optional) */}
-                {/* <div className="ml-2 flex items-center gap-1 text-xs">
-          <button
-            className="rounded bg-white/10 px-2 py-1"
-            onClick={() => setVolume(20)}
-            disabled={!deviceId}
-          >
-            Vol 20%
-          </button>
-          <button
-            className="rounded bg-white/10 px-2 py-1"
-            onClick={() => setVolume(60)}
-            disabled={!deviceId}
-          >
-            60%
-          </button>
-          <button
-            className="rounded bg-white/10 px-2 py-1"
-            onClick={() => setVolume(100)}
-            disabled={!deviceId}
-          >
-            100%
-          </button>
-        </div> */}
+                {title?.length > 0 && (
+                  <button
+                    className="rounded-full bg-white/80 text-xs disabled:opacity-5 py-1 px-2 font-semibold text-midnight"
+                    onClick={paused ? resume : pause}
+                    disabled={!deviceId}
+                  >
+                    {paused ? ">" : "="}
+                  </button>
+                )}
               </div>
             </div>
             <div className="truncate text-slate-300 text-sm">{artists}</div>

@@ -1,5 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
-import { getAllPlaylistTracks, getAllUserPlaylists, type SpotifyPlaylist, type SpotifyTrack } from "../lib/spotify";
+import {
+  getAllPlaylistTracks,
+  getAllUserPlaylists,
+  type SpotifyPlaylist,
+  type SpotifyTrack,
+} from "../lib/spotify";
 import TrackCard from "./TrackCard";
 import type { Track } from "../types/types";
 import {
@@ -14,14 +19,29 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 
 type Props = {
   onPick: (t: Track | null) => void; // hook into your NowPlaying
-    selectedTrackId?: string | null;
+  selectedTrackId?: string | null;
+  onQueueChange?: (tracks: Track[]) => void;
 };
 
-export default function PlaylistPicker({ onPick, selectedTrackId }: Props) {
+const mapToTrack = (t: SpotifyTrack): Track => ({
+  id: t.id,
+  name: t.name,
+  artists: t.artists,
+  image: t.image,
+  preview_url: t.preview_url,
+  external_url: t.external_url,
+  uri: t.uri,
+});
+
+export default function PlaylistPicker({
+  onPick,
+  selectedTrackId,
+  onQueueChange,
+}: Props) {
   const [loading, setLoading] = useState(true);
   const [playlists, setPlaylists] = useState<SpotifyPlaylist[]>([]);
   const [selectedId, setSelectedId] = useState<string>("");
-  const [tracks, setTracks] = useState<SpotifyTrack[]>([]);
+  const [tracks, setTracks] = useState<Track[]>([]);
   const [error, setError] = useState<string>("");
 
   useEffect(() => {
@@ -46,7 +66,9 @@ export default function PlaylistPicker({ onPick, selectedTrackId }: Props) {
       try {
         setLoading(true);
         const ts = await getAllPlaylistTracks(selectedId);
-        setTracks(ts);
+        const normalized = ts.map(mapToTrack);
+        setTracks(normalized);
+        onQueueChange?.(normalized);
       } catch (e: any) {
         setError(e.message ?? "Failed to load tracks");
       } finally {
@@ -70,17 +92,28 @@ export default function PlaylistPicker({ onPick, selectedTrackId }: Props) {
   const selected = options.find((o) => o.id === selectedId);
 
   return (
-    // <div className="space-y-6">
-         <section className="xl:col-span-1 xl:col-start-1
-           flex min-w-0 flex-col rounded-3xl border border-[amber]/80 p-6 shadow-glow max-h-[max(600px,calc(100vh-10rem))] overflow-y-scroll">
+    <section
+      className="xl:col-span-1 xl:col-start-1
+           flex min-w-0 flex-col rounded-3xl border border-[amber]/80 p-6 shadow-glow max-h-[max(600px,calc(100vh-10rem))] overflow-y-scroll"
+    >
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-sm font-semibold uppercase tracking-[0.2em] text-slate-400">Playlists</h2>
-        {loading ? <span className="text-xs text-slate-500">loading…</span> : null}
+        <h2 className="text-sm font-semibold uppercase tracking-[0.2em] text-slate-400">
+          Playlists
+        </h2>
+        {loading ? (
+          <span className="text-xs text-slate-500">loading…</span>
+        ) : null}
       </div>
 
+      {error && (
+        <div className="mb-4 rounded-xl border border-red-500/30 bg-red-500/10 px-3 py-2 text-xs text-red-200">
+          {error}
+        </div>
+      )}
+
       {/* Dropdown */}
-   {/* shadcn/ui Select */}
+      {/* shadcn/ui Select */}
       <Select value={selectedId} onValueChange={setSelectedId}>
         <SelectTrigger
           className="w-full rounded-xl border border-white/40 h-12 bg-sapphire text-white px-4 py-3
@@ -101,7 +134,9 @@ export default function PlaylistPicker({ onPick, selectedTrackId }: Props) {
           <ScrollArea className="max-h-80 overflow-scroll">
             <SelectGroup>
               {options.length === 0 && (
-                <div className="px-3 py-2 text-sm text-slate-400">No playlists found</div>
+                <div className="px-3 py-2 text-sm text-slate-400">
+                  No playlists found
+                </div>
               )}
               {options.map((o) => (
                 <SelectItem
@@ -139,31 +174,30 @@ export default function PlaylistPicker({ onPick, selectedTrackId }: Props) {
       {/* Tracks list */}
       {/* {error && (
         <div className="rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-200">{error}</div>
-      )} */}
+      )}  // Currently not showing error to user */}
 
       <ul className="divide-y divide-white/5 overflow-hidden overflow-scroll rounded-2xl border border-white/10 bg-black/30 mt-6 shadow-inner">
         {tracks.map((t) => {
-                    const isSelected = selectedTrackId === t.id;
-                    return (
-                      <button
-                        key={t.id}
-                        onClick={() => onPick(t)}
-                        className={`flex w-full min-w-0 p-2 text-left rounded-2xl border transition ${
-                          isSelected
-                            ? "border-white/70 bg-white/10 shadow-glow"
-                            : "border-transparent bg-white/7 hover:border-teal/40 hover:bg-white/10"
-                        }`}
-                        type="button"
-                      >
-                        <TrackCard track={t} selected={isSelected} />
-                      </button>
-                    );
-                  })}
+          const isSelected = selectedTrackId === t.id;
+          return (
+            <button
+              key={t.id}
+              onClick={() => onPick(t)}
+              className={`flex w-full min-w-0 p-2 text-left rounded-2xl border transition ${
+                isSelected
+                  ? "border-white/70 bg-white/10 shadow-glow"
+                  : "border-transparent bg-white/7 hover:border-teal/40 hover:bg-white/10"
+              }`}
+              type="button"
+            >
+              <TrackCard track={t} selected={isSelected} />
+            </button>
+          );
+        })}
         {!loading && tracks.length === 0 && (
           <li className="p-4 text-center text-sm text-slate-400">No tracks</li>
         )}
       </ul>
-      </section>
-    // </div>
+    </section>
   );
 }

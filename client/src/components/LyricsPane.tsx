@@ -30,7 +30,6 @@ export default function LyricsPane({
     )
       .then((d) => {
         setText(d.lyrics || "");
-        console.log(d.lyrics, "lyrics");
         setSource(d.source || "");
       })
       .catch(() => {
@@ -49,7 +48,7 @@ export default function LyricsPane({
 
   return (
     <div className="flex-1 overflow-hidden overflow-y-scroll rounded-2xl border border-white/30 bg-gradient-to-br from-[accent/90] via-[white/10] to-[accent/50] p-5">
-      <h2 className="text-lg font-semibold tracking-tight text-slate-50">
+      <h2 className="text-lg font-semibold tracking-tight text-slate-50 mb-1">
         Lyrics
       </h2>
       <p className="text-xs uppercase tracking-[0.3em] text-amber/70">
