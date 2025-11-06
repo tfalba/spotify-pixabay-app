@@ -31,7 +31,7 @@ export default function TrackCard({
         </div>
 
         <div className="truncate text-xs text-slate-300">
-          {track.artists}
+          {track.artists[0]?.name}
         </div>
       </div>
     </div>

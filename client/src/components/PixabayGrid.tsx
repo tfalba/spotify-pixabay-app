@@ -1,4 +1,5 @@
 import { FlipPhotoGrid } from "./FlipPhotoGrid";
+import centerLogo from "../assets/center-logo.svg";
 
 export default function PixabayGrid({
   images,
@@ -14,7 +15,7 @@ export default function PixabayGrid({
   return (
     <section className=" xl:col-span-1 xl:col-start-3
            flex min-w-0 flex-col rounded-3xl border border-[white]/90
-           bg-gradient-to-br from-[sapphire/90] via-[aurora/80] to-[sapphire/70] p-6 shadow-glow max-h-[max(600px,calc(100vh-10rem))] overflow-y-scroll">
+           bg-gradient-to-br from-[teal/90] via-[aurora/80] to-[sapphire/70] p-6 shadow-glow max-h-[max(600px,calc(100vh-10rem))] overflow-y-scroll">
       <div>
         <h2 className="text-lg font-semibold tracking-tight text-slate-50">
           Visual Moodboard
@@ -26,9 +27,14 @@ export default function PixabayGrid({
 
       <div className="mt-4 flex flex-col gap-4">
         <div className="flex flex-col gap-4">
-          {images.length >= 2 && (
+          {images.length >= 2 ? (
             <div className="mt-4">
               <FlipPhotoGrid images={images} />
+            </div>
+          ) : (
+            <div className="mt-4 place-items-center">
+              <img src={centerLogo} alt="App logo" className="h-80 w-auto animate-flipY" />
+             
             </div>
           )}
        
@@ -41,9 +47,9 @@ export default function PixabayGrid({
               Finding imagery…
             </div>
           )}
-          {error && (
+          {/* {error && (
             <div className="text-red-400">Image search error: {error}</div>
-          )}
+          )} */}
           {images?.length === 0 && !loading && !error && (
             <div>No images yet. Pick a track to get inspired.</div>
           )}

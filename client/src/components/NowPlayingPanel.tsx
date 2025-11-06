@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useSpotifyWebPlayback } from "../hooks/useSpotifyWebPlayback";
-import backgroundPlayer from "../assets/IMG_4028.jpg";
+import backgroundLogo from "../assets/center-logo.svg";
 
 function formatTime(ms = 0) {
   const sec = Math.floor(ms / 1000);
@@ -31,10 +31,8 @@ export function NowPlayingPanel({ current }: { current: any }) {
   const trackUri =
     current?.uri || (current?.id ? `spotify:track:${current.id}` : undefined);
   const cover =
-    current?.album?.images?.[0]?.url ||
-    current?.image ||
-    backgroundPlayer;
-  const title = current?.name || "—";
+    current?.album?.images?.[0]?.url || current?.image || backgroundLogo;
+  const title = current?.name || "";
   const artists = Array.isArray(current?.artists)
     ? current.artists.map((a: any) => a.name).join(", ")
     : "";
@@ -58,34 +56,48 @@ export function NowPlayingPanel({ current }: { current: any }) {
   return (
     <div>
       {/* Controls row (small) */}
-      <div className="mb-2 flex flex-wrap items-center gap-2">
-        <button
-          className="rounded bg-teal px-3 py-1 text-xs font-semibold text-midnight disabled:opacity-50"
+
+      <h2 className="text-sm font-semibold uppercase tracking-[0.2em] text-slate-400">
+        Now Playing
+      </h2>
+
+      <div className="mt-3 overflow-hidden rounded-2xl border border-white/10 bg-black/40 shadow-inner">
+        {/* Artwork + meta */}
+        <div className="flex items-center gap-3 p-3">
+          <img src={cover} alt="" className="h-16 w-16 rounded object-cover" />
+          <div className="min-w-0 min-w-70 justify-end">
+            <div className="flex justify-between gap-2">
+              {title && <div className="truncate text-white">{title}</div>}
+              {/* <div className="truncate text-white">{title}</div> */}
+              <div className="mb-2 flex flex-wrap items-center gap-2 justify-end">
+                {/* <button
+          className="rounded-lg bg-white/50 px-3 py-1 text-xs font-semibold text-midnight disabled:opacity-50"
           onClick={transferToThisDevice}
           disabled={!deviceId}
           title="Transfer playback to this browser device"
         >
           {isConnected ? "Connected" : "Connect Web Player"}
-        </button>
+        </button> */}
 
-        <button
-          className="rounded bg-accent px-3 py-1 text-xs font-semibold disabled:opacity-50"
+                {/* <button
+          className="rounded-lg bg-accent px-3 py-1 text-xs font-semibold disabled:opacity-50"
           onClick={() => trackUri && playUris([trackUri])}
           disabled={!deviceId || !trackUri}
         >
           Play
-        </button>
+        </button> */}
+{title?.length > 0 && (
+                <button
+                  className="rounded-full bg-white/80 text-xs disabled:opacity-5 py-1 px-2 font-semibold text-midnight"
+                  onClick={paused ? resume : pause}
+                  disabled={!deviceId}
+                >
+                  {paused ? ">" : "="}
+                </button>
+              )}
 
-        <button
-          className="rounded bg-white/20 px-3 py-1 text-xs disabled:opacity-50"
-          onClick={paused ? resume : pause}
-          disabled={!deviceId}
-        >
-          {paused ? "Resume" : "Pause"}
-        </button>
-
-        {/* Volume quick buttons (optional) */}
-        <div className="ml-2 flex items-center gap-1 text-xs">
+                {/* Volume quick buttons (optional) */}
+                {/* <div className="ml-2 flex items-center gap-1 text-xs">
           <button
             className="rounded bg-white/10 px-2 py-1"
             onClick={() => setVolume(20)}
@@ -107,23 +119,9 @@ export function NowPlayingPanel({ current }: { current: any }) {
           >
             100%
           </button>
-        </div>
-      </div>
-
-      <h2 className="text-sm font-semibold uppercase tracking-[0.2em] text-slate-400">
-        Now Playing
-      </h2>
-
-      <div className="mt-3 overflow-hidden rounded-2xl border border-white/10 bg-black/40 shadow-inner">
-        {/* Artwork + meta */}
-        <div className="flex items-center gap-3 p-3">
-          <img
-            src={cover}
-            alt=""
-            className="h-16 w-16 rounded object-cover"
-          />
-          <div className="min-w-0">
-            <div className="truncate text-white">{title}</div>
+        </div> */}
+              </div>
+            </div>
             <div className="truncate text-slate-300 text-sm">{artists}</div>
             <div className="text-xs text-slate-400">
               {sdkReady ? "SDK ready" : "Loading SDK…"} ·{" "}

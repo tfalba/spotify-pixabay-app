@@ -30,22 +30,22 @@ export function useSpotifyWebPlayback() {
   useEffect(() => {
     if (!sdkReady || playerRef.current) return;
 
-   const player = new window.Spotify.Player({
-  name: "Web Player (Dev)",
-  volume: 0.7,
-  getOAuthToken: async (cb) => {
-    try {
-      const res = await fetch("/auth/token", { credentials: "include" });
-      if (!res.ok) throw new Error(await res.text());
-      const { access_token } = await res.json();
-      cb(access_token);
-    } catch (err) {
-      console.error("Unable to fetch access token:", err);
-      // Optionally redirect to login if 401
-      // location.href = "/auth/login";
-    }
-  },
-});
+    const player = new window.Spotify.Player({
+      name: "Web Player (Dev)",
+      volume: 0.7,
+      getOAuthToken: async (cb) => {
+        try {
+          const res = await fetch("/auth/token", { credentials: "include" });
+          if (!res.ok) throw new Error(await res.text());
+          const { access_token } = await res.json();
+          cb(access_token);
+        } catch (err) {
+          console.error("Unable to fetch access token:", err);
+          // Optionally redirect to login if 401
+          // location.href = "/auth/login";
+        }
+      },
+    });
 
     player.addListener("ready", ({ device_id }) => {
       setDeviceId(device_id);
@@ -143,7 +143,10 @@ export function useSpotifyWebPlayback() {
   }, []);
 
   const previousTrack = useCallback(async () => {
-    await fetch("/api/player/previous", { method: "POST", credentials: "include" });
+    await fetch("/api/player/previous", {
+      method: "POST",
+      credentials: "include",
+    });
   }, []);
 
   const seek = useCallback(async (position_ms: number) => {

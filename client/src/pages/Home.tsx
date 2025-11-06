@@ -29,7 +29,7 @@ export default function Home() {
     setKeywords([]);
     get<{ lyrics: string; source: string }>(
       `/api/lyrics?artist=${encodeURIComponent(
-        current.artists
+        current.artists[0]?.name || ""
       )}&title=${encodeURIComponent(current.name)}`
     )
       .then((d) => {

@@ -48,7 +48,7 @@ export default function LyricsPane({
   }
 
   return (
-    <div className="flex-1 overflow-hidden rounded-2xl border border-white/10 bg-sapphire/70 p-5 shadow-glow">
+    <div className="flex-1 overflow-hidden overflow-y-scroll rounded-2xl border border-white/30 bg-gradient-to-br from-[accent/90] via-[white/10] to-[accent/50] p-5">
       <h2 className="text-lg font-semibold tracking-tight text-slate-50">
         Lyrics
       </h2>

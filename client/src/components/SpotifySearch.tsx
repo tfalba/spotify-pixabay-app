@@ -50,7 +50,8 @@ export default function SpotifySearch({
   }, [q]);
 
   function clearSearch() {
-    if (ctrl.current) ctrl.current.abort();
+    if (ctrl.current) console.log("aborting" , selectedTrackId, q);
+    // if (ctrl.current) ctrl.current.abort();
     setLoading(false);
     setQ("");
     setTracks([]);
@@ -60,7 +61,7 @@ export default function SpotifySearch({
 
   return (
     <section className="xl:col-span-1 xl:col-start-1
-           flex min-w-0 flex-col rounded-3xl border border-[sapphire]/10 p-6 shadow-glow max-h-[max(600px,calc(100vh-10rem))] overflow-y-scroll">
+           flex min-w-0 flex-col rounded-3xl border border-[amber]/80 p-6 shadow-glow max-h-[max(600px,calc(100vh-10rem))] overflow-y-scroll">
       <div className="flex items-center gap-3 pb-4">
         <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-card-glow text-2xl text-accent shadow-glow">
           ♪
@@ -81,16 +82,16 @@ export default function SpotifySearch({
             value={q}
             onChange={(e) => setQ(e.target.value)}
             placeholder="Search Spotify tracks..."
-            className="w-full rounded-xl border border-transparent bg-gradient-to-br from-[sapphire]/90 via-[white]/30 to-[sapphire]/70 px-3 py-2 text-sm text-amber-100 placeholder:text-[white]-300 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/40"
+            className="w-full rounded-xl border border-transparent bg-gradient-to-br from-[sapphire]/20 via-[white]/30 to-[sapphire]/70 px-3 py-2 text-sm text-amber-100 placeholder:text-[white]-300 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/40"
           />
           {q && (
             <button
               type="button"
               onClick={clearSearch}
-              className="group inline-flex h-9 w-9 items-center justify-center rounded-full border border-transparent bg-gradient-to-br from-amber via-amber/85 to-accent/70 shadow-[0_12px_25px_-18px_rgba(251,191,36,0.9)] transition duration-200 hover:-translate-y-0.5 hover:shadow-[0_18px_35px_-16px_rgba(124,92,252,0.55)] focus:outline-none focus:ring-2 focus:ring-amber/50"
+              className="group inline-flex w-9 h-9 items-center justify-center rounded-full border border-transparent shadow-[0_12px_25px_-18px_rgba(251,191,36,0.9)] transition duration-200 hover:-translate-y-0.5 hover:shadow-[0_18px_35px_-16px_rgba(124,92,252,0.55)] focus:outline-none focus:ring-2 focus:ring-amber/50"
               aria-label="Clear search"
             >
-              <span className="text-lg font-semibold leading-none text-amber transition group-hover:rotate-90">
+              <span className="text-md font-semibold leading-none text-amber transition group-hover:rotate-90">
                 ×
               </span>
             </button>

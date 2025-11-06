@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
 import LyricPlayerContainer from "../components/LyricPlayerContainer";
 import PixabayGrid from "../components/PixabayGrid";
-import PlayListView from "../components/PlayListView";
 import { useLyricsImages } from "../hooks/useLyricsImages";
 import type { Track } from "../types/types";
 import { get } from "../lib/fetcher";
+import PlaylistPicker from "../components/PlaylistPicker";
 
 export default function MyStuff() {
   const [current, setCurrent] = useState<Track | null>(null);
@@ -29,7 +29,7 @@ export default function MyStuff() {
       setKeywords([]);
       get<{ lyrics: string; source: string }>(
         `/api/lyrics?artist=${encodeURIComponent(
-          current.artists
+          current.artists[0]?.name || ""
         )}&title=${encodeURIComponent(current.name)}`
       )
         .then((d) => {
@@ -42,7 +42,7 @@ export default function MyStuff() {
   
   return (
     <main className="mt-4 flex flex-1 flex-col gap-6 lg:grid lg:grid-cols-3 xl:grid xl:grid-cols-[25%_31%_41%]">
-      <PlayListView
+      <PlaylistPicker
         onPick={setCurrent}
         selectedTrackId={current?.id ?? null}
       />
