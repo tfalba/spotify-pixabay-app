@@ -27,14 +27,18 @@ export default function PixabayGrid({
         </p>
       </div>
 
-      <div className="mt-4 flex flex-col gap-4">
+      <div
+        className={`flex flex-col gap-4 ${
+          (!images.length || images.length === 0) ?  "m-auto" : "mt-4"
+        }`}
+      >
         <div className="flex flex-col gap-4">
           {images.length >= 2 ? (
             <div className="mt-4">
               <FlipPhotoGrid images={images} />
             </div>
           ) : (
-            <div className="mt-4 place-items-center">
+            <div className="m-auto place-items-center">
               <img
                 src={centerLogo}
                 alt="App logo"

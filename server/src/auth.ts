@@ -93,6 +93,11 @@ export async function callback(req: Request, res: Response) {
     sameSite: "lax",
     signed: true,
   });
+  res.cookie("sp_last_seen", Date.now().toString(), {
+    httpOnly: true,
+    sameSite: "lax",
+    signed: true,
+  });
 
   // res.redirect("/");
   res.redirect(env.CLIENT_ORIGIN + "/");
@@ -129,6 +134,11 @@ export async function refreshToken(req: Request, res: Response) {
     signed: true,
     maxAge: json.expires_in * 1000,
   });
+  res.cookie("sp_last_seen", Date.now().toString(), {
+    httpOnly: true,
+    sameSite: "lax",
+    signed: true,
+  });
   res.json({ ok: true });
 }
 
@@ -141,15 +151,23 @@ export function logout(req: Request, res: Response) {
 
 export async function token(req: Request, res: Response) {
   try {
+    const lastSeenRaw = req.signedCookies["sp_last_seen"] as string | undefined;
+    const lastSeen = lastSeenRaw ? Number(lastSeenRaw) : null;
+    const inactiveTooLong =
+      lastSeen !== null ? Date.now() - lastSeen > 60 * 60 * 1000 : false;
     const current = req.signedCookies["sp_access"] as string | undefined;
-    if (current) {
-      // Access token is present; return it
-      return res.json({ access_token: current });
-    }
-
     const refresh = req.signedCookies["sp_refresh"] as string | undefined;
     if (!refresh) {
       return res.status(401).json({ error: "not_authenticated" });
+    }
+
+    if (current && !inactiveTooLong) {
+      res.cookie("sp_last_seen", Date.now().toString(), {
+        httpOnly: true,
+        sameSite: "lax",
+        signed: true,
+      });
+      return res.json({ access_token: current });
     }
 
     // Refresh the access token using the refresh token cookie
@@ -183,6 +201,11 @@ export async function token(req: Request, res: Response) {
       sameSite: "lax",
       signed: true,
       maxAge,
+    });
+    res.cookie("sp_last_seen", Date.now().toString(), {
+      httpOnly: true,
+      sameSite: "lax",
+      signed: true,
     });
 
     // Some refresh responses return a new refresh_token; if so, rotate it.

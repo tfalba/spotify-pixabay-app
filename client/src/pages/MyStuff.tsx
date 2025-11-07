@@ -55,13 +55,9 @@ export default function MyStuff() {
     }
 
     setCurrent((prev) => {
-      if (!prev) {
-        return tracks[0];
-      }
+      if (!prev) return null;
       const idx = tracks.findIndex((t) => t.id === prev.id);
-      if (idx === -1) {
-        return tracks[0];
-      }
+      if (idx === -1) return null;
       return prev;
     });
   }, []);

@@ -22,7 +22,7 @@ function FlipCard({
       target="_blank"
       rel="noreferrer"
       title={front.alt}
-      className="relative block w-full aspect-[4/3] overflow-hidden rounded-xl border border-slate-800/60 bg-slate-900/30 perspective-1000"
+      className="relative block w-full aspect-[4/3] overflow-hidden rounded-xl border border-accent-800/60 perspective-1000"
     >
       {/* flipper */}
       <span
@@ -55,7 +55,7 @@ function FlipCard({
       </span>
 
       {/* optional rim */}
-      <span className="pointer-events-none absolute inset-0 rounded-xl bg-gradient-to-r from-teal/20 via-white/5 to-teal/25 mix-blend-overlay" />
+      <span className="pointer-events-none absolute inset-0 rounded-xl bg-gradient-to-r from-midnight/20 via-white/5 to-teal/20 mix-blend-overlay" />
     </a>
   );
 }

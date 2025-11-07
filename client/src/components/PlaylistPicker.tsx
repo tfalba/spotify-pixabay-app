@@ -114,7 +114,16 @@ export default function PlaylistPicker({
 
       {/* Dropdown */}
       {/* shadcn/ui Select */}
-      <Select value={selectedId} onValueChange={setSelectedId}>
+      <Select
+        value={selectedId}
+        onValueChange={(value) => {
+          if (value !== selectedId) {
+            onPick(null);
+            setTracks([]);
+          }
+          setSelectedId(value);
+        }}
+      >
         <SelectTrigger
           className="w-full rounded-xl border border-white/40 h-12 bg-sapphire text-white px-4 py-3
                      focus:ring-2 focus:ring-accent/50 focus:outline-none"
