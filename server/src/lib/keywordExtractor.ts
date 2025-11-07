@@ -3,6 +3,10 @@ import OpenAI from "openai";
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY! });
 
 export async function extractDescriptiveKeywords(lyrics: string): Promise<string[]> {
+  const lines = lyrics.split(/\r?\n/);
+  const half = Math.max(1, Math.ceil(lines.length / 2));
+  const truncatedLyrics = lines.slice(0, half).join("\n");
+
   const schema = {
     type: "object",
     properties: {
@@ -23,15 +27,8 @@ export async function extractDescriptiveKeywords(lyrics: string): Promise<string
     additionalProperties: false,
   } as const;
 
-  const prompt = `
-You are a music-to-image tagger.
-Given song lyrics, return exactly FIVE concise, descriptive keywords that would produce evocative, literal imagery on stock photo sites.
-Prefer concrete, visual terms over abstract emotions.
-No multi-word phrases; no punctuation; no duplicates.
-
-Lyrics:
-"""${lyrics}"""
-`;
+  const prompt = `Return exactly five single-word visual keywords (nouns or adjectives) for stock image searches based on these lyrics. ` +
+    `Use concrete imagery, avoid emotions, duplicates, punctuation, or multi-word phrases.\n\nLyrics:\n"""${truncatedLyrics}"""`;
 
   const res = await openai.responses.create({
     model: "gpt-4o-mini",

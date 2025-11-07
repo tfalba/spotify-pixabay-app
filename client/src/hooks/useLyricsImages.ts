@@ -13,6 +13,7 @@ type ImageCard = {
 type LyricsImagesResponse = {
   keywords: string[];
   images: ImageCard[];
+  cached?: boolean;
 };
 
 export function useLyricsImages() {
@@ -21,7 +22,7 @@ export function useLyricsImages() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchImages = async (lyrics: string) => {
+  const fetchImages = async (lyrics: string, opts?: { cacheKey?: string }) => {
     if (!lyrics) return;
     setLoading(true);
     setError(null);
@@ -31,7 +32,7 @@ export function useLyricsImages() {
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ lyrics }),
+          body: JSON.stringify({ lyrics, cacheKey: opts?.cacheKey }),
         }
       );
 

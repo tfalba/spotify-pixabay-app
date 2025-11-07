@@ -28,13 +28,19 @@ export default function MyStuff() {
     }
     setImages([]);
     setKeywords([]);
+    const cacheKey =
+      current?.uri ||
+      (current?.artists?.[0]?.name && current?.name
+        ? `${current.artists[0]?.name}::${current.name}`
+        : current?.id);
+
     get<{ lyrics: string; source: string }>(
       `/api/lyrics?artist=${encodeURIComponent(
         current.artists[0]?.name || ""
       )}&title=${encodeURIComponent(current.name)}`
     )
       .then((d) => {
-        fetchImages(d.lyrics);
+        fetchImages(d.lyrics, { cacheKey });
       })
       .catch(() => {
         setImages([]);
