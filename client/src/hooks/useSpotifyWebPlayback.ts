@@ -1,5 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
+const API_BASE = import.meta.env.VITE_API_BASE ?? "";
+const apiFetch = (path: string, init?: RequestInit) =>
+  fetch(`${API_BASE}${path}`, { credentials: "include", ...init });
+
 type PlayerState = Spotify.PlaybackState | null;
 
 export function useSpotifyWebPlayback() {
@@ -20,7 +24,11 @@ export function useSpotifyWebPlayback() {
       s.async = true;
       document.body.appendChild(s);
     }
-    window.onSpotifyWebPlaybackSDKReady = () => setSdkReady(true);
+    if (typeof window.Spotify !== "undefined") {
+      setSdkReady(true);
+    } else {
+      window.onSpotifyWebPlaybackSDKReady = () => setSdkReady(true);
+    }
     return () => {
       // don't remove the script: allows hot reloads without re-downloading
     };
@@ -35,7 +43,7 @@ export function useSpotifyWebPlayback() {
       volume: 0.7,
       getOAuthToken: async (cb) => {
         try {
-          const res = await fetch("/auth/token", { credentials: "include" });
+          const res = await apiFetch("/auth/token");
           if (!res.ok) throw new Error(await res.text());
           const { access_token } = await res.json();
           cb(access_token);
@@ -51,9 +59,8 @@ export function useSpotifyWebPlayback() {
       setDeviceId(device_id);
       setIsConnected(true);
       // Immediately request transfer to this device
-      fetch("/api/player/transfer", {
+      apiFetch("/api/player/transfer", {
         method: "POST",
-        credentials: "include",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ device_id }),
       });
@@ -93,18 +100,16 @@ export function useSpotifyWebPlayback() {
   // 3) Convenience actions -> hit your server routes
   const transferToThisDevice = useCallback(async () => {
     if (!deviceId) return;
-    await fetch("/api/player/transfer", {
+    await apiFetch("/api/player/transfer", {
       method: "POST",
-      credentials: "include",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ device_id: deviceId }),
     });
   }, [deviceId]);
 
   const playUris = useCallback(async (uris: string[], position_ms?: number) => {
-    await fetch("/api/player/play", {
+    await apiFetch("/api/player/play", {
       method: "PUT",
-      credentials: "include",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ uris, position_ms }),
     });
@@ -112,9 +117,8 @@ export function useSpotifyWebPlayback() {
 
   const playContext = useCallback(
     async (context_uri: string, position_ms?: number) => {
-      await fetch("/api/player/play", {
+      await apiFetch("/api/player/play", {
         method: "PUT",
-        credentials: "include",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ context_uri, position_ms }),
       });
@@ -123,57 +127,50 @@ export function useSpotifyWebPlayback() {
   );
 
   const pause = useCallback(async () => {
-    await fetch("/api/player/pause", {
+    await apiFetch("/api/player/pause", {
       method: "PUT",
-      credentials: "include",
     });
   }, []);
 
   const resume = useCallback(async () => {
-    await fetch("/api/player/play", {
+    await apiFetch("/api/player/play", {
       method: "PUT",
-      credentials: "include",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({}),
     });
   }, []);
 
   const nextTrack = useCallback(async () => {
-    await fetch("/api/player/next", { method: "POST", credentials: "include" });
+    await apiFetch("/api/player/next", { method: "POST" });
   }, []);
 
   const previousTrack = useCallback(async () => {
-    await fetch("/api/player/previous", {
+    await apiFetch("/api/player/previous", {
       method: "POST",
-      credentials: "include",
     });
   }, []);
 
   const seek = useCallback(async (position_ms: number) => {
-    await fetch(`/api/player/seek?position_ms=${position_ms}`, {
+    await apiFetch(`/api/player/seek?position_ms=${position_ms}`, {
       method: "PUT",
-      credentials: "include",
     });
   }, []);
 
   const setVolume = useCallback(async (volume_percent: number) => {
-    await fetch(`/api/player/volume?volume_percent=${volume_percent}`, {
+    await apiFetch(`/api/player/volume?volume_percent=${volume_percent}`, {
       method: "PUT",
-      credentials: "include",
     });
   }, []);
 
   const toggleShuffle = useCallback(async (state: boolean) => {
-    await fetch(`/api/player/shuffle?state=${state ? "true" : "false"}`, {
+    await apiFetch(`/api/player/shuffle?state=${state ? "true" : "false"}`, {
       method: "PUT",
-      credentials: "include",
     });
   }, []);
 
   const setRepeat = useCallback(async (state: "off" | "track" | "context") => {
-    await fetch(`/api/player/repeat?state=${state}`, {
+    await apiFetch(`/api/player/repeat?state=${state}`, {
       method: "PUT",
-      credentials: "include",
     });
   }, []);
 
