@@ -12,8 +12,8 @@ export async function extractDescriptiveKeywords(lyrics: string): Promise<string
     properties: {
       keywords: {
         type: "array",
-        minItems: 5,      // ⬅️ was 3
-        maxItems: 5,      // ⬅️ was 3
+        minItems: 4,      // ⬅️ was 3
+        maxItems: 4,      // ⬅️ was 3
         items: {
           type: "string",
           description:
@@ -27,7 +27,7 @@ export async function extractDescriptiveKeywords(lyrics: string): Promise<string
     additionalProperties: false,
   } as const;
 
-  const prompt = `Return exactly five single-word visual keywords (nouns or adjectives) for stock image searches based on these lyrics. ` +
+  const prompt = `Return exactly four single-word visual keywords (nouns or adjectives) for stock image searches based on these lyrics. ` +
     `Use concrete imagery, avoid emotions, duplicates, punctuation, or multi-word phrases.\n\nLyrics:\n"""${truncatedLyrics}"""`;
 
   const res = await openai.responses.create({
@@ -44,5 +44,5 @@ export async function extractDescriptiveKeywords(lyrics: string): Promise<string
   });
 
   const json = JSON.parse(res.output_text!);
-  return json.keywords as string[]; // exactly 5
+  return json.keywords as string[]; // exactly 4
 }

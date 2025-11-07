@@ -15,9 +15,9 @@ export async function imagesFromLyrics(lyrics: string): Promise<{
   keywords: string[];
   images: ImageCard[];
 }> {
-  const keywords = await extractDescriptiveKeywords(lyrics); // now 5 items
+  const keywords = await extractDescriptiveKeywords(lyrics); // now 4 items
 
-  const perKeyword = 6;   // ⬅️ six per keyword => 30 base
+  const perKeyword = 8;   // ⬅️ eight per keyword => 30 base
   const overfetch = 2;    // small buffer to help dedupe
   const desiredTotal = 30;
 
