@@ -19,7 +19,7 @@ export default function PlayerControls() {
         <button onClick={() => nextTrack()} className="rounded-full border border-white/10 bg-white/10 px-3 py-1 transition hover:border-teal/60 hover:bg-teal/20">Next</button>
         <button
           onClick={() => playUris(["spotify:track:3AJwUDP919kvQ9QcozQPxg"])}
-          className="rounded-full border border-accent/60 bg-accent/30 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-white transition hover:bg-accent/60"
+          className="rounded-full border-medium border-amber/80 bg-accent/30 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-white transition hover:bg-accent/60"
         >Play “Hey Ya!”</button>
       </div>
 

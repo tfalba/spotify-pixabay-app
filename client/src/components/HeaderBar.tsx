@@ -50,7 +50,7 @@ export default function HeaderBar({ activePath }: { activePath?: string }) {
   };
 
   return (
-    <header className="sticky top-0 z-50 -mx-6 flex items-center justify-between rounded-3xl border border-white/10 bg-black/20 px-6 pt-2 pb-7 backdrop-blur-lg shadow-soft lg:-mx-10 lg:px-10">
+    <header className="sticky top-0 z-50 -mx-6 flex items-center justify-between rounded-3xl border border-white/30 bg-black/60 px-6 pt-2 pb-7 backdrop-blur-lg shadow-soft lg:-mx-10 lg:px-10">
       <div>
         <p className="text-s uppercase tracking-[0.4em] text-teal/90">
           Portfolio Studio

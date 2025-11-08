@@ -10,7 +10,7 @@ function TrackCard({
   const containerClasses = [
     "flex w-full items-center gap-4 rounded-2xl border p-1 pr-2 transition",
     selected
-      ? "border-accent/70 bg-sapphire/70 shadow-glow"
+      ? "border-teal/70 border-4 bg-sapphire/70 shadow-glow"
       : "border-white/10 bg-sapphire/60 hover:border-teal/60 hover:bg-sapphire/70 hover:shadow-glow",
   ].join(" ");
 
