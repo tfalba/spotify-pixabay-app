@@ -1,7 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 import { get } from "../lib/fetcher";
 import type { Track } from "../types/types";
-import TrackCard from "./TrackCard";
+import TrackList from "./TrackList";
+import { useSpotifyPlayerContext } from "../context/SpotifyPlayerProvider";
+import { LoginButton } from "./LoginButtons";
 
 export default function SpotifySearch({
   onPick,
@@ -15,6 +17,8 @@ export default function SpotifySearch({
   const [loading, setLoading] = useState(false);
   const ctrl = useRef<AbortController | null>(null);
   const inputRef = useRef<HTMLInputElement | null>(null);
+
+  const { isAuthenticated } = useSpotifyPlayerContext();
 
   async function search(term: string) {
     if (ctrl.current) ctrl.current.abort();
@@ -60,8 +64,10 @@ export default function SpotifySearch({
   }
 
   return (
-    <section className="xl:col-span-1 xl:col-start-1
-           flex min-w-0 flex-col rounded-3xl border border-[amber]/80 p-6 shadow-glow max-h-[max(600px,calc(100vh-10rem))] overflow-y-scroll">
+    <section
+      className="xl:col-span-1 xl:col-start-1
+           flex min-w-0 flex-col rounded-3xl border border-[amber]/80 p-6 shadow-glow max-h-[max(600px,calc(100vh-10rem))] overflow-y-scroll"
+    >
       <div className="flex items-center gap-3 pb-4">
         <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-card-glow text-2xl text-accent shadow-glow">
           ♪
@@ -75,7 +81,8 @@ export default function SpotifySearch({
           </p>
         </div>
       </div>
-      <div className="space-y-4">
+      <div className="space-y-4 p-1">
+        {isAuthenticated ? (
         <div className="flex items-center gap-2 rounded-2xl shadow-glow">
           <input
             ref={inputRef}
@@ -97,6 +104,10 @@ export default function SpotifySearch({
             </button>
           )}
         </div>
+        ) : (
+          <LoginButton />
+        )}
+
 
         {loading && (
           <div className="flex items-center gap-2 text-xs text-teal">
@@ -105,25 +116,13 @@ export default function SpotifySearch({
           </div>
         )}
 
-        <div className="flex flex-col gap-3">
-          {tracks.map((t) => {
-            const isSelected = selectedTrackId === t.id;
-            return (
-              <button
-                key={t.id}
-                onClick={() => onPick(t)}
-                className={`flex w-full min-w-0 text-left rounded-2xl border transition ${
-                  isSelected
-                    ? "border-white/70 bg-white/10 shadow-glow"
-                    : "border-transparent bg-white/7 hover:border-teal/40 hover:bg-white/10"
-                }`}
-                type="button"
-              >
-                <TrackCard track={t} selected={isSelected} />
-              </button>
-            );
-          })}
-        </div>
+        {isAuthenticated && (
+          <TrackList
+            tracks={tracks}
+            onPick={onPick}
+            selectedTrackId={selectedTrackId ?? null}
+          />
+        )}
       </div>
     </section>
   );

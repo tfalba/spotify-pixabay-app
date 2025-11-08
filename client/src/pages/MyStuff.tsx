@@ -1,82 +1,53 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
+import PlaylistPicker from "../components/PlaylistPicker";
 import LyricPlayerContainer from "../components/LyricPlayerContainer";
 import PixabayGrid from "../components/PixabayGrid";
-import { useLyricsImages } from "../hooks/useLyricsImages";
 import type { Track } from "../types/types";
-import { get } from "../lib/fetcher";
-import PlaylistPicker from "../components/PlaylistPicker";
+import SpotifySearch from "@/components/SpotifySearch";
 
-export default function MyStuff() {
-  const [current, setCurrent] = useState<Track | null>(null);
+type Props = {
+  current: Track | null;
+  onPick: (track: Track | null) => void;
+  pixabay: {
+    images: any[];
+    keywords: string[];
+    loading: boolean;
+    error: string | null;
+  };
+};
+
+export default function MyStuff({ current, onPick, pixabay }: Props) {
   const [queue, setQueue] = useState<Track[]>([]);
 
-  const {
-    fetchImages,
-    keywords,
-    setKeywords,
-    images,
-    setImages,
-    loading,
-    error,
-  } = useLyricsImages();
+  const handleQueueChange = useCallback(
+    (tracks: Track[]) => {
+      setQueue(tracks);
+      if (!tracks.length) {
+        onPick(null);
+        return;
+      }
+      if (current && tracks.some((t) => t.id === current.id)) {
+        return;
+      }
+      onPick(null);
+    },
+    [current, onPick]
+  );
 
-  useEffect(() => {
-    if (!current?.artists?.length || !current?.name) {
-      setKeywords([]);
-      setImages([]);
-      return;
-    }
-    setImages([]);
-    setKeywords([]);
-    const cacheKey =
-      current?.uri ||
-      (current?.artists?.[0]?.name && current?.name
-        ? `${current.artists[0]?.name}::${current.name}`
-        : current?.id);
-
-    get<{ lyrics: string; source: string }>(
-      `/api/lyrics?artist=${encodeURIComponent(
-        current.artists[0]?.name || ""
-      )}&title=${encodeURIComponent(current.name)}`
-    )
-      .then((d) => {
-        fetchImages(d.lyrics, { cacheKey });
-      })
-      .catch(() => {
-        setImages([]);
-      });
-  }, [current]);
-
-  const handleQueueChange = useCallback((tracks: Track[]) => {
-    setQueue(tracks);
-    if (!tracks.length) {
-      setCurrent(null);
-      return;
-    }
-
-    setCurrent((prev) => {
-      if (!prev) return null;
-      const idx = tracks.findIndex((t) => t.id === prev.id);
-      if (idx === -1) return null;
-      return prev;
-    });
-  }, []);
-
-  const handlePick = useCallback((track: Track | null) => {
-    setCurrent(track);
-  }, []);
+  const handlePick = useCallback(
+    (track: Track | null) => {
+      onPick(track);
+    },
+    [onPick]
+  );
 
   const handleTrackFinished = useCallback(() => {
-    if (!queue.length) return;
-    setCurrent((prev) => {
-      if (!prev) return queue[0] ?? null;
-      const idx = queue.findIndex((t) => t.id === prev.id);
-      if (idx >= 0 && idx + 1 < queue.length) {
-        return queue[idx + 1];
-      }
-      return prev;
-    });
-  }, [queue]);
+    if (!queue.length || !current) return;
+    const idx = queue.findIndex((t) => t.id === current.id);
+    if (idx >= 0 && idx + 1 < queue.length) {
+      onPick(queue[idx + 1]);
+    }
+  }, [queue, current, onPick]);
 
   return (
     <main className="mt-4 flex flex-1 flex-col gap-6 lg:grid lg:grid-cols-3 xl:grid xl:grid-cols-[25%_31%_41%]">
@@ -85,12 +56,17 @@ export default function MyStuff() {
         selectedTrackId={current?.id ?? null}
         onQueueChange={handleQueueChange}
       />
-      <LyricPlayerContainer current={current} onTrackFinished={handleTrackFinished} />
+      {/* <SpotifySearch onPick={onPick} selectedTrackId={current?.id ?? null} /> */}
+
+      <LyricPlayerContainer
+        current={current}
+        onTrackFinished={handleTrackFinished}
+      />
       <PixabayGrid
-        images={images}
-        keywords={keywords}
-        loading={loading}
-        error={error}
+        images={pixabay.images}
+        keywords={pixabay.keywords}
+        loading={pixabay.loading}
+        error={pixabay.error}
       />
     </main>
   );

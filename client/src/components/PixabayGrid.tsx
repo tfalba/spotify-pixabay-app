@@ -40,7 +40,7 @@ export default function PixabayGrid({
           ) : (
             <div className="m-auto place-items-center">
               <img
-                src={centerLogo}
+                src={ centerLogo}
                 alt="App logo"
                 className="h-80 w-auto animate-flipY"
               />

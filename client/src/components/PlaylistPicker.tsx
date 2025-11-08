@@ -5,7 +5,6 @@ import {
   type SpotifyPlaylist,
   type SpotifyTrack,
 } from "../lib/spotify";
-import TrackCard from "./TrackCard";
 import type { Track } from "../types/types";
 import {
   Select,
@@ -16,6 +15,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import TrackList from "./TrackList";
+import { LoginButton } from "./LoginButtons";
+import { useSpotifyPlayerContext } from "@/context/SpotifyPlayerProvider";
 
 type Props = {
   onPick: (t: Track | null) => void; // hook into your NowPlaying
@@ -44,6 +46,8 @@ export default function PlaylistPicker({
   const [tracks, setTracks] = useState<Track[]>([]);
   const [error, setError] = useState<string>("");
 
+  const { isAuthenticated } = useSpotifyPlayerContext();
+
   useEffect(() => {
     (async () => {
       try {
@@ -60,8 +64,21 @@ export default function PlaylistPicker({
     })();
   }, []);
 
+    const options = useMemo(
+    () =>
+      playlists.map((p) => ({
+        id: p.id,
+        name: p.name,
+        count: p.tracks?.total ?? 0,
+        owner: p.owner?.display_name ?? "",
+        thumb: p.images?.[p.images.length - 1]?.url ?? p.images?.[0]?.url ?? "",
+      })),
+    [playlists]
+  );
+
+  const selected = options.find((o) => o.id === selectedId);
   useEffect(() => {
-    if (!selectedId) return;
+    if (!selectedId || !selected) return;
     (async () => {
       try {
         setLoading(true);
@@ -77,19 +94,6 @@ export default function PlaylistPicker({
     })();
   }, [selectedId]);
 
-  const options = useMemo(
-    () =>
-      playlists.map((p) => ({
-        id: p.id,
-        name: p.name,
-        count: p.tracks?.total ?? 0,
-        owner: p.owner?.display_name ?? "",
-        thumb: p.images?.[p.images.length - 1]?.url ?? p.images?.[0]?.url ?? "",
-      })),
-    [playlists]
-  );
-
-  const selected = options.find((o) => o.id === selectedId);
 
   return (
     <section
@@ -97,18 +101,22 @@ export default function PlaylistPicker({
            flex min-w-0 flex-col rounded-3xl border border-[amber]/80 p-6 shadow-glow max-h-[max(600px,calc(100vh-10rem))] overflow-y-scroll"
     >
       {/* Header */}
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center justify-between mb-4 gap-3 flex-wrap">
         <h2 className="text-sm font-semibold uppercase tracking-[0.2em] text-slate-400">
           Playlists
         </h2>
         {loading ? (
           <span className="text-xs text-slate-500">loading…</span>
         ) : null}
+        {!isAuthenticated && !loading ? (
+            <LoginButton />
+          ) : null}
       </div>
 
-      {error && (
+      {error && isAuthenticated && (
         <div className="mb-4 rounded-xl border border-red-500/30 bg-red-500/10 px-3 py-2 text-xs text-red-200">
           {error}
+          {" Please try refreshing the page or logging back in."}
         </div>
       )}
 
@@ -130,7 +138,7 @@ export default function PlaylistPicker({
         >
           <SelectValue
             placeholder="Choose a playlist"
-            aria-label={selected?.name}
+            aria-label={selected?.name + selectedId + selected?.id}
           />
         </SelectTrigger>
 
@@ -180,33 +188,11 @@ export default function PlaylistPicker({
         </SelectContent>
       </Select>
 
-      {/* Tracks list */}
-      {/* {error && (
-        <div className="rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-200">{error}</div>
-      )}  // Currently not showing error to user */}
-
-      <ul className="divide-y divide-white/5 overflow-hidden overflow-scroll rounded-2xl border border-white/10 bg-black/30 mt-6 shadow-inner">
-        {tracks.map((t) => {
-          const isSelected = selectedTrackId === t.id;
-          return (
-            <button
-              key={t.id}
-              onClick={() => onPick(t)}
-              className={`flex w-full min-w-0 p-2 text-left rounded-2xl border transition ${
-                isSelected
-                  ? "border-white/70 bg-white/10 shadow-glow"
-                  : "border-transparent bg-white/7 hover:border-teal/40 hover:bg-white/10"
-              }`}
-              type="button"
-            >
-              <TrackCard track={t} selected={isSelected} />
-            </button>
-          );
-        })}
-        {!loading && tracks.length === 0 && (
-          <li className="p-4 text-center text-sm text-slate-400">No tracks</li>
-        )}
-      </ul>
+      <TrackList
+        tracks={tracks}
+        selectedTrackId={selectedTrackId ?? null}
+        onPick={(track) => onPick(track)}
+      />
     </section>
   );
 }

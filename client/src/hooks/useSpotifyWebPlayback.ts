@@ -11,6 +11,7 @@ export function useSpotifyWebPlayback() {
   const [isConnected, setIsConnected] = useState(false);
   const [deviceId, setDeviceId] = useState<string | null>(null);
   const [playerState, setPlayerState] = useState<PlayerState>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const playerRef = useRef<Spotify.Player | null>(null);
 
   // 1) Load SDK script once
@@ -44,11 +45,16 @@ export function useSpotifyWebPlayback() {
       getOAuthToken: async (cb) => {
         try {
           const res = await apiFetch("/auth/token");
-          if (!res.ok) throw new Error(await res.text());
+          if (!res.ok) {
+            setIsAuthenticated(false);
+            throw new Error(await res.text());
+          }
           const { access_token } = await res.json();
+          setIsAuthenticated(true);
           cb(access_token);
         } catch (err) {
           console.error("Unable to fetch access token:", err);
+          setIsAuthenticated(false);
           // Optionally redirect to login if 401
           // location.href = "/auth/login";
         }
@@ -78,8 +84,11 @@ export function useSpotifyWebPlayback() {
     player.addListener("initialization_error", ({ message }) =>
       console.error("init_error", message)
     );
-    player.addListener("authentication_error", ({ message }) =>
-      console.error("auth_error", message)
+  player.addListener("authentication_error", ({ message }) =>
+      {
+        console.error("auth_error", message);
+        setIsAuthenticated(false);
+      }
     );
     player.addListener("account_error", ({ message }) =>
       console.error("account_error", message)
@@ -179,6 +188,7 @@ export function useSpotifyWebPlayback() {
     isConnected,
     deviceId,
     playerState,
+    isAuthenticated,
     // actions
     transferToThisDevice,
     playUris,

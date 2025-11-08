@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { useSpotifyWebPlayback } from "../hooks/useSpotifyWebPlayback";
+import { useSpotifyPlayerContext } from "../context/SpotifyPlayerProvider";
 import backgroundLogo from "../assets/center-logo.svg";
 
 function formatTime(ms = 0) {
@@ -25,7 +25,7 @@ export function NowPlayingPanel({
     pause,
     resume,
     seek,
-  } = useSpotifyWebPlayback();
+  } = useSpotifyPlayerContext();
 
   const [pos, setPos] = useState(0);
   const duration = playerState?.duration ?? 0;
@@ -47,6 +47,13 @@ export function NowPlayingPanel({
       setPos(playerState.position);
     }
   }, [playerState?.position]);
+
+  useEffect(() => {
+    if (!current) {
+      setPos(0);
+      return;
+    }
+  }, [current?.id]);
 
   // (Optional) Auto-play when the selected `current` changes and device is ready.
   // Comment this out if you prefer a manual "Play" button only.

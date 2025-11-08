@@ -1,63 +1,29 @@
-import { useEffect, useState } from "react";
 import SpotifySearch from "../components/SpotifySearch";
 import LyricPlayerContainer from "../components/LyricPlayerContainer";
 import PixabayGrid from "../components/PixabayGrid";
 import type { Track } from "../types/types";
-import { get } from "../lib/fetcher";
-import { useLyricsImages } from "../hooks/useLyricsImages";
 
-export default function Home() {
-  const [current, setCurrent] = useState<Track | null>(null);
+type Props = {
+  current: Track | null;
+  onPick: (track: Track | null) => void;
+  pixabay: {
+    images: any[];
+    keywords: string[];
+    loading: boolean;
+    error: string | null;
+  };
+};
 
-  const {
-    fetchImages,
-    keywords,
-    setKeywords,
-    images,
-    setImages,
-    loading,
-    error,
-  } = useLyricsImages();
-
-  useEffect(() => {
-    if (!current?.artists || !current?.name) {
-      setKeywords([]);
-      setImages([]);
-      return;
-    }
-    setImages([]);
-    setKeywords([]);
-    const cacheKey =
-      current.uri ||
-      (current.artists[0]?.name && current.name
-        ? `${current.artists[0]?.name}::${current.name}`
-        : current.id);
-
-    get<{ lyrics: string; source: string }>(
-      `/api/lyrics?artist=${encodeURIComponent(
-        current.artists[0]?.name || ""
-      )}&title=${encodeURIComponent(current.name)}`
-    )
-      .then((d) => {
-        fetchImages(d.lyrics, { cacheKey });
-      })
-      .catch(() => {
-        setImages([]);
-      });
-  }, [current]);
-
+export default function Home({ current, onPick, pixabay }: Props) {
   return (
     <main className="mt-4 flex flex-1 flex-col gap-6 lg:grid lg:grid-cols-3 xl:grid xl:grid-cols-[25%_31%_41%]">
-      <SpotifySearch
-        onPick={setCurrent}
-        selectedTrackId={current?.id ?? null}
-      />
+      <SpotifySearch onPick={onPick} selectedTrackId={current?.id ?? null} />
       <LyricPlayerContainer current={current} />
       <PixabayGrid
-        images={images}
-        keywords={keywords}
-        loading={loading}
-        error={error}
+        images={pixabay.images}
+        keywords={pixabay.keywords}
+        loading={pixabay.loading}
+        error={pixabay.error}
       />
     </main>
   );
