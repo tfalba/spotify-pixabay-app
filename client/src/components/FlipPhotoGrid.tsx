@@ -22,7 +22,7 @@ function FlipCard({
       target="_blank"
       rel="noreferrer"
       title={front.alt}
-      className="relative block w-full aspect-[4/3] overflow-hidden rounded-xl border border-accent-800/60 perspective-1000"
+      className="relative block w-full aspect-[4/3] overflow-hidden rounded-xl border-midnight-800/60 perspective-1000"
     >
       {/* flipper */}
       <span

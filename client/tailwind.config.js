@@ -19,6 +19,7 @@ export default {
   			midnight: '#080B16',
   			sapphire: '#111C2F',
   			aurora: '#1F2E4C',
+        lilac: '#7C5CFC',
   			accent: {
   				DEFAULT: 'hsl(var(--accent))',
   				foreground: 'hsl(var(--accent-foreground))'
