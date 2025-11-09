@@ -15,5 +15,6 @@ export const env = {
   LYRICS_PROVIDER: process.env.LYRICS_PROVIDER || "",
   OPENAI_API_KEY: process.env.OPENAI_API_KEY || "",
   COOKIE_SECRET: process.env.COOKIE_SECRET || "super-secret",
-  PORT: process.env.PORT || 4000,
+  ALLOWED_ORIGINS: (process.env.ALLOWED_ORIGINS || "http://127.0.0.1:5173").split(","),
+  PORT: process.env.PORT || 5174,
 };
