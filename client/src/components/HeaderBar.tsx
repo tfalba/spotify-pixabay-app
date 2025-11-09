@@ -11,13 +11,28 @@ export default function HeaderBar({ activePath }: { activePath?: string }) {
   const [user, setUser] = useState<SpotifyUser | null>(null);
   const [checkedAuth, setCheckedAuth] = useState(false);
 
+  const API = import.meta.env.VITE_API_BASE;
+
+ async function getSpotifyToken() {
+  const res = await fetch(`${API}/auth/token`, {
+    method: "POST",
+    credentials: "include",     // send signed cookies
+    headers: { "Content-Type": "application/json" },
+  });
+  if (!res.ok) throw new Error("Not authenticated");
+  return res.json(); // { access_token, token_type }
+}
+
   useEffect(() => {
     let active = true;
 
     async function loadProfile() {
       try {
-        const profile = await get<SpotifyUser>("/api/me");
-        if (active) setUser(profile);
+        const profile = await get<SpotifyUser>(`${API}/api/me`);
+        if (active) {
+          getSpotifyToken(); // warm up token
+          setUser(profile);
+        }
       } catch {
         if (active) setUser(null);
       } finally {
