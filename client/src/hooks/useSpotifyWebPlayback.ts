@@ -44,7 +44,7 @@ export function useSpotifyWebPlayback() {
       volume: 0.7,
       getOAuthToken: async (cb) => {
         try {
-          const res = await apiFetch("/auth/token");
+          const res = await apiFetch("/auth/token", {method: "POST", headers: { "Content-Type": "application/json" }});
           if (!res.ok) {
             setIsAuthenticated(false);
             throw new Error(await res.text());

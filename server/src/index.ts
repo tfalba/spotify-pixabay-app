@@ -16,22 +16,34 @@ import imagesRouter from "./images";
 
 const app = express();
 app.set("trust proxy", 1);
+app.use(express.json());
 
 const allowed = (process.env.ALLOWED_ORIGINS || "")
   .split(",")
-  .map(s => s.trim());
+  .map(s => s.trim())
+  .filter(Boolean);
 
 app.use(
   cors({
     origin: (origin, cb) => {
-      if (!origin || allowed.includes(origin)) return cb(null, true);
-      return cb(new Error("CORS blocked"), false);
+      if (!origin) return cb(null, true);                      // allow curl / server-to-server
+      if (allowed.includes(origin)) return cb(null, true);
+      return cb(new Error(`CORS blocked for ${origin}`));
     },
-    credentials: true,
+    credentials: true,                                         // <- sets Access-Control-Allow-Credentials: true
   })
 );
 
-app.use(express.json());
+// Handle preflight for all routes (esp. /auth/token)
+app.options("*", cors({
+  origin: (origin, cb) => {
+    if (!origin) return cb(null, true);
+    if (allowed.includes(origin)) return cb(null, true);
+    return cb(new Error(`CORS blocked for ${origin}`));
+  },
+  credentials: true,
+}));
+
 app.use(cookieParser(env.COOKIE_SECRET));
 app.use(
   session({
