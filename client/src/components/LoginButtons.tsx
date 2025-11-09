@@ -3,10 +3,12 @@ const borderPillClasses = "pointer-events-none absolute inset-0 z-0 rounded-full
 const shineClasses = "pointer-events-none absolute inset-0 z-[1] -translate-x-full skew-x-12 bg-gradient-to-r from-teal via-white/50 to-transparent opacity-0 transition duration-700 motion-safe:group-hover:translate-x-full motion-safe:group-hover:opacity-60";
 const innerPillClasses = "relative z-[2] border-teal inline-flex items-center gap-1 rounded-full bg-teal-50 px-4 py-1 text-xs shadow-md font-semibold uppercase tracking-wide text-white";
  
+const API = import.meta.env.VITE_API_BASE;
+
 function LoginButton() {
   return (
     <a
-      href="/auth/login"
+      href={`${API}/auth/login`}
       className={buttonClasses}
     >
       {/* Gradient border pill (teal) */}
