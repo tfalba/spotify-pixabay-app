@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import fetch from "node-fetch";
+import session from "express-session";
 import { env } from "./env";
 import { login, callback, refreshToken, logout, token } from "./auth";
 import { spotifySearch, spotifyProfile } from "./spotify";
@@ -14,15 +15,38 @@ import {
 import imagesRouter from "./images";
 
 const app = express();
-app.use(cors({
-  origin: [
-    "http://localhost:5173",
-    "http://127.0.0.1:5173",
-  ],
-  credentials: true,
-}));
+app.set("trust proxy", 1);
+
+const allowed = (process.env.ALLOWED_ORIGINS || "")
+  .split(",")
+  .map(s => s.trim());
+
+app.use(
+  cors({
+    origin: (origin, cb) => {
+      if (!origin || allowed.includes(origin)) return cb(null, true);
+      return cb(new Error("CORS blocked"), false);
+    },
+    credentials: true,
+  })
+);
+
 app.use(express.json());
 app.use(cookieParser(env.COOKIE_SECRET));
+app.use(
+  session({
+    name: process.env.COOKIE_NAME || "spx_auth",
+    secret: process.env.SESSION_SECRET!,
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      httpOnly: true,
+      secure: process.env.COOKIE_SECURE === "true",
+      sameSite: (process.env.COOKIE_SAMESITE as any) || "lax",
+      domain: process.env.COOKIE_DOMAIN || undefined,
+    },
+  })
+);
 
 type TokenSet = {
   access_token: string;
@@ -193,9 +217,12 @@ app.put("/api/player/repeat", repeat);
 app.get("/api/player/devices", devices);
 app.get("/api/player/state", state);
 
-const PORT = 5174;
-app.listen(PORT, () =>
-  console.log(`Server listening on http://127.0.0.1:${PORT}`)
-);
+// const PORT = 5174;
+// app.listen(PORT, () =>
+//   console.log(`Server listening on http://127.0.0.1:${PORT}`)
+// );
+
+const port = process.env.PORT || 8080;
+app.listen(port, () => console.log(`API on :${port}`));
 
 

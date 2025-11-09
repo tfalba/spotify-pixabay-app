@@ -16,6 +16,8 @@
 
     "rootDir": "src",
     "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "forceConsistentCasingInFileNames": true,
 
     "types": [],
     // For nodejs:
