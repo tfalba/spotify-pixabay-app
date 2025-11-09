@@ -16,6 +16,8 @@ function getHashPath() {
 export default function App() {
   const [path, setPath] = useState(getHashPath());
   const [current, setCurrent] = useState<Track | null>(null);
+  const API = import.meta.env.VITE_API_BASE || "http://127.0.0.1:5174";
+
 
   const {
     fetchImages,
@@ -53,7 +55,7 @@ export default function App() {
         : current.id);
 
     get<{ lyrics: string; source: string }>(
-      `/api/lyrics?artist=${encodeURIComponent(
+      `${API}/api/lyrics?artist=${encodeURIComponent(
         current.artists[0]?.name || ""
       )}&title=${encodeURIComponent(current.name)}`
     )

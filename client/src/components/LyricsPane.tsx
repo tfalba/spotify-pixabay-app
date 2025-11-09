@@ -11,6 +11,8 @@ export default function LyricsPane({
   const [text, setText] = useState<string>("");
   const [source, setSource] = useState<string>("");
 
+  const API = import.meta.env.VITE_API_BASE || "http://127.0.0.1:5174";
+
   // hook that calls POST /api/lyrics-to-images and stores results
   // const { fetchImages, keywords, images, loading, error } = useLyricsImages();
 
@@ -24,7 +26,7 @@ export default function LyricsPane({
     setText("Loading lyrics...");
     setSource("");
     get<{ lyrics: string; source: string }>(
-      `/api/lyrics?artist=${encodeURIComponent(
+      `${API}/api/lyrics?artist=${encodeURIComponent(
         artist
       )}&title=${encodeURIComponent(title)}`
     )
