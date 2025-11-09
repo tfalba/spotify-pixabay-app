@@ -1,8 +1,24 @@
 import type { Request, Response } from "express";
 import crypto from "crypto";
 import { env } from "./env";
+import { ensureOk, parseJson } from "./lib/http";
+
 
 const SPOTIFY_ACCOUNTS = "https://accounts.spotify.com";
+export interface SpotifyTokenResponse {
+  access_token: string;
+  token_type: "Bearer";
+  expires_in: number;
+  refresh_token?: string;
+  scope?: string;
+}
+
+export interface SpotifyProfile {
+  id: string;
+  display_name?: string | null;
+  email?: string;
+  images?: { url: string; width?: number; height?: number }[];
+}
 
 function base64URLEncode(buf: Buffer) {
   return buf
@@ -189,7 +205,10 @@ export async function token(req: Request, res: Response) {
       body,
     });
 
-    const json = await r.json();
+    // const json = await r.json();
+    ensureOk(r, "token exchange");
+const json = await parseJson<SpotifyTokenResponse>(r);
+const { access_token, refresh_token, expires_in } = json;
     if (!r.ok) {
       return res.status(400).json(json);
     }
