@@ -15,4 +15,5 @@ export const env = {
   LYRICS_PROVIDER: process.env.LYRICS_PROVIDER || "",
   OPENAI_API_KEY: process.env.OPENAI_API_KEY || "",
   COOKIE_SECRET: process.env.COOKIE_SECRET || "super-secret",
+  PORT: process.env.PORT || 4000,
 };

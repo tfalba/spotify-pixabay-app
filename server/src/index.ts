@@ -1,5 +1,5 @@
 import express from "express";
-import cors from "cors";
+import cors, { CorsOptions } from "cors";
 import cookieParser from "cookie-parser";
 import fetch from "node-fetch";
 import session from "express-session";
@@ -23,26 +23,26 @@ const allowed = (process.env.ALLOWED_ORIGINS || "")
   .map(s => s.trim())
   .filter(Boolean);
 
-app.use(
-  cors({
-    origin: (origin, cb) => {
-      if (!origin) return cb(null, true);                      // allow curl / server-to-server
-      if (allowed.includes(origin)) return cb(null, true);
-      return cb(new Error(`CORS blocked for ${origin}`));
-    },
-    credentials: true,                                         // <- sets Access-Control-Allow-Credentials: true
-  })
-);
-
-// Handle preflight for all routes (esp. /auth/token)
-app.options("*", cors({
+const corsOptions: CorsOptions = {
   origin: (origin, cb) => {
-    if (!origin) return cb(null, true);
+    if (!origin) return cb(null, true);           // allow server-to-server and curl
     if (allowed.includes(origin)) return cb(null, true);
     return cb(new Error(`CORS blocked for ${origin}`));
   },
   credentials: true,
-}));
+};
+
+app.use(cors(corsOptions));
+
+// Handle preflight for all routes (esp. /auth/token)
+// app.options("*", cors({
+//   origin: (origin, cb) => {
+//     if (!origin) return cb(null, true);
+//     if (allowed.includes(origin)) return cb(null, true);
+//     return cb(new Error(`CORS blocked for ${origin}`));
+//   },
+//   credentials: true,
+// }));
 
 app.use(cookieParser(env.COOKIE_SECRET));
 app.use(
@@ -234,7 +234,7 @@ app.get("/api/player/state", state);
 //   console.log(`Server listening on http://127.0.0.1:${PORT}`)
 // );
 
-const port = process.env.PORT || 8080;
+const port = process.env.PORT;
 app.listen(port, () => console.log(`API on :${port}`));
 
 
