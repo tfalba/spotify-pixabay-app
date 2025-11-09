@@ -20,7 +20,9 @@ export type SpotifyPlaylist = {
   owner: { display_name: string | null };
 };
 
-const API_BASE = "http://127.0.0.1:5173"; // wherever your server runs
+// const API_BASE = "http://127.0.0.1:5173"; // wherever your server runs
+const API_BASE = import.meta.env.VITE_API_BASE ?? "";
+
 
 async function api<T>(path: string): Promise<T> {
   const r = await fetch(`${API_BASE}${path}`, { credentials: "include" }); // include cookies
