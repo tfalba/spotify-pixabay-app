@@ -1,3 +1,4 @@
+import { ensureOk, parseJson } from "./http";
 import { ImageCard } from "./lyricsToImages";
 
 export type PixabayImage = {
@@ -10,6 +11,12 @@ export type PixabayImage = {
   user: string;
   userImageURL: string;
 };
+
+export interface PixabayResponse {
+  total: number;
+  totalHits: number;
+  hits: PixabayImage[];
+}
 
 const PIXABAY_BASE = "https://pixabay.com/api/";
 
@@ -28,7 +35,8 @@ export async function fetchPixabayImagesForKeyword(
   });
   const res = await fetch(`${PIXABAY_BASE}?${params.toString()}`);
   if (!res.ok) throw new Error(`Pixabay error: ${res.status}`);
-  const data = await res.json();
+  ensureOk(res, "pixabay search");
+  const data = await parseJson<PixabayResponse>(res);
   return (data.hits || []) as PixabayImage[];
 }
 
