@@ -5,6 +5,7 @@ import { ensureOk, parseJson } from "./lib/http";
 import { cookieOpts } from "./lib/cookies";
 
 const SPOTIFY_ACCOUNTS = "https://accounts.spotify.com";
+
 export interface SpotifyTokenResponse {
   access_token: string;
   token_type: "Bearer";
@@ -28,15 +29,17 @@ function base64URLEncode(buf: Buffer) {
     .replace(/=+$/, "");
 }
 
-function sha256(buffer: string) {
-  return crypto.createHash("sha256").update(buffer).digest();
+function sha256(input: string) {
+  return crypto.createHash("sha256").update(input).digest();
 }
 
-export async function login(req: Request, res: Response) {
+/** ---------- OAuth entry ---------- */
+export async function login(_req: Request, res: Response) {
   const state = base64URLEncode(crypto.randomBytes(16));
   const codeVerifier = base64URLEncode(crypto.randomBytes(64));
   const codeChallenge = base64URLEncode(sha256(codeVerifier));
 
+  // temporary cookies for PKCE + CSRF state
   res.cookie("sp_state", state, cookieOpts);
   res.cookie("sp_cv", codeVerifier, cookieOpts);
 
@@ -46,13 +49,14 @@ export async function login(req: Request, res: Response) {
     redirect_uri: env.SPOTIFY_REDIRECT_URI,
     code_challenge_method: "S256",
     code_challenge: codeChallenge,
-    scope: env.SPOTIFY_SCOPES,
+    scope: env.SPOTIFY_SCOPES ?? "",
     state,
   });
 
   res.redirect(`${SPOTIFY_ACCOUNTS}/authorize?${params.toString()}`);
 }
 
+/** ---------- OAuth callback ---------- */
 export async function callback(req: Request, res: Response) {
   const { code, state } = req.query as { code?: string; state?: string };
   const stateCookie = req.signedCookies["sp_state"];
@@ -70,7 +74,7 @@ export async function callback(req: Request, res: Response) {
     code_verifier: codeVerifier,
   });
 
-  const tokenRes = await fetch(`${SPOTIFY_ACCOUNTS}/api/token`, {
+  const r = await fetch(`${SPOTIFY_ACCOUNTS}/api/token`, {
     method: "POST",
     headers: {
       "Content-Type": "application/x-www-form-urlencoded",
@@ -82,32 +86,33 @@ export async function callback(req: Request, res: Response) {
     },
     body,
   });
-  ensureOk(tokenRes, "token exchange");
-  const json = await parseJson<SpotifyTokenResponse>(tokenRes);
-  // const json: any = await tokenRes.json();
 
-  if (!tokenRes.ok) {
-    console.error(json);
-    return res.status(400).send("Failed to exchange token");
+  ensureOk(r, "token exchange");
+  const json = await parseJson<SpotifyTokenResponse>(r);
+
+  // Persist cookies
+  const maxAge = json.expires_in * 1000;
+  res.cookie("sp_access", json.access_token, { ...cookieOpts, maxAge });
+
+  // refresh tokens are long-lived; persist them (e.g., 30 days)
+  const THIRTY_DAYS = 30 * 24 * 60 * 60 * 1000;
+  if (json.refresh_token) {
+    res.cookie("sp_refresh", json.refresh_token, { ...cookieOpts, maxAge: THIRTY_DAYS });
   }
 
-  // Store in signed cookies
-
-  const maxAge = json.expires_in * 1000;
-
-  res.cookie("sp_access", json.access_token, { ...cookieOpts, maxAge });
-  res.cookie("sp_refresh", json.refresh_token, cookieOpts);
   res.cookie("sp_last_seen", Date.now().toString(), cookieOpts);
 
-  // optional: clear one-time OAuth cookies now that they’re used
+  // clear one-time cookies
   res.clearCookie("sp_state", cookieOpts);
   res.clearCookie("sp_cv", cookieOpts);
 
+  // back to client
   res.redirect(env.CLIENT_ORIGIN + "/");
 }
 
+/** ---------- Explicit refresh endpoint (optional for client) ---------- */
 export async function refreshToken(req: Request, res: Response) {
-  const refresh = req.signedCookies["sp_refresh"];
+  const refresh = req.signedCookies["sp_refresh"] as string | undefined;
   if (!refresh) return res.status(401).json({ error: "No refresh token" });
 
   const body = new URLSearchParams({
@@ -116,7 +121,7 @@ export async function refreshToken(req: Request, res: Response) {
     client_id: env.SPOTIFY_CLIENT_ID,
   });
 
-  const tokenRes = await fetch(`${SPOTIFY_ACCOUNTS}/api/token`, {
+  const r = await fetch(`${SPOTIFY_ACCOUNTS}/api/token`, {
     method: "POST",
     headers: {
       "Content-Type": "application/x-www-form-urlencoded",
@@ -129,11 +134,8 @@ export async function refreshToken(req: Request, res: Response) {
     body,
   });
 
-  ensureOk(tokenRes, "refresh token");
-  const json = await parseJson<SpotifyTokenResponse>(tokenRes);
-
-  // const json: any = await tokenRes.json();
-  if (!tokenRes.ok) return res.status(400).json(json);
+  ensureOk(r, "refresh token");
+  const json = await parseJson<SpotifyTokenResponse>(r);
 
   res.cookie("sp_access", json.access_token, {
     ...cookieOpts,
@@ -141,88 +143,82 @@ export async function refreshToken(req: Request, res: Response) {
   });
   res.cookie("sp_last_seen", Date.now().toString(), cookieOpts);
 
-  // rotate refresh if provided
   if (json.refresh_token) {
-    res.cookie("sp_refresh", json.refresh_token, cookieOpts);
+    const THIRTY_DAYS = 30 * 24 * 60 * 60 * 1000;
+    res.cookie("sp_refresh", json.refresh_token, { ...cookieOpts, maxAge: THIRTY_DAYS });
   }
 
   res.json({ ok: true });
 }
 
-export function logout(req: Request, res: Response) {
+/** ---------- Logout ---------- */
+export function logout(_req: Request, res: Response) {
   res.clearCookie("sp_access", cookieOpts);
   res.clearCookie("sp_refresh", cookieOpts);
   res.clearCookie("sp_last_seen", cookieOpts);
   res.redirect(env.CLIENT_ORIGIN + "/");
 }
 
+/** ---------- Core helper used by routes and /auth/token ---------- */
+export async function getAccessToken(req: Request, res: Response): Promise<string> {
+  const current = req.signedCookies["sp_access"] as string | undefined;
+  const refresh = req.signedCookies["sp_refresh"] as string | undefined;
+  const lastSeenRaw = req.signedCookies["sp_last_seen"] as string | undefined;
+  const lastSeen = lastSeenRaw ? Number(lastSeenRaw) : null;
+
+  if (!refresh) {
+    throw new Error("not_authenticated");
+  }
+
+  // If we have a token and recent activity, keep using it
+  const inactiveTooLong = lastSeen !== null ? Date.now() - lastSeen > 60 * 60 * 1000 : true;
+  if (current && !inactiveTooLong) {
+    res.cookie("sp_last_seen", Date.now().toString(), cookieOpts);
+    return current;
+  }
+
+  // Refresh the access token
+  const body = new URLSearchParams({
+    grant_type: "refresh_token",
+    refresh_token: refresh,
+    client_id: env.SPOTIFY_CLIENT_ID,
+  });
+
+  const r = await fetch(`${SPOTIFY_ACCOUNTS}/api/token`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded",
+      Authorization:
+        "Basic " +
+        Buffer.from(
+          `${env.SPOTIFY_CLIENT_ID}:${env.SPOTIFY_CLIENT_SECRET}`
+        ).toString("base64"),
+    },
+    body,
+  });
+
+  ensureOk(r, "token refresh");
+  const json = await parseJson<SpotifyTokenResponse>(r);
+
+  const maxAge = (json.expires_in ?? 3600) * 1000;
+  res.cookie("sp_access", json.access_token, { ...cookieOpts, maxAge });
+  res.cookie("sp_last_seen", Date.now().toString(), cookieOpts);
+
+  if (json.refresh_token) {
+    const THIRTY_DAYS = 30 * 24 * 60 * 60 * 1000;
+    res.cookie("sp_refresh", json.refresh_token, { ...cookieOpts, maxAge: THIRTY_DAYS });
+  }
+
+  return json.access_token;
+}
+
+/** ---------- Public endpoint the client calls to get/refresh a token ---------- */
 export async function token(req: Request, res: Response) {
   try {
-    const lastSeenRaw = req.signedCookies["sp_last_seen"] as string | undefined;
-    const lastSeen = lastSeenRaw ? Number(lastSeenRaw) : null;
-    const inactiveTooLong =
-      lastSeen !== null ? Date.now() - lastSeen > 60 * 60 * 1000 : false;
-    const current = req.signedCookies["sp_access"] as string | undefined;
-    const refresh = req.signedCookies["sp_refresh"] as string | undefined;
-    if (!refresh) {
-      return res.status(401).json({ error: "not_authenticated" });
-    }
-
-    if (current && !inactiveTooLong) {
-      res.cookie("sp_last_seen", Date.now().toString(), {
-        httpOnly: true,
-        sameSite: "lax",
-        signed: true,
-      });
-      return res.json({ access_token: current });
-    }
-
-    // Refresh the access token using the refresh token cookie
-    const body = new URLSearchParams({
-      grant_type: "refresh_token",
-      refresh_token: refresh,
-      client_id: env.SPOTIFY_CLIENT_ID,
-    });
-
-    const r = await fetch("https://accounts.spotify.com/api/token", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
-        // If your app is set as a Confidential client, keep Basic auth:
-        Authorization:
-          "Basic " +
-          Buffer.from(
-            `${env.SPOTIFY_CLIENT_ID}:${env.SPOTIFY_CLIENT_SECRET}`
-          ).toString("base64"),
-      },
-      body,
-    });
-
-    // const json = await r.json();
-    ensureOk(r, "token exchange");
-    const json = await parseJson<SpotifyTokenResponse>(r);
-    const { access_token, refresh_token, expires_in } = json;
-    if (!r.ok) {
-      return res.status(400).json(json);
-    }
-
-    // Persist refreshed token in cookie and return it
-    const maxAge = (json.expires_in ?? 3600) * 1000;
-    res.cookie("sp_access", json.access_token, { ...cookieOpts, maxAge });
-    res.cookie("sp_last_seen", Date.now().toString(), cookieOpts);
-
-    // Some refresh responses return a new refresh_token; if so, rotate it.
-    if (json.refresh_token) {
-      res.cookie("sp_refresh", json.refresh_token, cookieOpts);
-    }
-
-    return res.json({
-      access_token: json.access_token,
-      expires_in: json.expires_in,
-      token_type: json.token_type,
-    });
+    const access_token = await getAccessToken(req, res);
+    return res.json({ access_token, token_type: "Bearer" as const });
   } catch (e: any) {
-    console.error("auth/token error:", e);
-    return res.status(500).json({ error: "token_exchange_failed" });
+    const code = e?.message === "not_authenticated" ? 401 : 500;
+    return res.status(code).json({ error: e?.message ?? "token_exchange_failed" });
   }
 }

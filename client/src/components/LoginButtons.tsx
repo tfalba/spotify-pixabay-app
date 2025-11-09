@@ -31,7 +31,7 @@ function LoginButton() {
 function LogoutButton() {
   async function logout() {
     try {
-      await fetch("/auth/logout", {
+      await fetch(`${API}/auth/logout`, {
         method: "POST",
         credentials: "include",
       });
