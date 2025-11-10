@@ -96,11 +96,8 @@ export default function PlaylistPicker({
 
 
   return (
-    <section
-      className="xl:col-span-1 xl:col-start-1
-           flex min-w-0 flex-col rounded-3xl border border-[amber]/80 p-6 shadow-glow max-h-[max(600px,calc(100vh-10rem))] overflow-y-scroll"
-    >
-      {/* Header */}
+  // <TracksListsContainer title="Playlists" loading={loading} error={error} >
+<>
       <div className="flex items-center justify-between mb-4 gap-3 flex-wrap">
         <h2 className="text-sm font-semibold uppercase tracking-[0.2em] text-slate-400">
           Playlists
@@ -193,6 +190,5 @@ export default function PlaylistPicker({
         selectedTrackId={selectedTrackId ?? null}
         onPick={(track) => onPick(track)}
       />
-    </section>
-  );
+    </>);
 }

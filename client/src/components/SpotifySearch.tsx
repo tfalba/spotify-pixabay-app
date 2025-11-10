@@ -66,10 +66,7 @@ export default function SpotifySearch({
   }
 
   return (
-    <section
-      className="xl:col-span-1 xl:col-start-1
-           flex min-w-0 flex-col rounded-3xl border border-[amber]/80 p-6 shadow-glow max-h-[max(600px,calc(100vh-10rem))] overflow-y-scroll"
-    >
+    <>
       <div className="flex items-center gap-3 pb-4">
         <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-card-glow text-2xl text-accent shadow-glow">
           ♪
@@ -126,6 +123,6 @@ export default function SpotifySearch({
           />
         )}
       </div>
-    </section>
+    </>
   );
 }
