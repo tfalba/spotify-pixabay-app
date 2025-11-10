@@ -18,6 +18,8 @@ export default function SpotifySearch({
   const ctrl = useRef<AbortController | null>(null);
   const inputRef = useRef<HTMLInputElement | null>(null);
 
+  const API_BASE = import.meta.env.VITE_API_BASE ?? "";
+
   const { isAuthenticated } = useSpotifyPlayerContext();
 
   async function search(term: string) {
@@ -26,7 +28,7 @@ export default function SpotifySearch({
     ctrl.current = ac;
     setLoading(true);
     try {
-      const data = await get<any>(`/api/search?q=${encodeURIComponent(term)}`);
+      const data = await get<any>(`${API_BASE}/api/search?q=${encodeURIComponent(term)}`);
       const items = (data?.tracks?.items || []) as any[];
       const out: Track[] = items.map((it) => ({
         id: it.id,
