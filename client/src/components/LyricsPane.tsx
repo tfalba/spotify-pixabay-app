@@ -49,7 +49,7 @@ export default function LyricsPane({
   }
 
   return (
-    <div className="flex-1 overflow-hidden overflow-y-scroll rounded-2xl border border-white/20 bg-gradient-to-br from-teal/10 via-aurora/25 to-teal/40 p-5 shadow-[0_20px_60px_rgba(124,92,252,0.35)] ring-1 ring-amber/30">
+    <div className="flex-1 overflow-hidden rounded-2xl border border-white/20 bg-gradient-to-br from-teal/10 via-aurora/25 to-teal/40 p-5 shadow-[0_20px_60px_rgba(124,92,252,0.35)] ring-1 ring-amber/30">
       <h2 className="text-lg font-semibold tracking-tight text-slate-50 mb-1">
         Lyrics
       </h2>

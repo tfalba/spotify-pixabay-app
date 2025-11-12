@@ -80,7 +80,7 @@ export default function SpotifySearch({
           </p>
         </div>
       </div>
-      <div className="space-y-4 p-1">
+      <div className="space-y-4 p-1 text-center">
         {isAuthenticated ? (
         <div className="flex items-center gap-2 rounded-2xl shadow-glow">
           <input
@@ -107,6 +107,7 @@ export default function SpotifySearch({
           <LoginButton />
         )}
 
+      </div>
 
         {loading && (
           <div className="flex items-center gap-2 text-xs text-teal">
@@ -115,14 +116,13 @@ export default function SpotifySearch({
           </div>
         )}
 
-        {isAuthenticated && (
+        {isAuthenticated && q && (
           <TrackList
             tracks={tracks}
             onPick={onPick}
             selectedTrackId={selectedTrackId ?? null}
           />
         )}
-      </div>
     </>
   );
 }

@@ -16,7 +16,7 @@ export default function PixabayGrid({
     <section
       className=" xl:col-span-1 xl:col-start-3
            flex min-w-0 flex-col rounded-3xl border border-[white]/90
-           bg-gradient-to-br from-[teal/90] via-[aurora/80] to-[sapphire/70] p-6 shadow-glow max-h-[max(600px,calc(100vh-10rem))] overflow-y-scroll"
+            p-6 shadow-glow max-h-[max(600px,calc(100vh-10rem))] overflow-y-scroll"
     >
       <div>
         <h2 className="text-lg font-semibold tracking-tight text-slate-50">
