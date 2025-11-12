@@ -30,6 +30,11 @@ body {
 }
 
 .player-background {
+  background-image: url("./assets/img101-landscape.jpg");
+  background-repeat: no-repeat;
+    background-size: cover;      /* fills the screen */
+  background-position: center; /* centers the image */
+  background-attachment: fixed; /* optional: parallax effect */
 }
 
 @layer utilities {

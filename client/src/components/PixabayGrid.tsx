@@ -38,6 +38,7 @@ export default function PixabayGrid({
               <FlipPhotoGrid images={images} />
             </div>
           ) : (
+        
             <div className="m-auto place-items-center">
               <img
                 src={ centerLogo}

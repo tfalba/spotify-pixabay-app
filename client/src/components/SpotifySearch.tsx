@@ -1,19 +1,17 @@
 import { useEffect, useRef, useState } from "react";
 import { get } from "../lib/fetcher";
 import type { Track } from "../types/types";
-import TrackList from "./TrackList";
 import { useSpotifyPlayerContext } from "../context/SpotifyPlayerProvider";
 import { LoginButton } from "./LoginButtons";
 
-export default function SpotifySearch({
-  onPick,
-  selectedTrackId,
-}: {
+type Props = {
   onPick: (t: Track | null) => void;
-  selectedTrackId?: string | null;
-}) {
+  onSetTracks?: (tracks: Track[]) => void;
+};
+
+export default function SpotifySearch({ onPick, onSetTracks }: Props) {
   const [q, setQ] = useState("");
-  const [tracks, setTracks] = useState<Track[]>([]);
+  // const [tracks, setTracks] = useState<Track[]>([]);
   const [loading, setLoading] = useState(false);
   const ctrl = useRef<AbortController | null>(null);
   const inputRef = useRef<HTMLInputElement | null>(null);
@@ -39,7 +37,7 @@ export default function SpotifySearch({
         external_url: it.external_urls?.spotify,
         uri: it.uri ?? null,
       }));
-      setTracks(out);
+      onSetTracks?.(out);
     } finally {
       setLoading(false);
     }
@@ -48,7 +46,7 @@ export default function SpotifySearch({
   useEffect(() => {
     if (q.trim().length === 0) {
       if (ctrl.current) ctrl.current.abort();
-      setTracks([]);
+      onSetTracks?.([]);
       onPick(null);
       return;
     }
@@ -60,25 +58,22 @@ export default function SpotifySearch({
     // if (ctrl.current) ctrl.current.abort();
     setLoading(false);
     setQ("");
-    setTracks([]);
+    onSetTracks?.([]);
     onPick(null);
     inputRef.current?.focus();
   }
 
   return (
     <>
-      <div className="flex items-center gap-3 pb-4">
-        <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-card-glow text-2xl text-accent shadow-glow">
-          ♪
-        </span>
-        <div>
-          <h2 className="text-lg font-semibold tracking-tight text-slate-50">
-            Discover Tracks
-          </h2>
-          <p className="text-sm text-slate-400">
-            Search Spotify, audition previews, and set the tone.
-          </p>
-        </div>
+    
+         <div className="flex items-center justify-between mb-4 gap-3 flex-wrap">
+        <h2 className="text-sm font-semibold uppercase tracking-[0.2em] text-slate-400">
+          Search
+        </h2>
+        {loading ? (
+          <span className="text-xs text-slate-500">loading…</span>
+        ) : null}
+    
       </div>
       <div className="space-y-4 p-1 text-center">
         {isAuthenticated ? (
@@ -114,14 +109,6 @@ export default function SpotifySearch({
             <span className="h-2 w-2 animate-ping rounded-full bg-teal" />
             Searching Spotify…
           </div>
-        )}
-
-        {isAuthenticated && q && (
-          <TrackList
-            tracks={tracks}
-            onPick={onPick}
-            selectedTrackId={selectedTrackId ?? null}
-          />
         )}
     </>
   );

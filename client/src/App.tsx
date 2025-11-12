@@ -55,7 +55,7 @@ export default function App() {
   return (
     <SpotifyPlayerProvider>
       <div className="min-h-screen w-full bg-portfolio-gradient text-slate-100">
-        <div className="player-background mx-auto flex min-h-screen w-full max-w-8xl flex-col px-6 pb-12 pt-8 lg:px-10">
+        <div className="mx-auto flex min-h-screen w-full max-w-8xl flex-col px-6 pb-12 pt-8 lg:px-10">
           <HeaderBar  />
             <Home current={current} onPick={setCurrent} pixabay={pixabayProps} />
         </div>

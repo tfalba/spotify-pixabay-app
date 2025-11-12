@@ -11,7 +11,7 @@ export default function LyricPlayerContainer({
 }) {
   return (
     <aside className="xl:col-span-1 xl:col-start-2 flex min-w-0 flex-col rounded-3xl border border-teal/80 p-6 shadow-glow max-h-[max(600px,calc(100vh-10rem))] overflow-hidden">
-      <div className="rounded-2xl border border-accent/50 bg-sapphire/80 p-3 shadow-glow mb-4">
+      <div className="rounded-2xl bg-sapphire/80 p-3 shadow-glow mb-4">
         <NowPlayingPanel current={current} onTrackFinished={onTrackFinished} />
         {current && (
           <div className="mt-3">

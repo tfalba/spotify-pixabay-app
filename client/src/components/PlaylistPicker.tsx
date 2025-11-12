@@ -15,14 +15,12 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import TrackList from "./TrackList";
-import { LoginButton } from "./LoginButtons";
 import { useSpotifyPlayerContext } from "@/context/SpotifyPlayerProvider";
 
 type Props = {
   onPick: (t: Track | null) => void; // hook into your NowPlaying
-  selectedTrackId?: string | null;
   onQueueChange?: (tracks: Track[]) => void;
+  onSetTracks?: (tracks: Track[]) => void;
 };
 
 const mapToTrack = (t: SpotifyTrack): Track => ({
@@ -37,13 +35,12 @@ const mapToTrack = (t: SpotifyTrack): Track => ({
 
 export default function PlaylistPicker({
   onPick,
-  selectedTrackId,
   onQueueChange,
+  onSetTracks,
 }: Props) {
   const [loading, setLoading] = useState(true);
   const [playlists, setPlaylists] = useState<SpotifyPlaylist[]>([]);
   const [selectedId, setSelectedId] = useState<string>("");
-  const [tracks, setTracks] = useState<Track[]>([]);
   const [error, setError] = useState<string>("");
 
   const { isAuthenticated } = useSpotifyPlayerContext();
@@ -84,7 +81,7 @@ export default function PlaylistPicker({
         setLoading(true);
         const ts = await getAllPlaylistTracks(selectedId);
         const normalized = ts.map(mapToTrack);
-        setTracks(normalized);
+        onSetTracks?.(normalized);
         onQueueChange?.(normalized);
       } catch (e: any) {
         setError(e.message ?? "Failed to load tracks");
@@ -122,7 +119,7 @@ export default function PlaylistPicker({
         onValueChange={(value) => {
           if (value !== selectedId) {
             onPick(null);
-            setTracks([]);
+            onSetTracks?.([]);
           }
           setSelectedId(value);
         }}
@@ -183,12 +180,12 @@ export default function PlaylistPicker({
         </SelectContent>
       </Select>
 
-{isAuthenticated && 
+{/* {isAuthenticated && 
       <TrackList
         tracks={tracks}
         selectedTrackId={selectedTrackId ?? null}
         onPick={(track) => onPick(track)}
       />
-}
+} */}
     </>);
 }
