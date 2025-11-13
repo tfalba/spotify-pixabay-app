@@ -11,7 +11,6 @@ type Props = {
 
 export default function SpotifySearch({ onPick, onSetTracks }: Props) {
   const [q, setQ] = useState("");
-  // const [tracks, setTracks] = useState<Track[]>([]);
   const [loading, setLoading] = useState(false);
   const ctrl = useRef<AbortController | null>(null);
   const inputRef = useRef<HTMLInputElement | null>(null);
@@ -26,7 +25,9 @@ export default function SpotifySearch({ onPick, onSetTracks }: Props) {
     ctrl.current = ac;
     setLoading(true);
     try {
-      const data = await get<any>(`${API_BASE}/api/search?q=${encodeURIComponent(term)}`);
+      const data = await get<any>(
+        `${API_BASE}/api/search?q=${encodeURIComponent(term)}`
+      );
       const items = (data?.tracks?.items || []) as any[];
       const out: Track[] = items.map((it) => ({
         id: it.id,
@@ -65,51 +66,48 @@ export default function SpotifySearch({ onPick, onSetTracks }: Props) {
 
   return (
     <>
-    
-         <div className="flex items-center justify-between mb-4 gap-3 flex-wrap">
+      <div className="flex items-center justify-between mb-4 gap-3 flex-wrap">
         <h2 className="text-sm font-semibold uppercase tracking-[0.2em] text-slate-400">
           Search
         </h2>
         {loading ? (
           <span className="text-xs text-slate-500">loading…</span>
         ) : null}
-    
       </div>
       <div className="space-y-4 p-1 text-center">
         {isAuthenticated ? (
-        <div className="flex items-center gap-2 rounded-2xl shadow-glow">
-          <input
-            ref={inputRef}
-            value={q}
-            onChange={(e) => setQ(e.target.value)}
-            placeholder="Search Spotify tracks..."
-            className="w-full rounded-xl border border-transparent bg-gradient-to-br from-[sapphire]/20 via-[white]/30 to-[sapphire]/70 px-3 py-2 text-sm text-amber-100 placeholder:text-[white]-300 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/40"
-          />
-          {q && (
-            <button
-              type="button"
-              onClick={clearSearch}
-              className="group inline-flex w-9 h-9 items-center justify-center rounded-full border border-transparent shadow-[0_12px_25px_-18px_rgba(251,191,36,0.9)] transition duration-200 hover:-translate-y-0.5 hover:shadow-[0_18px_35px_-16px_rgba(124,92,252,0.55)] focus:outline-none focus:ring-2 focus:ring-amber/50"
-              aria-label="Clear search"
-            >
-              <span className="text-md font-semibold leading-none text-amber transition group-hover:rotate-90">
-                ×
-              </span>
-            </button>
-          )}
-        </div>
+          <div className="flex items-center gap-2 rounded-2xl shadow-glow">
+            <input
+              ref={inputRef}
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
+              placeholder="Search Spotify tracks..."
+              className="w-full rounded-xl border border-transparent bg-gradient-to-br from-[sapphire]/20 via-[white]/30 to-[sapphire]/70 px-3 py-2 text-sm text-amber-100 placeholder:text-[white]-300 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/40"
+            />
+            {q && (
+              <button
+                type="button"
+                onClick={clearSearch}
+                className="group inline-flex w-9 h-9 items-center justify-center rounded-full border border-transparent shadow-[0_12px_25px_-18px_rgba(251,191,36,0.9)] transition duration-200 hover:-translate-y-0.5 hover:shadow-[0_18px_35px_-16px_rgba(124,92,252,0.55)] focus:outline-none focus:ring-2 focus:ring-amber/50"
+                aria-label="Clear search"
+              >
+                <span className="text-md font-semibold leading-none text-amber transition group-hover:rotate-90">
+                  ×
+                </span>
+              </button>
+            )}
+          </div>
         ) : (
           <LoginButton />
         )}
-
       </div>
 
-        {loading && (
-          <div className="flex items-center gap-2 text-xs text-teal">
-            <span className="h-2 w-2 animate-ping rounded-full bg-teal" />
-            Searching Spotify…
-          </div>
-        )}
+      {loading && (
+        <div className="flex items-center gap-2 text-xs text-teal">
+          <span className="h-2 w-2 animate-ping rounded-full bg-teal" />
+          Searching Spotify…
+        </div>
+      )}
     </>
   );
 }

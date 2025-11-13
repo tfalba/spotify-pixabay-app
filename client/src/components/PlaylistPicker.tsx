@@ -61,7 +61,7 @@ export default function PlaylistPicker({
     })();
   }, []);
 
-    const options = useMemo(
+  const options = useMemo(
     () =>
       playlists.map((p) => ({
         id: p.id,
@@ -91,10 +91,8 @@ export default function PlaylistPicker({
     })();
   }, [selectedId]);
 
-
   return (
-  // <TracksListsContainer title="Playlists" loading={loading} error={error} >
-<>
+    <>
       <div className="flex items-center justify-between mb-4 gap-3 flex-wrap">
         <h2 className="text-sm font-semibold uppercase tracking-[0.2em] text-slate-400">
           Playlists
@@ -102,12 +100,10 @@ export default function PlaylistPicker({
         {loading ? (
           <span className="text-xs text-slate-500">loading…</span>
         ) : null}
-    
       </div>
 
       {error && isAuthenticated && (
         <div className="mb-4 rounded-xl border border-red-500/30 bg-red-500/10 px-3 py-2 text-xs text-red-200">
-          {/* {error} */}
           {" Please try refreshing the page or logging back in."}
         </div>
       )}
@@ -125,8 +121,7 @@ export default function PlaylistPicker({
         }}
       >
         <SelectTrigger
-          className="w-full rounded-xl border border-white/40 h-12 bg-sapphire text-white px-4 py-3
-                     focus:ring-2 focus:ring-accent/50 focus:outline-none"
+          className="w-full rounded-xl border border-white/40 h-14 bg-sapphire text-white px-4 py-3"
         >
           <SelectValue
             placeholder="Choose a playlist"
@@ -179,13 +174,6 @@ export default function PlaylistPicker({
           </ScrollArea>
         </SelectContent>
       </Select>
-
-{/* {isAuthenticated && 
-      <TrackList
-        tracks={tracks}
-        selectedTrackId={selectedTrackId ?? null}
-        onPick={(track) => onPick(track)}
-      />
-} */}
-    </>);
+    </>
+  );
 }

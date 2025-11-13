@@ -19,9 +19,6 @@ function TrackCard({
       {track.image && (
         <img
           src={track.image}
-          // className={`h-16 w-16 rounded-xl object-cover shadow-inner ${
-          //   selected ? "border-white/60" : "border-white/10"
-          // }`}
           className={`h-16 w-16 rounded-xl object-cover shadow-inner`}
           alt="album art"
         />
@@ -51,9 +48,7 @@ export default function TrackList({
   onPick: (track: Track) => void;
 }) {
   return (
-    // <ul className="divide-y divide-white/5 overflow-hidden overflow-scroll rounded-2xl border border-white/10 bg-black/30 mt-6 shadow-inner">
-          <ul className="divide-y divide-white/5 overflow-hidden overflow-scroll mt-6 shadow-inner rounded-2xl bg-gradient-to-br from-teal/10 via-aurora/25 to-teal/40">
-
+    <ul className="divide-y divide-white/5 overflow-hidden overflow-scroll mt-6 shadow-inner rounded-2xl bg-gradient-to-br from-teal/10 via-aurora/25 to-teal/40">
       {tracks.map((t) => {
         const isSelected = selectedTrackId === t.id;
         return (
@@ -77,4 +72,3 @@ export default function TrackList({
     </ul>
   );
 }
-
