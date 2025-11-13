@@ -17,8 +17,15 @@ export function NowPlayingPanel({
 }: {
   onTrackFinished?: () => void;
 }) {
-  const { isConnected, deviceId, playerState, playUris, resumeOrStart, pause, seek } =
-    useSpotifyPlayerContext();
+  const {
+    isConnected,
+    deviceId,
+    playerState,
+    playUris,
+    resumeOrStart,
+    pause,
+    seek,
+  } = useSpotifyPlayerContext();
   const { current } = useCurrentTrack();
 
   const [pos, setPos] = useState(0);
@@ -114,37 +121,58 @@ export function NowPlayingPanel({
         )}
       >
         {/* Artwork + meta */}
-        <div className="flex justify-between p-3">
-        <div className="flex items-center gap-3">
-          <img
-            src={cover}
-            alt={title}
-            className="h-16 w-16 rounded-xl object-cover"
-          />
-          <div className="p-2">
-            <div className="text-white font-semibold text-sm">{title}</div>
-            <div className="text-slate-400 text-sm">{artists}</div>
-          </div>
-        </div>
-
-        <div className="flex items-center p-4">
-          {paused ? (
-            <button
-              onClick={() => {
-                if (!trackUri || !deviceId) return;
-                resumeOrStart({uris: [trackUri]}).catch(() => {});
-              }}
-              className="text-white text-2xl hover:text-slate-300"
-            >
-              ▶️
-            </button>
-          ) : (
-            <button onClick={pause} className="text-white text-2xl hover:text-slate-300">
-              ⏸
-            </button>
-          )}
-        </div>
+       <div className="flex items-center justify-between p-3">
+  <div className="flex flex-1 min-w-0 items-center gap-3">
+    <img
+      src={cover}
+      alt={title}
+      className="h-16 w-16 rounded-xl object-cover shrink-0"
+    />
+    <div className="p-2 min-w-0 flex-1">
+      <div
+        className={clsx(
+          "font-semibold text-sm truncate",
+          isLight ? "text-slate-700" : "text-white"  // note: "text-slate" isn't a valid class
+        )}
+      >
+        {title}
       </div>
+      <div
+        className={clsx(
+          "text-sm truncate",
+          isLight ? "text-slate-400" : "text-white/80"
+        )}
+      >
+        {artists}
+      </div>
+    </div>
+  </div>
+
+  <div className="flex items-center p-4 shrink-0">
+    {paused ? (
+      <button
+        onClick={() => {
+          if (!trackUri || !deviceId) return;
+          resumeOrStart({ uris: [trackUri] }).catch(() => {});
+        }}
+        className="text-white text-2xl hover:text-slate-300"
+      >
+        ▶️
+      </button>
+    ) : (
+      <button
+        onClick={pause}
+        className={clsx(
+          "text-2xl",
+          isLight ? "text-slate-700 hover:text-teal-700"
+                  : "text-white hover:text-slate-300"
+        )}
+      >
+        ⏸
+      </button>
+    )}
+  </div>
+</div>
 
         {/* Seek bar */}
         <div className="flex items-center gap-2 px-3 pb-3">

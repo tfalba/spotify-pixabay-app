@@ -55,7 +55,7 @@ function FlipCard({
       </span>
 
       {/* optional rim */}
-      <span className="pointer-events-none absolute inset-0 rounded-xl bg-gradient-to-r from-midnight/20 via-white/5 to-teal/20 mix-blend-overlay" />
+      <span className="pointer-events-none absolute inset-0 rounded-xl bg-gradient-to-r from-midnight/10 via-white/5 to-teal/20 mix-blend-overlay" />
     </a>
   );
 }

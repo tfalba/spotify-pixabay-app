@@ -56,27 +56,28 @@ export default function HeaderBar() {
   return (
     <header
       className={clsx(
-        "sticky top-0 z-50 flex items-center justify-between rounded-3xl border px-6 pt-2 pb-7 backdrop-blur-lg shadow-glow transition-colors duration-300 lg:px-10",
+        "sticky top-0 z-50 flex items-center justify-between rounded-3xl border px-6 py-5 backdrop-blur-lg shadow-glow transition-colors duration-300 lg:px-10",
         isLight ? "border-slate-200 bg-white/80 text-slate-900" : "border-white/30 bg-teal/5 text-white",
       )}
     >
-      <div>
+      <div className="flex-1">
         <p
           className={clsx(
-            "text-s uppercase tracking-[0.4em]",
-            isLight ? "text-teal-700" : "text-teal/90",
+            "text-xl uppercase tracking-[0.4em] font-semibold",
+            isLight ? "text-lilac" : "text-teal/90",
           )}
         >
-          Portfolio Studio
+          {/* Portfolio Studio */}
+          Spotify * Pixabay Showcase
         </p>
-        <h1
+        {/* <h1
           className={clsx(
             "text-2xl font-semibold tracking-tight",
             isLight ? "text-slate-900" : "text-white",
           )}
         >
           Spotify x Pixabay Showcase
-        </h1>
+        </h1> */}
       </div>
 
       <div className="flex flex-col items-end gap-3">
