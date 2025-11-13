@@ -17,20 +17,8 @@ export function NowPlayingPanel({
 }: {
   onTrackFinished?: () => void;
 }) {
-  const {
-    sdkReady,
-    isConnected,
-    deviceId,
-    playerState,
-    previousTrack,
-    nextTrack,
-    playUris,
-    pause,
-    startPlayback,
-    resumeOrStart,
-    resume,
-    seek,
-  } = useSpotifyPlayerContext();
+  const { isConnected, deviceId, playerState, playUris, resumeOrStart, pause, seek } =
+    useSpotifyPlayerContext();
   const { current } = useCurrentTrack();
 
   const [pos, setPos] = useState(0);
@@ -85,9 +73,8 @@ export function NowPlayingPanel({
     }
 
     const position = playerState?.position ?? pos;
-    const pausedState = playerState?.paused ?? false;
     const nearEnd = duration > 0 && duration - position <= 1200;
-    const ended = pausedState && position === 0;
+    const ended = paused && position === 0;
 
     if ((nearEnd || ended) && finishedRef.current !== currentUri) {
       finishedRef.current = currentUri;
@@ -99,7 +86,7 @@ export function NowPlayingPanel({
     }
   }, [
     onTrackFinished,
-    playerState?.paused,
+    paused,
     playerState?.position,
     playerState?.track_window?.current_track?.uri,
     duration,
@@ -141,27 +128,23 @@ export function NowPlayingPanel({
         </div>
 
         <div className="flex items-center p-4">
-          {/* play / pause */}
-          {playerState?.paused ? (
+          {paused ? (
             <button
               onClick={() => {
-                if (!trackUri) return;
-                resumeOrStart({ uris: [trackUri] });
+                if (!trackUri || !deviceId) return;
+                resumeOrStart({uris: [trackUri]}).catch(() => {});
               }}
               className="text-white text-2xl hover:text-slate-300"
             >
               ▶️
             </button>
           ) : (
-            <button
-              onClick={pause}
-              className="text-white text-2xl hover:text-slate-300"
-            >
+            <button onClick={pause} className="text-white text-2xl hover:text-slate-300">
               ⏸
             </button>
           )}
         </div>
-        </div>
+      </div>
 
         {/* Seek bar */}
         <div className="flex items-center gap-2 px-3 pb-3">

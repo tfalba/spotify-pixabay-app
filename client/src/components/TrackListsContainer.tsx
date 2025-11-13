@@ -5,6 +5,7 @@ import { useCallback, useState } from "react";
 import TrackList from "./TrackList";
 import clsx from "clsx";
 import { useTheme } from "@/context/ThemeContext";
+import { useCurrentTrack } from "@/context/CurrentTrackContext";
 
 export default function TracksListsContainer({
   handleQueueChange,
@@ -12,14 +13,19 @@ export default function TracksListsContainer({
   handleQueueChange: (tracks: any[]) => void;
 }) {
   const { theme } = useTheme();
+  const { setCurrent } = useCurrentTrack();
   const [tracks, setTracks] = useState<Track[]>([]);
   const [activePanel, setActivePanel] = useState<"search" | "playlists">(
     "search"
   );
 
-  const handleSetTracks = useCallback((nextTracks: Track[]) => {
-    setTracks(nextTracks);
-  }, []);
+  const handleSetTracks = useCallback(
+    (nextTracks: Track[]) => {
+      setCurrent(null);
+      setTracks(nextTracks);
+    },
+    [setCurrent],
+  );
 
   const isLight = theme === "light";
   const sectionClass = clsx(
