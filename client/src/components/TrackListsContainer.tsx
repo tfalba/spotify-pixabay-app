@@ -52,12 +52,7 @@ export default function TracksListsContainer({
         </div>
       </div>
 
-      <div
-        className={clsx(
-          "mb-4 flex rounded-full border p-1 text-xs font-semibold uppercase tracking-[0.2em]",
-          isLight ? "border-slate-200 bg-slate-100" : "border-white/10 bg-white/5",
-        )}
-      >
+      <div className="mb-4 flex rounded-full border p-1 text-xs font-semibold uppercase tracking-[0.2em] bg-white/5 border-white/10 dark:bg-white/5 dark:border-white/10">
         {[
           { key: "search" as const, label: "Search" },
           { key: "playlists" as const, label: "Playlists" },
@@ -69,7 +64,7 @@ export default function TracksListsContainer({
             className={clsx(
               "flex-1 rounded-full px-3 py-1 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber",
               activePanel === tab.key
-                ? "bg-teal text-midnight"
+                ? isLight ? "bg-teal/40 text-midnight" : "bg-teal text-midnight"
                 : isLight
                   ? "text-slate-600 hover:text-slate-900"
                   : "text-white/60 hover:text-white",
