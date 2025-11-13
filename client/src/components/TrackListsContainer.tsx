@@ -28,13 +28,13 @@ export default function TracksListsContainer({
   const isLight = theme === "light";
   const sectionClass = clsx(
     "xl:col-span-1 flex min-w-0 flex-col rounded-3xl border p-4 shadow-glow max-h-[max(600px,calc(100vh-10rem))] overflow-hidden transition-colors duration-300",
-    isLight ? "border-slate-200 bg-white text-slate-900" : "border-[amber]/80 bg-black/30 text-slate-100",
+    isLight ? "border-slate-200 bg-teal/10 text-slate-900" : "border-[amber]/80 bg-black/30 text-slate-100",
   );
 
   return (
     <section className={sectionClass}>
       <div className="flex items-center gap-3 pb-3">
-        <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-card-glow text-2xl text-accent shadow-glow">
+        <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-card-glow text-2xl text-slate shadow-glow">
           ♪
         </span>
         <div>

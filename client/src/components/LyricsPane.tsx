@@ -58,7 +58,8 @@ export default function LyricsPane({
         "flex-1 overflow-hidden rounded-2xl p-5 shadow-[0_20px_60px_rgba(124,92,252,0.35)] transition-colors duration-300",
         isLight
           ? "border border-slate-200 bg-white"
-          : "bg-gradient-to-br from-teal/10 via-aurora/25 to-teal/40",
+          : "bg-slate"
+          // : "bg-gradient-to-br from-teal/10 via-aurora/25 to-teal/40",
       )}
     >
       <h2

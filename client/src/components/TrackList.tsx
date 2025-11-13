@@ -12,7 +12,7 @@ function TrackCard({ track, selected = false, isLight }: CardProps) {
   const containerClasses = clsx(
     "flex w-full items-center gap-4 rounded-2xl border p-1 pr-2 transition",
     selected
-      ? "border-teal/70 border-4 bg-sapphire/70 shadow-glow"
+      ? isLight ? "border-teal/70 border-4 bg-sapphire/10 shadow-glow" : "border-teal/70 border-4 bg-sapphire/70 shadow-blog"
       : isLight
         ? "border-slate-200 bg-white hover:border-teal-500/40 hover:bg-slate-50"
         : "border-white/10 bg-sapphire/60 hover:border-teal/60 hover:bg-sapphire/70 hover:shadow-glow",
@@ -65,6 +65,8 @@ export default function TrackList({
         "divide-y overflow-hidden overflow-scroll mt-6 shadow-inner rounded-2xl",
         isLight
           ? "divide-slate-200 border border-slate-200 bg-white"
+                    // ? "divide-slate-200 border border-slate-200 bg-gradient-to-br from-teal/80 via aurora/20 to teal/40"
+
           : "divide-white/5 bg-gradient-to-br from-teal/10 via-aurora/25 to-teal/40",
       )}
     >
@@ -77,9 +79,9 @@ export default function TrackList({
             className={clsx(
               "flex w-full min-w-0 p-2 text-left rounded-2xl transition border",
               isSelected
-                ? "border-amber/70 bg-white/10 shadow-glow"
+                ? isLight ? "border-amber/70 bg-white/70 shadow-glow" : "bg-white/10"
                 : isLight
-                  ? "border-transparent bg-white hover:border-teal-500/30 hover:bg-slate-50"
+                  ? "border-transparent bg-white hover:border-teal-500/30 hover:bg-slate-45"
                   : "border-transparent bg-white/5 hover:border-teal/40 hover:bg-white/10",
             )}
             type="button"

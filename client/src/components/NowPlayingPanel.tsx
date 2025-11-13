@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from "react";
+import clsx from "clsx";
 import { useSpotifyPlayerContext } from "../context/SpotifyPlayerProvider";
 import backgroundLogo from "../assets/center-logo.svg";
+import { useTheme } from "@/context/ThemeContext";
 
 function formatTime(ms = 0) {
   const sec = Math.floor(ms / 1000);
@@ -65,6 +67,8 @@ export function NowPlayingPanel({
   }, [trackUri, deviceId, isConnected, playUris]);
 
   const finishedRef = useRef<string | null>(null);
+  const { theme } = useTheme();
+  const isLight = theme === "light";
 
   useEffect(() => {
     if (!onTrackFinished) return;
@@ -102,21 +106,38 @@ export function NowPlayingPanel({
     <div>
       {/* Controls row (small) */}
 
-      <h2 className="text-sm font-semibold uppercase tracking-[0.2em] text-slate-400">
+      <h2
+        className={clsx(
+          "text-sm font-semibold uppercase tracking-[0.2em]",
+          isLight ? "text-slate-500" : "text-slate-400",
+        )}
+      >
         Now Playing
       </h2>
 
-      <div className="mt-3 overflow-hidden rounded-2xl border border-white/10 bg-black/40 shadow-inner">
+      <div
+        className={clsx(
+          "mt-3 overflow-hidden rounded-2xl border shadow-inner transition-colors duration-300",
+          isLight ? "border-slate-200 bg-white" : "border-white/10 bg-black/40",
+        )}
+      >
         {/* Artwork + meta */}
         <div className="flex items-center gap-3 p-3">
           <img src={cover} alt="" className="h-16 w-16 rounded object-cover" />
           <div className="min-w-0 min-w-70 justify-end">
             <div className="flex justify-between gap-2">
-              {title && <div className="truncate text-white">{title}</div>}
+              {title && (
+                <div className={clsx("truncate font-semibold", isLight ? "text-slate-900" : "text-white")}>
+                  {title}
+                </div>
+              )}
               <div className="mb-2 flex flex-wrap items-center gap-2 justify-end">
                 {title?.length > 0 && (
                   <button
-                    className="rounded-full bg-white/80 text-xs disabled:opacity-5 py-1 px-2 font-semibold text-midnight"
+                    className={clsx(
+                      "rounded-full text-xs disabled:opacity-50 py-1 px-2 font-semibold transition",
+                      isLight ? "bg-teal-600 text-white hover:bg-teal-500" : "bg-white/80 text-midnight",
+                    )}
                     onClick={paused ? resume : pause}
                     disabled={!deviceId}
                   >
@@ -125,8 +146,10 @@ export function NowPlayingPanel({
                 )}
               </div>
             </div>
-            <div className="truncate text-slate-300 text-sm">{artists}</div>
-            <div className="text-xs text-slate-400">
+            <div className={clsx("truncate text-sm", isLight ? "text-slate-600" : "text-slate-300")}>
+              {artists}
+            </div>
+            <div className={clsx("text-xs", isLight ? "text-slate-500" : "text-slate-400")}>
               {sdkReady ? "SDK ready" : "Loading SDK…"} ·{" "}
               {deviceId ? "Device detected" : "No device yet"}
             </div>
@@ -135,12 +158,20 @@ export function NowPlayingPanel({
 
         {/* Seek bar */}
         <div className="flex items-center gap-2 px-3 pb-3">
-          <span className="w-10 text-right text-[11px] tabular-nums text-slate-400">
+          <span
+            className={clsx(
+              "w-10 text-right text-[11px] tabular-nums",
+              isLight ? "text-slate-500" : "text-slate-400",
+            )}
+          >
             {formatTime(pos)}
           </span>
           <input
             type="range"
-            className="w-full"
+            className={clsx(
+              "w-full accent-teal-500",
+              isLight ? "bg-transparent" : "bg-transparent",
+            )}
             min={0}
             max={Math.max(duration, 1)}
             step={1000}
@@ -150,7 +181,12 @@ export function NowPlayingPanel({
             onTouchEnd={() => seek(pos)}
             disabled={!deviceId}
           />
-          <span className="w-10 text-[11px] tabular-nums text-slate-400">
+          <span
+            className={clsx(
+              "w-10 text-[11px] tabular-nums",
+              isLight ? "text-slate-500" : "text-slate-400",
+            )}
+          >
             {formatTime(duration)}
           </span>
         </div>

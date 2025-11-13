@@ -56,7 +56,7 @@ body {
 
 #root {
   min-height: 100vh;
-  max-width: 1700px;
+  /* max-width: 1700px; */
   width: 100%;
 }
 
