@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
+import clsx from "clsx";
 import { get } from "../lib/fetcher";
+import { useTheme } from "@/context/ThemeContext";
 
 export default function LyricsPane({
   artist,
@@ -39,32 +41,52 @@ export default function LyricsPane({
         setSource("");
       });
   }, [artist, title]);
+  const { theme } = useTheme();
+  const isLight = theme === "light";
 
   if (!artist || !title) {
     return (
-      <div className="text-sm text-slate-400">
+      <div className={clsx("text-sm", isLight ? "text-slate-600" : "text-slate-400")}>
         Select a track to view lyrics and image prompts will appear here.
       </div>
     );
   }
 
   return (
-    <div className="flex-1 overflow-hidden rounded-2xl bg-gradient-to-br from-teal/10 via-aurora/25 to-teal/40 p-5 shadow-[0_20px_60px_rgba(124,92,252,0.35)]">
-      <h2 className="text-lg font-semibold tracking-tight text-slate-50 mb-1">
+    <div
+      className={clsx(
+        "flex-1 overflow-hidden rounded-2xl p-5 shadow-[0_20px_60px_rgba(124,92,252,0.35)] transition-colors duration-300",
+        isLight
+          ? "border border-slate-200 bg-white"
+          : "bg-gradient-to-br from-teal/10 via-aurora/25 to-teal/40",
+      )}
+    >
+      <h2
+        className={clsx(
+          "text-lg font-semibold tracking-tight mb-1",
+          isLight ? "text-slate-900" : "text-slate-50",
+        )}
+      >
         Lyrics
       </h2>
-      <p className="text-xs uppercase tracking-[0.3em] text-amber/70">
+      <p className={clsx("text-xs uppercase tracking-[0.3em]", isLight ? "text-amber-600" : "text-amber/70")}>
         Storyboard
       </p>
       <div className="mt-4 max-h-[max(360px,calc(100vh-5rem))] overflow-y-scroll pr-1">
-        <div className="space-y-4 text-slate-200">
-          {/* Lyrics */}
+        <div className={clsx("space-y-4", isLight ? "text-slate-700" : "text-slate-200")}>
           <div className="whitespace-pre-wrap text-sm leading-relaxed">
             {text || (
-              <span className="text-slate-500">Lyrics not available.</span>
+              <span className={clsx(isLight ? "text-slate-500" : "text-slate-500")}>
+                Lyrics not available.
+              </span>
             )}
             {source && (
-              <div className="mt-3 text-xs uppercase tracking-wide text-slate-500">
+              <div
+                className={clsx(
+                  "mt-3 text-xs uppercase tracking-wide",
+                  isLight ? "text-slate-500" : "text-slate-500",
+                )}
+              >
                 Source: {source}
               </div>
             )}

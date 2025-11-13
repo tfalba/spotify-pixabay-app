@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import clsx from "clsx";
 import {
   getAllPlaylistTracks,
   getAllUserPlaylists,
@@ -16,6 +17,7 @@ import {
 } from "@/components/ui/select";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useSpotifyPlayerContext } from "@/context/SpotifyPlayerProvider";
+import { useTheme } from "@/context/ThemeContext";
 
 type Props = {
   onPick: (t: Track | null) => void; // hook into your NowPlaying
@@ -44,6 +46,8 @@ export default function PlaylistPicker({
   const [error, setError] = useState<string>("");
 
   const { isAuthenticated } = useSpotifyPlayerContext();
+  const { theme } = useTheme();
+  const isLight = theme === "light";
 
   useEffect(() => {
     (async () => {
@@ -94,16 +98,26 @@ export default function PlaylistPicker({
   return (
     <>
       <div className="flex items-center justify-between mb-4 gap-3 flex-wrap">
-        <h2 className="text-sm font-semibold uppercase tracking-[0.2em] text-slate-400">
+        <h2
+          className={clsx(
+            "text-sm font-semibold uppercase tracking-[0.2em]",
+            isLight ? "text-slate-500" : "text-slate-400",
+          )}
+        >
           Playlists
         </h2>
         {loading ? (
-          <span className="text-xs text-slate-500">loading…</span>
+          <span className={clsx("text-xs", isLight ? "text-slate-500" : "text-slate-400")}>loading…</span>
         ) : null}
       </div>
 
       {error && isAuthenticated && (
-        <div className="mb-4 rounded-xl border border-red-500/30 bg-red-500/10 px-3 py-2 text-xs text-red-200">
+        <div
+          className={clsx(
+            "mb-4 rounded-xl border px-3 py-2 text-xs",
+            isLight ? "border-red-200 bg-red-50 text-red-700" : "border-red-500/30 bg-red-500/10 text-red-200",
+          )}
+        >
           {" Please try refreshing the page or logging back in."}
         </div>
       )}
@@ -121,7 +135,10 @@ export default function PlaylistPicker({
         }}
       >
         <SelectTrigger
-          className="w-full rounded-xl border border-white/40 h-14 bg-sapphire text-white px-4 py-3"
+          className={clsx(
+            "w-full rounded-xl border h-14 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-accent/40",
+            isLight ? "border-slate-200 bg-white text-slate-900" : "border-white/40 bg-sapphire text-white",
+          )}
         >
           <SelectValue
             placeholder="Choose a playlist"
@@ -130,7 +147,10 @@ export default function PlaylistPicker({
         </SelectTrigger>
 
         <SelectContent
-          className="border-white/10 bg-sapphire text-white"
+          className={clsx(
+            "text-sm",
+            isLight ? "border border-slate-200 bg-white text-slate-900" : "border-white/10 bg-sapphire text-white",
+          )}
           position="popper"
           align="start"
         >
@@ -146,8 +166,12 @@ export default function PlaylistPicker({
                 <SelectItem
                   key={o.id}
                   value={o.id}
-                  className="focus:bg-aurora/30 data-[highlighted]:bg-white/25 data-[state=checked]:bg-white/30
-                             rounded-md focus:border-white text-white data-[highlighted]:text-white data-[state=checked]:text-white"
+                  className={clsx(
+                    "focus:bg-aurora/30 data-[highlighted]:bg-white/25 data-[state=checked]:bg-white/30 rounded-md focus:border-white",
+                    isLight
+                      ? "text-slate-900 data-[highlighted]:text-slate-900 data-[state=checked]:text-slate-900"
+                      : "text-white data-[highlighted]:text-white data-[state=checked]:text-white",
+                  )}
                 >
                   <div className="flex items-center gap-3">
                     {o.thumb ? (

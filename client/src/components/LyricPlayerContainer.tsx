@@ -1,6 +1,8 @@
+import clsx from "clsx";
 import LyricsPane from "./LyricsPane";
 import type { Track } from "../types/types";
 import { NowPlayingPanel } from "./NowPlayingPanel";
+import { useTheme } from "@/context/ThemeContext";
 
 export default function LyricPlayerContainer({
   current,
@@ -9,16 +11,29 @@ export default function LyricPlayerContainer({
   current: Track | null;
   onTrackFinished?: () => void;
 }) {
+  const { theme } = useTheme();
+  const isLight = theme === "light";
+  const containerClass = clsx(
+    "xl:col-span-1 xl:col-start-2 flex min-w-0 flex-col rounded-3xl border p-4 shadow-glow max-h-[max(600px,calc(100vh-10rem))] overflow-hidden transition-colors duration-300",
+    isLight ? "border-slate-200 bg-white text-slate-900" : "border-teal/80 bg-slate-900/40 text-slate-100",
+  );
+  const nowPlayingClass = clsx(
+    "rounded-2xl p-3 shadow-glow mb-4 transition-colors duration-300",
+    isLight ? "bg-slate-100" : "bg-sapphire/80",
+  );
+  const trackTitleClass = isLight ? "text-slate-900" : "text-white";
+  const trackArtistClass = isLight ? "text-slate-600" : "text-slate-400";
+
   return (
-    <aside className="xl:col-span-1 xl:col-start-2 flex min-w-0 flex-col rounded-3xl border border-teal/80 p-4 shadow-glow max-h-[max(600px,calc(100vh-10rem))] overflow-hidden">
-      <div className="rounded-2xl bg-sapphire/80 p-3 shadow-glow mb-4">
+    <aside className={containerClass}>
+      <div className={nowPlayingClass}>
         <NowPlayingPanel current={current} onTrackFinished={onTrackFinished} />
         {current && (
           <div className="mt-3">
-            <div className="text-base font-medium text-white truncate">
+            <div className={clsx("text-base font-medium truncate", trackTitleClass)}>
               {current.name}
             </div>
-            <div className="text-sm text-slate-400 truncate">
+            <div className={clsx("text-sm truncate", trackArtistClass)}>
               {current.artists[0]?.name}
             </div>
           </div>

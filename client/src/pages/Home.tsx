@@ -1,8 +1,10 @@
+import { useCallback, useState } from "react";
+import clsx from "clsx";
 import LyricPlayerContainer from "../components/LyricPlayerContainer";
 import PixabayGrid from "../components/PixabayGrid";
 import type { Track } from "../types/types";
 import TracksListsContainer from "@/components/TrackListsContainer";
-import { useCallback, useState } from "react";
+import { useTheme } from "@/context/ThemeContext";
 
 type Props = {
   current: Track | null;
@@ -16,6 +18,7 @@ type Props = {
 };
 
 export default function Home({ current, onPick, pixabay }: Props) {
+  const { theme } = useTheme();
   const [queue, setQueue] = useState<Track[]>([]);
 
   const handleQueueChange = useCallback(
@@ -48,8 +51,15 @@ export default function Home({ current, onPick, pixabay }: Props) {
     }
   }, [queue, current, onPick]);
 
+  const mainClass = clsx(
+    "relative mt-4 flex flex-1 flex-col gap-6 rounded-[32px] border p-2 shadow-[0_25px_80px_rgba(4,6,11,0.65)] ring-1 before:pointer-events-none before:absolute before:inset-0 before:rounded-[32px] before:opacity-80 before:blur before:content-[''] lg:grid lg:grid-cols-3 xl:grid xl:grid-cols-[27%_27%_42%]",
+    theme === "light"
+      ? "border-slate-200 bg-white text-slate-900 ring-white/40 before:bg-gradient-to-br before:from-white/50 before:via-transparent before:to-slate-100/60"
+      : "border-white/5 bg-gradient-to-br from-midnight/80 via-aurora/60 to-sapphire/80 text-slate-100 ring-white/10 before:bg-gradient-to-br before:from-white/10 before:via-transparent before:to-white/5",
+  );
+
   return (
-    <main className="relative mt-4 flex flex-1 flex-col gap-6 rounded-[32px] border border-white/5  p-2 shadow-[0_25px_80px_rgba(4,6,11,0.65)] ring-1 ring-white/10 before:pointer-events-none before:absolute before:inset-0 before:rounded-[32px] before:bg-gradient-to-br before:from-white/10 before:via-transparent before:to-white/5 before:opacity-80 before:blur before:content-[''] lg:grid lg:grid-cols-3 xl:grid xl:grid-cols-[27%_27%_42%]">
+    <main className={mainClass}>
       <TracksListsContainer
         onPick={handlePick}
         selectedTrackId={current?.id ?? null}

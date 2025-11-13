@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
+import clsx from "clsx";
 import { get } from "../lib/fetcher";
 import { LoginButton, LogoutButton } from "./LoginButtons";
+import { useTheme } from "@/context/ThemeContext";
 
 type SpotifyUser = {
   id: string;
@@ -10,6 +12,8 @@ type SpotifyUser = {
 export default function HeaderBar() {
   const [user, setUser] = useState<SpotifyUser | null>(null);
   const [checkedAuth, setCheckedAuth] = useState(false);
+  const { theme, toggleTheme } = useTheme();
+  const isLight = theme === "light";
 
   const API = import.meta.env.VITE_API_BASE;
 
@@ -50,26 +54,51 @@ export default function HeaderBar() {
 
 
   return (
-    <header className="sticky top-0 z-50 flex items-center justify-between rounded-3xl border border-white/30 bg-black/60 px-6 pt-2 pb-7 backdrop-blur-lg shadow-soft lg:px-10">
+    <header
+      className={clsx(
+        "sticky top-0 z-50 flex items-center justify-between rounded-3xl border px-6 pt-2 pb-7 backdrop-blur-lg shadow-soft transition-colors duration-300 lg:px-10",
+        isLight ? "border-slate-200 bg-white/80 text-slate-900" : "border-white/30 bg-black/60 text-white",
+      )}
+    >
       <div>
-        <p className="text-s uppercase tracking-[0.4em] text-teal/90">
+        <p
+          className={clsx(
+            "text-s uppercase tracking-[0.4em]",
+            isLight ? "text-teal-700" : "text-teal/90",
+          )}
+        >
           Portfolio Studio
         </p>
-        <h1 className="text-2xl font-semibold tracking-tight text-white">
+        <h1
+          className={clsx(
+            "text-2xl font-semibold tracking-tight",
+            isLight ? "text-slate-900" : "text-white",
+          )}
+        >
           Spotify x Pixabay Showcase
         </h1>
       </div>
 
-      <div className="flex flex-col items-end justify-center gap-2">
-   
+      <div className="flex flex-col items-end gap-3">
+        <button
+          type="button"
+          onClick={toggleTheme}
+          className={clsx(
+            "inline-flex items-center gap-2 rounded-full border px-4 py-1 text-xs font-semibold uppercase tracking-wide transition-colors",
+            isLight
+              ? "border-slate-300 bg-white text-slate-700 hover:bg-slate-100"
+              : "border-white/30 bg-white/10 text-white hover:bg-white/20",
+          )}
+        >
+          {isLight ? "Dark Mode" : "Light Mode"}
+        </button>
 
-        {/* <div className="flex items-center gap-3 text-sm text-amber-400"> */}
-          <div className="flex items-center gap-4">
+        <div className="flex items-center gap-4 text-sm">
           {!checkedAuth ? null : user && displayName ? (
             <>
-              <span className="hidden sm:inline">
-                <span className="text-slate-500">Logged in as</span>{" "}
-                <span className="font-medium text-white">{displayName}</span>
+              <span className={clsx("hidden sm:inline", isLight ? "text-slate-500" : "text-slate-300")}>
+                <span className="text-inherit">Logged in as </span>
+                <span className={clsx("font-medium", isLight ? "text-slate-900" : "text-white")}>{displayName}</span>
               </span>
 
               <LogoutButton />
