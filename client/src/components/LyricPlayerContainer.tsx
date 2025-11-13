@@ -1,16 +1,15 @@
 import clsx from "clsx";
 import LyricsPane from "./LyricsPane";
-import type { Track } from "../types/types";
 import { NowPlayingPanel } from "./NowPlayingPanel";
 import { useTheme } from "@/context/ThemeContext";
+import { useCurrentTrack } from "@/context/CurrentTrackContext";
 
 export default function LyricPlayerContainer({
-  current,
   onTrackFinished,
 }: {
-  current: Track | null;
   onTrackFinished?: () => void;
 }) {
+  const { current } = useCurrentTrack();
   const { theme } = useTheme();
   const isLight = theme === "light";
   const containerClass = clsx(
@@ -27,7 +26,7 @@ export default function LyricPlayerContainer({
   return (
     <aside className={containerClass}>
       <div className={nowPlayingClass}>
-        <NowPlayingPanel current={current} onTrackFinished={onTrackFinished} />
+        <NowPlayingPanel onTrackFinished={onTrackFinished} />
         {current && (
           <div className="mt-3">
             <div className={clsx("text-base font-medium truncate", trackTitleClass)}>

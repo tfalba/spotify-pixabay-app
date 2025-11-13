@@ -6,4 +6,7 @@ export type Track = {
   preview_url: string | null;
   external_url: string;
   uri: string | null;
+  album?: {
+    images?: { url: string }[];
+  };
 };

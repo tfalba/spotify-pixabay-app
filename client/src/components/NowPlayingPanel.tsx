@@ -3,6 +3,7 @@ import clsx from "clsx";
 import { useSpotifyPlayerContext } from "../context/SpotifyPlayerProvider";
 import backgroundLogo from "../assets/center-logo.svg";
 import { useTheme } from "@/context/ThemeContext";
+import { useCurrentTrack } from "@/context/CurrentTrackContext";
 
 function formatTime(ms = 0) {
   const sec = Math.floor(ms / 1000);
@@ -12,10 +13,8 @@ function formatTime(ms = 0) {
 }
 
 export function NowPlayingPanel({
-  current,
   onTrackFinished,
 }: {
-  current: any;
   onTrackFinished?: () => void;
 }) {
   const {
@@ -28,6 +27,7 @@ export function NowPlayingPanel({
     resume,
     seek,
   } = useSpotifyPlayerContext();
+  const { current } = useCurrentTrack();
 
   const [pos, setPos] = useState(0);
   const duration = playerState?.duration ?? 0;

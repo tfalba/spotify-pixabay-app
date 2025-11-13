@@ -7,12 +7,8 @@ import clsx from "clsx";
 import { useTheme } from "@/context/ThemeContext";
 
 export default function TracksListsContainer({
-  onPick,
-  selectedTrackId,
   handleQueueChange,
 }: {
-  onPick: (track: any) => void;
-  selectedTrackId: string | null | undefined;
   handleQueueChange: (tracks: any[]) => void;
 }) {
   const { theme } = useTheme();
@@ -77,22 +73,14 @@ export default function TracksListsContainer({
 
       <div className="min-h-min max-h-fit flex-1 overflow-y-auto pr-1">
         {activePanel === "search" ? (
-          <SpotifySearch onPick={onPick} onSetTracks={handleSetTracks} />
+          <SpotifySearch onSetTracks={handleSetTracks} />
         ) : (
-          <PlaylistPicker
-            onPick={onPick}
-            onQueueChange={handleQueueChange}
-            onSetTracks={handleSetTracks}
-          />
+          <PlaylistPicker onQueueChange={handleQueueChange} onSetTracks={handleSetTracks} />
         )}
       </div>
 
       {tracks.length > 0 && (
-        <TrackList
-          tracks={tracks}
-          selectedTrackId={selectedTrackId ?? null}
-          onPick={(track) => onPick(track)}
-        />
+        <TrackList tracks={tracks} />
       )}
     </section>
   );

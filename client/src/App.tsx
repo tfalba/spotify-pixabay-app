@@ -1,15 +1,15 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import clsx from "clsx";
-import type { Track } from "./types/types";
 import HeaderBar from "./components/HeaderBar";
 import Home from "./pages/Home";
 import { get } from "./lib/fetcher";
 import { useLyricsImages } from "./hooks/useLyricsImages";
 import { SpotifyPlayerProvider } from "./context/SpotifyPlayerProvider";
 import { ThemeProvider, useTheme } from "./context/ThemeContext";
+import { CurrentTrackProvider, useCurrentTrack } from "./context/CurrentTrackContext";
 
 function AppContent() {
-  const [current, setCurrent] = useState<Track | null>(null);
+  const { current } = useCurrentTrack();
   const API = import.meta.env.VITE_API_BASE || "http://127.0.0.1:5174";
 
 
@@ -68,7 +68,7 @@ function AppContent() {
       <div className={pageBg}>
         <div className={shell}>
           <HeaderBar />
-          <Home current={current} onPick={setCurrent} pixabay={pixabayProps} />
+          <Home pixabay={pixabayProps} />
         </div>
       </div>
     </SpotifyPlayerProvider>
@@ -78,7 +78,9 @@ function AppContent() {
 export default function App() {
   return (
     <ThemeProvider>
-      <AppContent />
+      <CurrentTrackProvider>
+        <AppContent />
+      </CurrentTrackProvider>
     </ThemeProvider>
   );
 }

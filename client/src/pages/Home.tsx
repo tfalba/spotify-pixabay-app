@@ -5,10 +5,9 @@ import PixabayGrid from "../components/PixabayGrid";
 import type { Track } from "../types/types";
 import TracksListsContainer from "@/components/TrackListsContainer";
 import { useTheme } from "@/context/ThemeContext";
+import { useCurrentTrack } from "@/context/CurrentTrackContext";
 
 type Props = {
-  current: Track | null;
-  onPick: (track: Track | null) => void;
   pixabay: {
     images: any[];
     keywords: string[];
@@ -17,39 +16,33 @@ type Props = {
   };
 };
 
-export default function Home({ current, onPick, pixabay }: Props) {
+export default function Home({ pixabay }: Props) {
   const { theme } = useTheme();
+  const { current, setCurrent } = useCurrentTrack();
   const [queue, setQueue] = useState<Track[]>([]);
 
   const handleQueueChange = useCallback(
     (tracks: Track[]) => {
       setQueue(tracks);
       if (!tracks.length) {
-        onPick(null);
+        setCurrent(null);
         return;
       }
       if (current && tracks.some((t) => t.id === current.id)) {
         return;
       }
-      onPick(null);
+      setCurrent(null);
     },
-    [current, onPick]
-  );
-
-  const handlePick = useCallback(
-    (track: Track | null) => {
-      onPick(track);
-    },
-    [onPick]
+    [current, setCurrent],
   );
 
   const handleTrackFinished = useCallback(() => {
     if (!queue.length || !current) return;
     const idx = queue.findIndex((t) => t.id === current.id);
     if (idx >= 0 && idx + 1 < queue.length) {
-      onPick(queue[idx + 1]);
+      setCurrent(queue[idx + 1]);
     }
-  }, [queue, current, onPick]);
+  }, [queue, current, setCurrent]);
 
   const mainClass = clsx(
     "relative mt-4 flex flex-1 flex-col gap-6 rounded-[32px] border p-2 ring-1 before:pointer-events-none before:absolute before:inset-0 before:rounded-[32px] before:opacity-80 before:blur before:content-[''] lg:grid lg:grid-cols-3 xl:grid xl:grid-cols-[27%_27%_42%]",
@@ -60,16 +53,9 @@ export default function Home({ current, onPick, pixabay }: Props) {
 
   return (
     <main className={mainClass}>
-      <TracksListsContainer
-        onPick={handlePick}
-        selectedTrackId={current?.id ?? null}
-        handleQueueChange={handleQueueChange}
-      ></TracksListsContainer>
+      <TracksListsContainer handleQueueChange={handleQueueChange} />
 
-      <LyricPlayerContainer
-        current={current}
-        onTrackFinished={handleTrackFinished}
-      />
+      <LyricPlayerContainer onTrackFinished={handleTrackFinished} />
       <PixabayGrid
         images={pixabay.images}
         keywords={pixabay.keywords}

@@ -18,9 +18,9 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useSpotifyPlayerContext } from "@/context/SpotifyPlayerProvider";
 import { useTheme } from "@/context/ThemeContext";
+import { useCurrentTrack } from "@/context/CurrentTrackContext";
 
 type Props = {
-  onPick: (t: Track | null) => void; // hook into your NowPlaying
   onQueueChange?: (tracks: Track[]) => void;
   onSetTracks?: (tracks: Track[]) => void;
 };
@@ -36,7 +36,6 @@ const mapToTrack = (t: SpotifyTrack): Track => ({
 });
 
 export default function PlaylistPicker({
-  onPick,
   onQueueChange,
   onSetTracks,
 }: Props) {
@@ -48,6 +47,7 @@ export default function PlaylistPicker({
   const { isAuthenticated } = useSpotifyPlayerContext();
   const { theme } = useTheme();
   const isLight = theme === "light";
+  const { setCurrent } = useCurrentTrack();
 
   useEffect(() => {
     (async () => {
@@ -128,7 +128,7 @@ export default function PlaylistPicker({
         value={selectedId}
         onValueChange={(value) => {
           if (value !== selectedId) {
-            onPick(null);
+            setCurrent(null);
             onSetTracks?.([]);
           }
           setSelectedId(value);

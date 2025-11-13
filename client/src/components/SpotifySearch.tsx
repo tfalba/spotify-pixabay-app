@@ -5,13 +5,13 @@ import type { Track } from "../types/types";
 import { useSpotifyPlayerContext } from "../context/SpotifyPlayerProvider";
 import { LoginButton } from "./LoginButtons";
 import { useTheme } from "@/context/ThemeContext";
+import { useCurrentTrack } from "@/context/CurrentTrackContext";
 
 type Props = {
-  onPick: (t: Track | null) => void;
   onSetTracks?: (tracks: Track[]) => void;
 };
 
-export default function SpotifySearch({ onPick, onSetTracks }: Props) {
+export default function SpotifySearch({ onSetTracks }: Props) {
   const [q, setQ] = useState("");
   const [loading, setLoading] = useState(false);
   const ctrl = useRef<AbortController | null>(null);
@@ -20,6 +20,7 @@ export default function SpotifySearch({ onPick, onSetTracks }: Props) {
   const API_BASE = import.meta.env.VITE_API_BASE ?? "";
 
   const { isAuthenticated } = useSpotifyPlayerContext();
+  const { setCurrent } = useCurrentTrack();
   const { theme } = useTheme();
   const isLight = theme === "light";
 
@@ -52,7 +53,7 @@ export default function SpotifySearch({ onPick, onSetTracks }: Props) {
     if (q.trim().length === 0) {
       if (ctrl.current) ctrl.current.abort();
       onSetTracks?.([]);
-      onPick(null);
+      setCurrent(null);
       return;
     }
     const id = setTimeout(() => search(q.trim()), 350);
@@ -64,7 +65,7 @@ export default function SpotifySearch({ onPick, onSetTracks }: Props) {
     setLoading(false);
     setQ("");
     onSetTracks?.([]);
-    onPick(null);
+    setCurrent(null);
     inputRef.current?.focus();
   }
 
