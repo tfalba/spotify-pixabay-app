@@ -22,8 +22,12 @@ export function NowPlayingPanel({
     isConnected,
     deviceId,
     playerState,
+    previousTrack,
+    nextTrack,
     playUris,
     pause,
+    startPlayback,
+    resumeOrStart,
     resume,
     seek,
   } = useSpotifyPlayerContext();
@@ -36,6 +40,7 @@ export function NowPlayingPanel({
   // Derive display fields from `current` (your selected track)
   const trackUri =
     current?.uri || (current?.id ? `spotify:track:${current.id}` : undefined);
+
   const cover =
     current?.album?.images?.[0]?.url || current?.image || backgroundLogo;
   const title = current?.name || "";
@@ -109,7 +114,7 @@ export function NowPlayingPanel({
       <h2
         className={clsx(
           "text-sm font-semibold uppercase tracking-[0.2em]",
-          isLight ? "text-slate-500" : "text-slate-400",
+          isLight ? "text-slate-500" : "text-slate-400"
         )}
       >
         Now Playing
@@ -118,42 +123,44 @@ export function NowPlayingPanel({
       <div
         className={clsx(
           "mt-3 overflow-hidden rounded-2xl border shadow-inner transition-colors duration-300",
-          isLight ? "border-slate-200 bg-white" : "border-white/10 bg-black/40",
+          isLight ? "border-slate-200 bg-white" : "border-white/10 bg-black/40"
         )}
       >
         {/* Artwork + meta */}
-        <div className="flex items-center gap-3 p-3">
-          <img src={cover} alt="" className="h-16 w-16 rounded object-cover" />
-          <div className="min-w-0 min-w-70 justify-end">
-            <div className="flex justify-between gap-2">
-              {title && (
-                <div className={clsx("truncate font-semibold", isLight ? "text-slate-900" : "text-white")}>
-                  {title}
-                </div>
-              )}
-              <div className="mb-2 flex flex-wrap items-center gap-2 justify-end">
-                {title?.length > 0 && (
-                  <button
-                    className={clsx(
-                      "rounded-full text-xs disabled:opacity-50 py-1 px-2 font-semibold transition",
-                      isLight ? "bg-teal-600 text-white hover:bg-teal-500" : "bg-white/80 text-midnight",
-                    )}
-                    onClick={paused ? resume : pause}
-                    disabled={!deviceId}
-                  >
-                    {paused ? ">" : "="}
-                  </button>
-                )}
-              </div>
-            </div>
-            <div className={clsx("truncate text-sm", isLight ? "text-slate-600" : "text-slate-300")}>
-              {artists}
-            </div>
-            <div className={clsx("text-xs", isLight ? "text-slate-500" : "text-slate-400")}>
-              {sdkReady ? "SDK ready" : "Loading SDK…"} ·{" "}
-              {deviceId ? "Device detected" : "No device yet"}
-            </div>
+        <div className="flex justify-between p-3">
+        <div className="flex items-center gap-3">
+          <img
+            src={cover}
+            alt={title}
+            className="h-16 w-16 rounded-xl object-cover"
+          />
+          <div className="p-2">
+            <div className="text-white font-semibold text-sm">{title}</div>
+            <div className="text-slate-400 text-sm">{artists}</div>
           </div>
+        </div>
+
+        <div className="flex items-center p-4">
+          {/* play / pause */}
+          {playerState?.paused ? (
+            <button
+              onClick={() => {
+                if (!trackUri) return;
+                resumeOrStart({ uris: [trackUri] });
+              }}
+              className="text-white text-2xl hover:text-slate-300"
+            >
+              ▶️
+            </button>
+          ) : (
+            <button
+              onClick={pause}
+              className="text-white text-2xl hover:text-slate-300"
+            >
+              ⏸
+            </button>
+          )}
+        </div>
         </div>
 
         {/* Seek bar */}
@@ -161,7 +168,7 @@ export function NowPlayingPanel({
           <span
             className={clsx(
               "w-10 text-right text-[11px] tabular-nums",
-              isLight ? "text-slate-500" : "text-slate-400",
+              isLight ? "text-slate-500" : "text-slate-400"
             )}
           >
             {formatTime(pos)}
@@ -170,7 +177,7 @@ export function NowPlayingPanel({
             type="range"
             className={clsx(
               "w-full accent-teal-500",
-              isLight ? "bg-transparent" : "bg-transparent",
+              isLight ? "bg-transparent" : "bg-transparent"
             )}
             min={0}
             max={Math.max(duration, 1)}
@@ -184,7 +191,7 @@ export function NowPlayingPanel({
           <span
             className={clsx(
               "w-10 text-[11px] tabular-nums",
-              isLight ? "text-slate-500" : "text-slate-400",
+              isLight ? "text-slate-500" : "text-slate-400"
             )}
           >
             {formatTime(duration)}

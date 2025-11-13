@@ -1,4 +1,7 @@
-import type { Request, Response } from "express";
+// import type { Request, Response } from "express";
+import type { Request, Response as ExpressResponse } from "express";
+type FetchResponse = globalThis.Response;
+type FetchRequestInit = globalThis.RequestInit;
 
 function access(req: Request) {
   const token = req.signedCookies["sp_access"];
@@ -6,15 +9,21 @@ function access(req: Request) {
   return token as string;
 }
 
-async function fetchJSON(url: string, init: RequestInit) {
-  const r = await fetch(url, init);
+async function fetchJSON<T>(url: string, init: FetchRequestInit): Promise<T> {
+  const r: FetchResponse = await fetch(url, init);
   const text = await r.text();
   if (!r.ok) throw Object.assign(new Error(text || r.statusText), { status: r.status });
-  return text ? JSON.parse(text) : {};
+  return text ? (JSON.parse(text) as T) : ({} as T);
+}
+
+// tiny helper
+async function passthrough(res: ExpressResponse, r: FetchResponse) {
+  const text = await r.text();
+  res.status(r.status).send(text || r.statusText);
 }
 
 // POST /api/player/transfer  { device_id: string }
-export async function transfer(req: Request, res: Response) {
+export async function transfer(req: Request, res: ExpressResponse) {
   try {
     const token = access(req);
     const { device_id } = req.body || {};
@@ -23,14 +32,15 @@ export async function transfer(req: Request, res: Response) {
       headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
       body: JSON.stringify({ device_ids: [device_id], play: false })
     });
-    res.status(r.status).end();
+    // res.status(r.status).end();
+    return passthrough(res, r);
   } catch (e: any) {
     res.status(e.status || 500).send(e.message || "transfer failed");
   }
 }
 
 // PUT /api/player/play  { uris?: string[], context_uri?: string, position_ms?: number, offset?: { position?: number } }
-export async function play(req: Request, res: Response) {
+export async function play(req: Request, res: ExpressResponse) {
   try {
     const token = access(req);
     const body = (req.body || {}) as {
@@ -53,56 +63,64 @@ export async function play(req: Request, res: Response) {
         offset: body.offset,
       }),
     });
-    res.status(r.status).end();
+    // res.status(r.status).end();
+        return passthrough(res, r);
+
   } catch (e: any) {
     res.status(e.status || 500).send(e.message || "play failed");
   }
 }
 
 // PUT /api/player/pause
-export async function pause(req: Request, res: Response) {
+export async function pause(req: Request, res: ExpressResponse) {
   try {
     const token = access(req);
     const r = await fetch("https://api.spotify.com/v1/me/player/pause", {
       method: "PUT",
       headers: { Authorization: `Bearer ${token}` }
     });
-    res.status(r.status).end();
+    // res.status(r.status).end();
+        return passthrough(res, r);
+
   } catch (e: any) {
     res.status(e.status || 500).send(e.message || "pause failed");
   }
 }
 
 // POST /api/player/next
-export async function nextT(req: Request, res: Response) {
+export async function nextT(req: Request, res: ExpressResponse) {
   try {
     const token = access(req);
     const r = await fetch("https://api.spotify.com/v1/me/player/next", {
       method: "POST",
       headers: { Authorization: `Bearer ${token}` }
     });
-    res.status(r.status).end();
+    // res.status(r.status).end();
+        return passthrough(res, r);
+
   } catch (e: any) {
     res.status(e.status || 500).send(e.message || "next failed");
   }
 }
 
 // POST /api/player/previous
-export async function prevT(req: Request, res: Response) {
+export async function prevT(req: Request, res: ExpressResponse) {
   try {
     const token = access(req);
     const r = await fetch("https://api.spotify.com/v1/me/player/previous", {
       method: "POST",
       headers: { Authorization: `Bearer ${token}` }
     });
-    res.status(r.status).end();
+    // res.status(r.status).end();
+        return passthrough(res, r);
+
   } catch (e: any) {
     res.status(e.status || 500).send(e.message || "previous failed");
   }
 }
 
 // PUT /api/player/seek?position_ms=12345
-export async function seek(req: Request, res: Response) {
+export async function seek(req: Request, res: ExpressResponse) {
   try {
     const token = access(req);
     const position_ms = String(req.query.position_ms ?? "");
@@ -110,14 +128,16 @@ export async function seek(req: Request, res: Response) {
       method: "PUT",
       headers: { Authorization: `Bearer ${token}` }
     });
-    res.status(r.status).end();
+    // res.status(r.status).end();
+        return passthrough(res, r);
+
   } catch (e: any) {
     res.status(e.status || 500).send(e.message || "seek failed");
   }
 }
 
 // PUT /api/player/volume?volume_percent=0..100
-export async function volume(req: Request, res: Response) {
+export async function volume(req: Request, res: ExpressResponse) {
   try {
     const token = access(req);
     const volume_percent = String(req.query.volume_percent ?? "50");
@@ -125,14 +145,16 @@ export async function volume(req: Request, res: Response) {
       method: "PUT",
       headers: { Authorization: `Bearer ${token}` }
     });
-    res.status(r.status).end();
+    // res.status(r.status).end();
+        return passthrough(res, r);
+
   } catch (e: any) {
     res.status(e.status || 500).send(e.message || "volume failed");
   }
 }
 
 // PUT /api/player/shuffle?state=true|false
-export async function shuffle(req: Request, res: Response) {
+export async function shuffle(req: Request, res: ExpressResponse) {
   try {
     const token = access(req);
     const state = (req.query.state ?? "false").toString();
@@ -140,14 +162,16 @@ export async function shuffle(req: Request, res: Response) {
       method: "PUT",
       headers: { Authorization: `Bearer ${token}` }
     });
-    res.status(r.status).end();
+    // res.status(r.status).end();
+        return passthrough(res, r);
+
   } catch (e: any) {
     res.status(e.status || 500).send(e.message || "shuffle failed");
   }
 }
 
 // PUT /api/player/repeat?state=off|track|context
-export async function repeat(req: Request, res: Response) {
+export async function repeat(req: Request, res: ExpressResponse) {
   try {
     const token = access(req);
     const state = (req.query.state ?? "off").toString();
@@ -155,14 +179,16 @@ export async function repeat(req: Request, res: Response) {
       method: "PUT",
       headers: { Authorization: `Bearer ${token}` }
     });
-    res.status(r.status).end();
+    // res.status(r.status).end();
+        return passthrough(res, r);
+
   } catch (e: any) {
     res.status(e.status || 500).send(e.message || "repeat failed");
   }
 }
 
 // GET /api/player/devices
-export async function devices(req: Request, res: Response) {
+export async function devices(req: Request, res: ExpressResponse) {
   try {
     const token = access(req);
     const data = await fetchJSON("https://api.spotify.com/v1/me/player/devices", {
@@ -176,7 +202,7 @@ export async function devices(req: Request, res: Response) {
 }
 
 // GET /api/player/state
-export async function state(req: Request, res: Response) {
+export async function state(req: Request, res: ExpressResponse) {
   try {
     const token = access(req);
     const data = await fetchJSON("https://api.spotify.com/v1/me/player", {
