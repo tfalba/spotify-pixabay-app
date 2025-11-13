@@ -146,8 +146,8 @@ export default function PlaylistPicker({
                 <SelectItem
                   key={o.id}
                   value={o.id}
-                  className="focus:bg-aurora/20 data-[highlighted]:bg-aurora/20 data-[state=checked]:bg-aurora/25
-                             rounded-md focus:border-white"
+                  className="focus:bg-aurora/30 data-[highlighted]:bg-white/25 data-[state=checked]:bg-white/30
+                             rounded-md focus:border-white text-white data-[highlighted]:text-white data-[state=checked]:text-white"
                 >
                   <div className="flex items-center gap-3">
                     {o.thumb ? (
