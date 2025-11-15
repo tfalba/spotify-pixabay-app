@@ -1,5 +1,5 @@
 import clsx from "clsx";
-import { FlipPhotoGrid } from "./FlipPhotoGrid";
+import { FlipPhotoGrid, type Img } from "./FlipPhotoGrid";
 import centerLogo from "../assets/center-logo.svg";
 import { useTheme } from "@/context/ThemeContext";
 
@@ -9,7 +9,7 @@ export default function PixabayGrid({
   loading,
   error,
 }: {
-  images: any[];
+  images: Img[];
   keywords: string[];
   loading: boolean;
   error: string | null;

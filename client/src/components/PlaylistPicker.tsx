@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import clsx from "clsx";
 import {
   getAllPlaylistTracks,
@@ -44,10 +44,15 @@ export default function PlaylistPicker({
   const [selectedId, setSelectedId] = useState<string>("");
   const [error, setError] = useState<string>("");
 
-  const { isAuthenticated } = useSpotifyPlayerContext();
+  const { isAuthenticated, pause } = useSpotifyPlayerContext();
   const { theme } = useTheme();
   const isLight = theme === "light";
   const { setCurrent } = useCurrentTrack();
+
+  const stopPlayback = useCallback(() => {
+    setCurrent(null);
+    pause().catch(() => {});
+  }, [pause, setCurrent]);
 
   useEffect(() => {
     (async () => {
@@ -93,7 +98,7 @@ export default function PlaylistPicker({
         setLoading(false);
       }
     })();
-  }, [selectedId]);
+  }, [selectedId, selected]);
 
   return (
     <>
@@ -128,7 +133,7 @@ export default function PlaylistPicker({
         value={selectedId}
         onValueChange={(value) => {
           if (value !== selectedId) {
-            setCurrent(null);
+            stopPlayback();
             onSetTracks?.([]);
           }
           setSelectedId(value);

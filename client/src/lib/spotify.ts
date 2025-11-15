@@ -36,7 +36,7 @@ async function api<T>(path: string): Promise<T> {
 
 export async function getAllUserPlaylists(): Promise<SpotifyPlaylist[]> {
   // Call YOUR server
-  const data = await api<{ items: any[] }>("/api/me/playlists");
+  const data = await api<{ items: SpotifyPlaylist[] }>("/api/me/playlists");
   return (data.items ?? []).map((p) => ({
     id: p.id,
     name: p.name,
@@ -48,7 +48,7 @@ export async function getAllUserPlaylists(): Promise<SpotifyPlaylist[]> {
 
 export async function getAllPlaylistTracks(playlistId: string): Promise<SpotifyTrack[]> {
   // Call YOUR server
-  const data = await api<{ items: { track: any }[] }>(`/api/playlists/${playlistId}/tracks`);
+  const data = await api<{ items: { track: SpotifyTrack }[] }>(`/api/playlists/${playlistId}/tracks`);
   const tracks: SpotifyTrack[] = [];
   for (const it of data.items ?? []) {
     const t = it.track;
@@ -57,10 +57,10 @@ export async function getAllPlaylistTracks(playlistId: string): Promise<SpotifyT
       id: t.id,
       name: t.name,
       preview_url: t.preview_url,
-      external_url: t.external_urls?.spotify,
+      external_url: t.external_url,
       image: t.album?.images?.[0]?.url ?? null,
       uri: t.uri,
-      artists: (t.artists ?? []).map((a: any) => ({ name: a.name })),
+      artists: (t.artists ?? []).map((a: {name: string}) => ({ name: a.name })),
       album: { name: t.album?.name ?? "", images: t.album?.images ?? [] },
     });
   }

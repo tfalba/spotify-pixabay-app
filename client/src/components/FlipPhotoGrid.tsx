@@ -1,6 +1,6 @@
 import type { CSSProperties } from "react";
 
-type Img = {
+export type Img = {
   id: number;
   url: string;
   thumb: string;

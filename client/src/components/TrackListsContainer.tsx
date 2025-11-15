@@ -6,18 +6,25 @@ import TrackList from "./TrackList";
 import clsx from "clsx";
 import { useTheme } from "@/context/ThemeContext";
 import { useCurrentTrack } from "@/context/CurrentTrackContext";
+import { useSpotifyPlayerContext } from "@/context/SpotifyPlayerProvider";
 
 export default function TracksListsContainer({
   handleQueueChange,
 }: {
-  handleQueueChange: (tracks: any[]) => void;
+  handleQueueChange: (tracks: Track[]) => void;
 }) {
   const { theme } = useTheme();
   const { setCurrent } = useCurrentTrack();
+  const { pause } = useSpotifyPlayerContext();
   const [tracks, setTracks] = useState<Track[]>([]);
   const [activePanel, setActivePanel] = useState<"search" | "playlists">(
     "search"
   );
+
+  const clearSelectionAndPause = useCallback(() => {
+    setCurrent(null);
+    pause().catch(() => {});
+  }, [pause, setCurrent]);
 
   const handleSetTracks = useCallback(
     (nextTracks: Track[]) => {
@@ -62,7 +69,12 @@ export default function TracksListsContainer({
           <button
             key={tab.key}
             type="button"
-            onClick={() => setActivePanel(tab.key)}
+            onClick={() => {
+              if (activePanel === "playlists" && tab.key === "search") {
+                clearSelectionAndPause();
+              }
+              setActivePanel(tab.key);
+            }}
             className={clsx(
               "flex-1 rounded-full px-3 py-1 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber",
               activePanel === tab.key

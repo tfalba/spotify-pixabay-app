@@ -40,7 +40,7 @@ export default function LyricsPane({
         setText("Lyrics not available.");
         setSource("");
       });
-  }, [artist, title]);
+  }, [artist, title, API]);
   const { theme } = useTheme();
   const isLight = theme === "light";
 

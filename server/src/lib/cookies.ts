@@ -3,6 +3,9 @@ const truthy = new Set(["true", "1", "yes"]);
 const falsy = new Set(["false", "0", "no"]);
 
 function inferIsLocalClient() {
+  if (typeof window !== "undefined") {
+    return /localhost|127\.0\.0\.1/i.test(window.location.origin);
+  }
   const origin = process.env.CLIENT_ORIGIN ?? "";
   return /localhost|127\.0\.0\.1/i.test(origin);
 }

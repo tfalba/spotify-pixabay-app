@@ -6,10 +6,11 @@ import type { Track } from "../types/types";
 import TracksListsContainer from "@/components/TrackListsContainer";
 import { useTheme } from "@/context/ThemeContext";
 import { useCurrentTrack } from "@/context/CurrentTrackContext";
+import type { Img } from "@/components/FlipPhotoGrid";
 
 type Props = {
   pixabay: {
-    images: any[];
+    images: Img[];
     keywords: string[];
     loading: boolean;
     error: string | null;

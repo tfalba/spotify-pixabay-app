@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import clsx from "clsx";
 import { get } from "../lib/fetcher";
 import type { Track } from "../types/types";
@@ -16,15 +16,21 @@ export default function SpotifySearch({ onSetTracks }: Props) {
   const [loading, setLoading] = useState(false);
   const ctrl = useRef<AbortController | null>(null);
   const inputRef = useRef<HTMLInputElement | null>(null);
+  const hadQueryRef = useRef(false);
 
   const API_BASE = import.meta.env.VITE_API_BASE ?? "";
 
-  const { isAuthenticated } = useSpotifyPlayerContext();
+  const { isAuthenticated, pause } = useSpotifyPlayerContext();
   const { setCurrent } = useCurrentTrack();
   const { theme } = useTheme();
   const isLight = theme === "light";
 
-  async function search(term: string) {
+  const stopPlayback = useCallback(() => {
+    setCurrent(null);
+    pause().catch(() => {});
+  }, [pause, setCurrent]);
+
+  const search = useCallback(async (term: string) => {
     if (ctrl.current) ctrl.current.abort();
     const ac = new AbortController();
     ctrl.current = ac;
@@ -47,25 +53,35 @@ export default function SpotifySearch({ onSetTracks }: Props) {
     } finally {
       setLoading(false);
     }
-  }
+  }, [API_BASE]);
 
   useEffect(() => {
-    if (q.trim().length === 0) {
+    const trimmed = q.trim();
+    const hasQuery = trimmed.length > 0;
+    if (!hasQuery) {
       if (ctrl.current) ctrl.current.abort();
       onSetTracks?.([]);
-      setCurrent(null);
+      setLoading(false);
+      if (hadQueryRef.current) {
+        stopPlayback();
+      }
+      hadQueryRef.current = false;
       return;
     }
-    const id = setTimeout(() => search(q.trim()), 350);
+    hadQueryRef.current = true;
+    const id = setTimeout(() => {
+      search(trimmed).catch(() => {});
+    }, 350);
     return () => clearTimeout(id);
   }, [q]);
 
   function clearSearch() {
-    // if (ctrl.current) ctrl.current.abort();
+    if (ctrl.current) ctrl.current.abort();
     setLoading(false);
     setQ("");
     onSetTracks?.([]);
-    setCurrent(null);
+    hadQueryRef.current = false;
+    stopPlayback();
     inputRef.current?.focus();
   }
 

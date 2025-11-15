@@ -44,7 +44,10 @@ export function useSpotifyWebPlayback() {
       volume: 0.7,
       getOAuthToken: async (cb) => {
         try {
-          const res = await apiFetch("/auth/token", {method: "POST", headers: { "Content-Type": "application/json" }});
+          const res = await apiFetch("/auth/token", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+          });
           if (!res.ok) {
             setIsAuthenticated(false);
             throw new Error(await res.text());
@@ -84,12 +87,10 @@ export function useSpotifyWebPlayback() {
     player.addListener("initialization_error", ({ message }) =>
       console.error("init_error", message)
     );
-  player.addListener("authentication_error", ({ message }) =>
-      {
-        console.error("auth_error", message);
-        setIsAuthenticated(false);
-      }
-    );
+    player.addListener("authentication_error", ({ message }) => {
+      console.error("auth_error", message);
+      setIsAuthenticated(false);
+    });
     player.addListener("account_error", ({ message }) =>
       console.error("account_error", message)
     );
@@ -108,59 +109,79 @@ export function useSpotifyWebPlayback() {
 
   // 3) Convenience actions -> hit your server routes
 
-  const startPlayback = useCallback(async (urisOrContext: { uris?: string[]; context_uri?: string; position_ms?: number }) => {
-  if (!playerRef.current || !deviceId) return;
+  const startPlayback = useCallback(
+    async (urisOrContext: {
+      uris?: string[];
+      context_uri?: string;
+      position_ms?: number;
+    }) => {
+      if (!playerRef.current || !deviceId) return;
 
-  // 1) Mobile unlock: MUST be called during a user gesture (wrap this in onClick)
-  if ("activateElement" in playerRef.current && typeof (playerRef.current as any).activateElement === "function") {
-    await (playerRef.current as any).activateElement();
-  }
-  // iOS sometimes needs a resume() to unlock the AudioContext
-  await playerRef.current.resume().catch(() => { /* ignore if not paused yet */ });
-
-  // 2) Ensure SDK device is active right now
-  await apiFetch("/api/player/transfer", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ device_id: deviceId }),
-  });
-
-  // 3) Play on THIS device explicitly
-  await apiFetch("/api/player/play", {
-    method: "PUT",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ ...urisOrContext, device_id: deviceId }),
-  });
-}, [deviceId]);
-
-const resumeOrStart = useCallback(
-  async (opts: { uris?: string[]; context_uri?: string; position_ms?: number }) => {
-    // If we have an SDK instance and something was already loaded, try a native resume first
-    if (playerRef.current) {
-      // If the SDK thinks we’re paused, resume() won’t restart the context
-      try {
-        const state = await playerRef.current.getCurrentState();
-        const hasSomethingLoaded = !!state && !!state.track_window?.current_track;
-        const isPaused = !!state?.paused;
-
-        if (hasSomethingLoaded && isPaused) {
-          // iOS/mobile unlock just in case
-          if ("activateElement" in playerRef.current && typeof (playerRef.current as any).activateElement === "function") {
-            await (playerRef.current as any).activateElement();
-          }
-          await playerRef.current.resume();
-          return; // ✅ done — no restart
-        }
-      } catch {
-        // ignore and fall through to a full start
+      // 1) Mobile unlock: MUST be called during a user gesture (wrap this in onClick)
+      if (
+        "activateElement" in playerRef.current &&
+        typeof (playerRef.current as any).activateElement === "function"
+      ) {
+        await (playerRef.current as any).activateElement();
       }
-    }
+      // iOS sometimes needs a resume() to unlock the AudioContext
+      await playerRef.current.resume().catch(() => {
+        /* ignore if not paused yet */
+      });
 
-    // Nothing to resume → do a full start (this transfers + /play on this device)
-    await startPlayback(opts);
-  },
-  [startPlayback]
-);
+      // 2) Ensure SDK device is active right now
+      await apiFetch("/api/player/transfer", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ device_id: deviceId }),
+      });
+
+      // 3) Play on THIS device explicitly
+      await apiFetch("/api/player/play", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...urisOrContext, device_id: deviceId }),
+      });
+    },
+    [deviceId]
+  );
+
+  const resumeOrStart = useCallback(
+    async (opts: {
+      uris?: string[];
+      context_uri?: string;
+      position_ms?: number;
+    }) => {
+      // If we have an SDK instance and something was already loaded, try a native resume first
+      if (playerRef.current) {
+        // If the SDK thinks we’re paused, resume() won’t restart the context
+        try {
+          const state = await playerRef.current.getCurrentState();
+          const hasSomethingLoaded =
+            !!state && !!state.track_window?.current_track;
+          const isPaused = !!state?.paused;
+
+          if (hasSomethingLoaded && isPaused) {
+            // iOS/mobile unlock just in case
+            if (
+              "activateElement" in playerRef.current &&
+              typeof (playerRef.current as any).activateElement === "function"
+            ) {
+              await (playerRef.current as any).activateElement();
+            }
+            await playerRef.current.resume();
+            return; // ✅ done — no restart
+          }
+        } catch {
+          // ignore and fall through to a full start
+        }
+      }
+
+      // Nothing to resume → do a full start (this transfers + /play on this device)
+      await startPlayback(opts);
+    },
+    [startPlayback]
+  );
 
   const transferToThisDevice = useCallback(async () => {
     if (!deviceId) return;

@@ -40,7 +40,7 @@ export function NowPlayingPanel({
     current?.album?.images?.[0]?.url || current?.image || backgroundLogo;
   const title = current?.name || "";
   const artists = Array.isArray(current?.artists)
-    ? current.artists.map((a: any) => a.name).join(", ")
+    ? current.artists.map((a: {name: string}) => a.name).join(", ")
     : "";
 
   // Keep seek slider roughly in sync with player
@@ -55,7 +55,7 @@ export function NowPlayingPanel({
       setPos(0);
       return;
     }
-  }, [current?.id]);
+  }, [current]);
 
   // (Optional) Auto-play when the selected `current` changes and device is ready.
   // Comment this out if you prefer a manual "Play" button only.
