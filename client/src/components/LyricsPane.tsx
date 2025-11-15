@@ -55,7 +55,7 @@ export default function LyricsPane({
   return (
     <div
       className={clsx(
-        "flex-1 overflow-hidden rounded-2xl p-5 shadow-[0_20px_60px_rgba(124,92,252,0.35)] transition-colors duration-300",
+        "flex flex-1 min-h-0 flex-col overflow-hidden rounded-2xl p-5 shadow-[0_20px_60px_rgba(124,92,252,0.35)] transition-colors duration-300",
         isLight
           ? "border border-slate-200 bg-white"
           : "bg-slate"
@@ -73,7 +73,7 @@ export default function LyricsPane({
       <p className={clsx("text-xs uppercase tracking-[0.3em]", isLight ? "text-amber-600" : "text-amber/70")}>
         Storyboard
       </p>
-      <div className="mt-4 max-h-[max(360px,calc(100vh-5rem))] overflow-y-scroll pr-1">
+      <div className="mt-4 flex-1 overflow-y-auto pr-1 min-h-0">
         <div className={clsx("space-y-4", isLight ? "text-slate-700" : "text-slate-200")}>
           <div className="whitespace-pre-wrap text-sm leading-relaxed">
             {text || (
