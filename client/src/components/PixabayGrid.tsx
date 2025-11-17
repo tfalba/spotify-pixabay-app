@@ -135,29 +135,28 @@ export default function PixabayGrid({
       </section>
 
       {isFullscreen && (
-        <div className="fixed inset-0 z-50 overflow-auto bg-black/80 backdrop-blur">
-          <div className="min-h-[100dvh] w-screen max-w-full flex flex-col">
-            <div className="flex items-center justify-end gap-2 p-4">
-              <button
-                type="button"
-                onClick={() => setIsFullscreen(false)}
-                className="rounded-full border border-white/30 bg-white/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-white transition hover:border-white/60 hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
-              >
-                Close
-              </button>
-            </div>
-            <div className="mx-auto flex w-full max-w-6xl flex-1 min-h-0 overflow-y-auto p-4">
-              {images.length >= 2 ? (
-                <FlipPhotoGrid
-                  images={images}
-                  gridClassName="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-3"
-                />
-              ) : (
-                <div className="m-auto text-center text-sm text-white/80">
-                  No images yet. Pick a track to get inspired.
-                </div>
-              )}
-            </div>
+        <div className="fixed inset-0 z-50 flex h-screen w-screen flex-col bg-black/90">
+          <div className="flex items-center justify-end gap-2 p-4">
+            <button
+              type="button"
+              onClick={() => setIsFullscreen(false)}
+              className="rounded-full border border-white/30 bg-white/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-white transition hover:border-white/60 hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+            >
+              Close
+            </button>
+          </div>
+          <div className="mx-auto flex w-full max-w-6xl flex-1 overflow-y-auto p-4">
+            {images.length >= 2 ? (
+              <FlipPhotoGrid
+                images={images}
+                gridClassName="w-full grid grid-cols-3 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-3"
+                fullScreen={true}
+              />
+            ) : (
+              <div className="m-auto text-center text-sm text-white/80">
+                No images yet. Pick a track to get inspired.
+              </div>
+            )}
           </div>
         </div>
       )}

@@ -1,3 +1,4 @@
+import clsx from "clsx";
 import type { CSSProperties } from "react";
 
 export type Img = {
@@ -9,12 +10,13 @@ export type Img = {
 };
 
 function FlipCard({
-  front, back, delay, duration,
+  front, back, delay, duration, fullScreen = false
 }: {
   front: Img;
   back: Img;
   delay: number;    // seconds
   duration: number; // seconds
+  fullScreen: boolean;
 }) {
   return (
     <a
@@ -22,7 +24,12 @@ function FlipCard({
       target="_blank"
       rel="noreferrer"
       title={front.alt}
-      className="relative block w-full aspect-[4/3] overflow-hidden rounded-xl border-midnight-800/60 perspective-1000"
+      className={clsx(
+  "relative block w-full overflow-hidden rounded-xl border-midnight-800/60 perspective-1000",
+  !fullScreen && "aspect-[4/3]"
+)}
+      // className={clsx(`"relative block w-full  overflow-hidden rounded-xl border-midnight-800/60 perspective-1000", ${!fullScreen} && "aspect-[4/3]"`)}
+      // className="relative block w-full aspect-[4/3] overflow-hidden rounded-xl border-midnight-800/60 perspective-1000"
     >
       {/* flipper */}
       <span
@@ -65,9 +72,11 @@ function FlipCard({
 export function FlipPhotoGrid({
   images,
   gridClassName,
+  fullScreen = false,
 }: {
   images: Img[];
   gridClassName?: string;
+  fullScreen?: boolean
 }) {
   // Need at least 30; if fewer, just slice pairs we have
   const usable = images.slice(0, 30);
@@ -93,6 +102,7 @@ export function FlipPhotoGrid({
             back={p.back}
             duration={duration}
             delay={delay}
+            fullScreen={fullScreen}
           />
         );
       })}
