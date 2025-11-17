@@ -14,10 +14,6 @@ export default function LyricPlayerContainer({
   const { theme } = useTheme();
   const isLight = theme === "light";
   const containerClass = useSectionClass(isLight, 2);
-  // const containerClass = clsx(
-  //   "xl:col-span-1 xl:col-start-2 flex min-w-0 flex-col rounded-3xl border p-4 shadow-glow max-h-[max(600px,calc(100vh-10rem))] overflow-hidden transition-colors duration-300",
-  //   isLight ? "border-slate-200 bg-white text-slate-900" : "border-teal/80 bg-slate-900/40 text-slate-100",
-  // );
   const nowPlayingClass = clsx(
     "rounded-2xl p-3 shadow-glow mb-4 transition-colors duration-300",
     isLight ? "bg-slate-100" : "bg-sapphire/80",

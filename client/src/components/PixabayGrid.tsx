@@ -5,13 +5,6 @@ import centerLogo from "../assets/center-logo.svg";
 import { useTheme } from "@/context/ThemeContext";
 import { useSectionClass } from "@/styleHooks/useStyleHooks";
 
-//  export function useSectionClass(isLight: boolean) {
-//   return clsx(
-//     "xl:col-span-1 xl:col-start-3 flex min-w-0 flex-col rounded-3xl border p-4 shadow-glow max-h-[max(600px,calc(100vh-10rem))] overflow-y-scroll transition-colors duration-300",
-//     isLight ? "border-slate-200 bg-white text-slate-900" : "border-white/10 bg-black/30 text-slate-100",
-//   );
-// };
-
 export default function PixabayGrid({
   images,
   keywords,
@@ -28,10 +21,7 @@ export default function PixabayGrid({
   const { theme } = useTheme();
   const [isFullscreen, setIsFullscreen] = useState(false);
   const isLight = theme === "light";
-  // const sectionClass = clsx(
-  //   "xl:col-span-1 xl:col-start-3 flex min-w-0 flex-col rounded-3xl border p-4 shadow-glow max-h-[max(600px,calc(100vh-10rem))] overflow-y-scroll transition-colors duration-300",
-  //   isLight ? "border-slate-200 bg-white text-slate-900" : "border-white/90 bg-black/30 text-slate-100",
-  // );
+
   const sectionClass = useSectionClass(isLight, 3);
   const infoPanelClass = clsx(
     "rounded-2xl border p-4 text-xs shadow-inner transition-colors duration-300",
@@ -43,6 +33,10 @@ export default function PixabayGrid({
     "rounded-full border px-3 py-1 text-[11px] uppercase tracking-wide transition-colors duration-300",
     isLight ? "border-slate-200 bg-white text-slate-600" : "border-white/20 bg-white/10 text-slate-200",
   );
+  const fullScreenClass = clsx("fixed inset-0 z-50 flex h-screen w-screen flex-col", isLight ? "bg-white" : "bg-black/90");
+  const fullScreenClose = clsx("rounded-full border px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.14em] transition  focus-visible:outline-none focus-visible:ring-2",
+    isLight ? "border-lilac/80 bg-lilac/10 hover:border-lilac/100 hover:bg-lical/30 focus-visible-lilac text-slate-900" : "border-white/30 bg-white/10 hover:border-white/60 hover:bg-white/20 focus-visible:ring-white text-white"
+  )
 
   useEffect(() => {
     if (!isFullscreen) return;
@@ -135,12 +129,12 @@ export default function PixabayGrid({
       </section>
 
       {isFullscreen && (
-        <div className="fixed inset-0 z-50 flex h-screen w-screen flex-col bg-black/90">
+        <div className={fullScreenClass}>
           <div className="flex items-center justify-end gap-2 p-4">
             <button
               type="button"
               onClick={() => setIsFullscreen(false)}
-              className="rounded-full border border-white/30 bg-white/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-white transition hover:border-white/60 hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+              className={fullScreenClose}
             >
               Close
             </button>
