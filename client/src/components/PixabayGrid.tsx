@@ -135,7 +135,7 @@ export default function PixabayGrid({
       </section>
 
       {isFullscreen && (
-        <div className="fixed inset-0 z-50 flex min-h-0 flex-col bg-black/80 backdrop-blur">
+        <div className="fixed inset-0 z-50 flex min-h-screen w-screen flex-col bg-black/80 backdrop-blur">
           <div className="flex items-center justify-end gap-2 p-4">
             <button
               type="button"
@@ -145,7 +145,7 @@ export default function PixabayGrid({
               Close
             </button>
           </div>
-          <div className="mx-auto flex w-full max-w-6xl flex-1 min-h-0 overflow-auto p-4">
+          <div className="mx-auto flex w-full max-w-6xl flex-1 min-h-0 overflow-y-auto p-4">
             {images.length >= 2 ? (
               <FlipPhotoGrid
                 images={images}
