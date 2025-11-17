@@ -15,6 +15,7 @@ function AppContent() {
 
   const {
     fetchImages,
+    ensureDemoImages,
     keywords,
     setKeywords,
     images,
@@ -26,11 +27,10 @@ function AppContent() {
 
   useEffect(() => {
     if (!current?.artists?.length || !current?.name) {
-      setKeywords([]);
-      setImages([]);
+      void ensureDemoImages();
       return;
     }
-    setImages([]);
+    // setImages([]);
     setKeywords([]);
     const cacheKey =
       current.uri ||
@@ -44,12 +44,16 @@ function AppContent() {
       )}&title=${encodeURIComponent(current.name)}`
     )
       .then((d) => {
-        fetchImages(d.lyrics, { cacheKey });
+        if (!d?.lyrics) {
+          void ensureDemoImages();
+          return;
+        }
+        void fetchImages(d.lyrics, { cacheKey });
       })
       .catch(() => {
-        setImages([]);
+        void ensureDemoImages();
       });
-  }, [current]);
+  }, [current, API, ensureDemoImages, fetchImages, setImages, setKeywords]);
 
   const pixabayProps = { images, keywords, loading, error };
 

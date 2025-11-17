@@ -17,11 +17,13 @@ export default function PixabayGrid({
   keywords,
   loading,
   error,
+  noSelection,
 }: {
   images: Img[];
   keywords: string[];
   loading: boolean;
   error: string | null;
+  noSelection: boolean;
 }) {
   const { theme } = useTheme();
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -105,7 +107,7 @@ export default function PixabayGrid({
           </div>
 
           <div className={infoPanelClass}>
-            {loading && (
+            {loading || keywords.length === 0 && (
               <div className="flex items-center gap-2 text-teal-500">
                 <span className="h-2 w-2 animate-ping rounded-full bg-teal-500" />
                 Finding imagery…
@@ -115,7 +117,7 @@ export default function PixabayGrid({
               <div className="text-red-400">Image search error: {error}</div>
             )} */}
             {/* // Currently not showing error to user */}
-            {images?.length === 0 && !loading && !error && (
+            {noSelection && !loading && !error && (
               <div>No images yet. Pick a track to get inspired.</div>
             )}
             {keywords?.length > 0 && (
@@ -145,7 +147,10 @@ export default function PixabayGrid({
           </div>
           <div className="mx-auto flex w-full max-w-6xl flex-1 overflow-auto p-4">
             {images.length >= 2 ? (
-              <FlipPhotoGrid images={images} />
+              <FlipPhotoGrid
+                images={images}
+                gridClassName="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-3"
+              />
             ) : (
               <div className="m-auto text-center text-sm text-white/80">
                 No images yet. Pick a track to get inspired.

@@ -41,3 +41,25 @@ export async function imagesFromLyrics(lyrics: string): Promise<{
   return { keywords, images: shuffle(images) };
 }
 
+export async function imagesForDemo(): Promise<{ keywords: string[]; images: ImageCard[] }> {
+  const keywords = ["music"];
+  const batches = await Promise.all(
+    keywords.map((k) =>
+      fetchPixabayImagesForKeyword(k, 40))
+  );
+
+  const all = dedupeById(batches.flat());
+  const picked = shuffle(all).slice(0, 30); // ⬅️ 30 images
+
+  const images: ImageCard[] = picked.map((h) => ({
+    id: h.id,
+    thumb: h.previewURL || h.webformatURL,
+    url: h.webformatURL || h.largeImageURL,
+    alt: h.tags || "Pixabay image",
+    author: h.user,
+    authorAvatar: h.userImageURL,
+    pageURL: h.pageURL,
+  }));
+
+  return { keywords, images: shuffle(images) };
+}

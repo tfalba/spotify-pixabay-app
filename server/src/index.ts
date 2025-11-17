@@ -12,6 +12,7 @@ import {
   seek, volume, shuffle, repeat, devices, state
 } from "./player";
 import imagesRouter from "./images";
+import demoRouter from "./demoImages";
 
 const app = express();
 
@@ -39,6 +40,7 @@ app.use(cookieParser(process.env.SESSION_SECRET));
 
 // ----- Routers / routes -----
 app.use("/api", imagesRouter);
+app.use("/api/demo", demoRouter);
 
 // Health (match your Render health check path)
 app.get("/api/health", (_req, res) => res.json({ ok: true }));

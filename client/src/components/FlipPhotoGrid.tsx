@@ -62,7 +62,13 @@ function FlipCard({
 
 
 
-export function FlipPhotoGrid({ images }: { images: Img[] }) {
+export function FlipPhotoGrid({
+  images,
+  gridClassName,
+}: {
+  images: Img[];
+  gridClassName?: string;
+}) {
   // Need at least 30; if fewer, just slice pairs we have
   const usable = images.slice(0, 30);
   const pairs: Array<{ front: Img; back: Img }> = [];
@@ -75,7 +81,7 @@ export function FlipPhotoGrid({ images }: { images: Img[] }) {
   }
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+    <div className={gridClassName ?? "grid grid-cols-2 md:grid-cols-3 gap-3"}>
       {pairs.map((p, idx) => {
         // randomized timing per tile
         const duration = Math.round((8 + Math.random() * 8) * 10) / 10; // 4–8s -- now 8-16s

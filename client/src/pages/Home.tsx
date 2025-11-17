@@ -62,6 +62,7 @@ export default function Home({ pixabay }: Props) {
         keywords={pixabay.keywords}
         loading={pixabay.loading}
         error={pixabay.error}
+        noSelection={!current}
       />
     </main>
   );
