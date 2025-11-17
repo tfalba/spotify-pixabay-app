@@ -78,7 +78,7 @@ export function FlipPhotoGrid({ images }: { images: Img[] }) {
     <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
       {pairs.map((p, idx) => {
         // randomized timing per tile
-        const duration = Math.round((4 + Math.random() * 4) * 10) / 10; // 4–8s
+        const duration = Math.round((8 + Math.random() * 8) * 10) / 10; // 4–8s -- now 8-16s
         const delay = Math.round((Math.random() * 3) * 10) / 10;        // 0–3s
         return (
           <FlipCard

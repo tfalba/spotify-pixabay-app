@@ -9,9 +9,9 @@
     "Helvetica Neue", sans-serif;
   line-height: 1.5;
   font-weight: 400;
-  color-scheme: dark;
+  /* color-scheme: dark;
   color: #e2e8f0;
-  background-color: #080b16;
+  background-color: #080b16; */
   --portfolio-ambient: radial-gradient(circle at 0% 0%, rgba(124, 92, 252, 0.22), transparent 45%),
     radial-gradient(circle at 100% 0%, rgba(45, 212, 191, 0.18), transparent 35%),
     radial-gradient(circle at 50% 100%, rgba(59, 130, 246, 0.18), transparent 40%);

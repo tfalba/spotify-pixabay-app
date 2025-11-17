@@ -55,7 +55,7 @@ export default function HeaderBar() {
   return (
     <header
       className={clsx(
-        "sticky top-0 z-50 flex items-center justify-between rounded-3xl border px-6 py-5 backdrop-blur-lg shadow-glow transition-colors duration-300 lg:px-10",
+        "md:sticky top-0 z-50 flex items-center justify-between rounded-3xl border px-6 py-5 backdrop-blur-lg shadow-glow transition-colors duration-300 lg:px-10 mb-4 md:mb-0",
         isLight
           ? "border-slate-200 bg-white/80 text-slate-900"
           : "border-white/30 bg-teal/5 text-white"

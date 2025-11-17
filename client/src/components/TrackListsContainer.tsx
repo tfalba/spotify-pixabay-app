@@ -7,6 +7,7 @@ import clsx from "clsx";
 import { useTheme } from "@/context/ThemeContext";
 import { useCurrentTrack } from "@/context/CurrentTrackContext";
 import { useSpotifyPlayerContext } from "@/context/SpotifyPlayerProvider";
+import { useSectionClass } from "@/styleHooks/useStyleHooks";
 
 export default function TracksListsContainer({
   handleQueueChange,
@@ -35,10 +36,11 @@ export default function TracksListsContainer({
   );
 
   const isLight = theme === "light";
-  const sectionClass = clsx(
-    "xl:col-span-1 flex min-w-0 flex-col rounded-3xl border p-4 shadow-glow max-h-[max(600px,calc(100vh-10rem))] overflow-hidden transition-colors duration-300",
-    isLight ? "border-slate-200 bg-teal/10 text-slate-900" : "border-[amber]/80 bg-black/30 text-slate-100",
-  );
+  const sectionClass = useSectionClass(isLight, 1);
+  // const sectionClass = clsx(
+  //   "xl:col-span-1 flex min-w-0 flex-col rounded-3xl border p-4 shadow-glow max-h-[max(600px,calc(100vh-10rem))] overflow-hidden transition-colors duration-300",
+  //   isLight ? "border-slate-200 bg-teal/10 text-slate-900" : "border-[amber]/80 bg-black/30 text-slate-100",
+  // );
 
   return (
     <section className={sectionClass}>

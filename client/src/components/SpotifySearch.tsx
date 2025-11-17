@@ -112,7 +112,7 @@ export default function SpotifySearch({ onSetTracks }: Props) {
                 "w-full rounded-xl border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent/40",
                 isLight
                   ? "border-slate-200 bg-white text-slate-900 placeholder:text-slate-400"
-                  : "border-transparent bg-gradient-to-br from-[sapphire]/20 via-white/30 to-[sapphire]/70 text-amber-100 placeholder:text-white/50",
+                  : "border-transparent bg-gradient-to-br from-[sapphire]/20 via-white/10 to-[sapphire]/70 text-amber-100 placeholder:text-white/50",
               )}
             />
             {q && (
