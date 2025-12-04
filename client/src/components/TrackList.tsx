@@ -59,7 +59,7 @@ export default function TrackList({ tracks }: { tracks: Track[] }) {
   return (
     <ul
       className={clsx(
-        "divide-y overflow-hidden overflow-scroll mt-6 shadow-inner rounded-2xl",
+        "flex-[2] divide-y overflow-hidden overflow-scroll mt-6 shadow-inner rounded-2xl",
         isLight
           ? "divide-slate-200 border border-slate-200 bg-white"
           : "divide-white/5 bg-gradient-to-br from-teal/10 via-aurora/25 to-teal/40",

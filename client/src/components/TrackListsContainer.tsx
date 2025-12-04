@@ -87,7 +87,7 @@ export default function TracksListsContainer({
         ))}
       </div>
 
-      <div className="min-h-min max-h-fit flex-1 overflow-y-auto pr-1">
+      <div className="max-h-max min-h-fit flex-1 overflow-y-auto pr-1">
         {activePanel === "search" ? (
           <SpotifySearch onSetTracks={handleSetTracks} />
         ) : (
