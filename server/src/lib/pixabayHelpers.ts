@@ -10,6 +10,9 @@ export type PixabayImage = {
   tags: string;
   user: string;
   userImageURL: string;
+  downloads: number;
+  likes: number;
+  views: number;
 };
 
 export interface PixabayResponse {

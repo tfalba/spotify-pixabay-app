@@ -1,4 +1,5 @@
-import { extractDescriptiveKeywords } from "./keywordExtractor";
+// imagesFromLyrics.ts
+import { extractDescriptiveKeywords, type KeywordPlan } from "./keywordExtractor";
 import { dedupeById, fetchPixabayImagesForKeyword, PixabayImage, shuffle } from "./pixabayHelpers";
 
 export type ImageCard = {
@@ -11,22 +12,57 @@ export type ImageCard = {
   pageURL: string;
 };
 
-export async function imagesFromLyrics(lyrics: string): Promise<{
-  keywords: string[];
+function sortByPopularity(images: PixabayImage[]): PixabayImage[] {
+  // Adjust weighting if you prefer; this favors downloads, then likes, then views
+  return images.slice().sort((a, b) => {
+    const aScore =
+      (a.downloads ?? 0) * 3 +
+      (a.likes ?? 0) * 2 +
+      (a.views ?? 0);
+    const bScore =
+      (b.downloads ?? 0) * 3 +
+      (b.likes ?? 0) * 2 +
+      (b.views ?? 0);
+    return bScore - aScore; // descending
+  });
+}
+
+export async function imagesFromLyrics(
+  lyrics: string,
+  songTitle?: string,
+): Promise<{
+  keywords: KeywordPlan;   // return the full plan so caller can inspect pairs/singles
   images: ImageCard[];
 }> {
-  const keywords = await extractDescriptiveKeywords(lyrics); // now 4 items
+  const keywordPlan = await extractDescriptiveKeywords(lyrics, songTitle);
+  const { baseKeywords, pairQueries, topSingles } = keywordPlan;
 
-  const perKeyword = 8;   // ⬅️ eight per keyword => 30 base
-  const overfetch = 2;    // small buffer to help dedupe
+  // Build 3 pair queries + 3 single queries
+  const pairQueryStrings = pairQueries.map(([a, b]) => `${a} ${b}`);
+  const singleQueryStrings = topSingles;
+  let queries = [...pairQueryStrings, ...singleQueryStrings];
+
+  // Remove accidental duplicates just in case
+  queries = Array.from(new Set(queries));
+
   const desiredTotal = 30;
+  const oversample = 8;
+  const totalTarget = desiredTotal + oversample;
+
+  const perQuery = Math.ceil(totalTarget / queries.length); // ~7 each for 6 queries
 
   const batches = await Promise.all(
-    keywords.map((k) => fetchPixabayImagesForKeyword(k, perKeyword + overfetch))
+    queries.map((q) => fetchPixabayImagesForKeyword(q, perQuery)),
   );
 
-  const all = dedupeById(batches.flat());
-  const picked = shuffle(all).slice(0, desiredTotal); // ⬅️ 30 images
+  // Deduplicate across all queries
+  const all: PixabayImage[] = dedupeById(batches.flat());
+
+  // Bias toward more "popular" images using downloads/likes/views
+  const sorted = sortByPopularity(all);
+
+  // Take the top 30, then shuffle for variety in the UI
+  const picked = sorted.slice(0, desiredTotal);
 
   const images: ImageCard[] = picked.map((h) => ({
     id: h.id,
@@ -38,18 +74,21 @@ export async function imagesFromLyrics(lyrics: string): Promise<{
     pageURL: h.pageURL,
   }));
 
-  return { keywords, images: shuffle(images) };
+  return {
+    keywords: keywordPlan,
+    images: shuffle(images),
+  };
 }
 
+// If you want the demo to stay simple, you can leave this as-is
 export async function imagesForDemo(): Promise<{ keywords: string[]; images: ImageCard[] }> {
   const keywords = ["music"];
   const batches = await Promise.all(
-    keywords.map((k) =>
-      fetchPixabayImagesForKeyword(k, 40))
+    keywords.map((k) => fetchPixabayImagesForKeyword(k, 40)),
   );
 
   const all = dedupeById(batches.flat());
-  const picked = shuffle(all).slice(0, 30); // ⬅️ 30 images
+  const picked = sortByPopularity(all).slice(0, 30);
 
   const images: ImageCard[] = picked.map((h) => ({
     id: h.id,

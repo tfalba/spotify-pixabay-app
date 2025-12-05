@@ -4,6 +4,7 @@ import { FlipPhotoGrid, type Img } from "./FlipPhotoGrid";
 import centerLogo from "../assets/center-logo.svg";
 import { useTheme } from "@/context/ThemeContext";
 import { useSectionClass } from "@/styleHooks/useStyleHooks";
+import type { KeywordPlan } from "@/hooks/useLyricsImages";
 
 export default function PixabayGrid({
   images,
@@ -11,12 +12,14 @@ export default function PixabayGrid({
   loading,
   error,
   noSelection,
+  albumCover,
 }: {
   images: Img[];
-  keywords: string[];
+  keywords: KeywordPlan | null;
   loading: boolean;
   error: string | null;
   noSelection: boolean;
+  albumCover?: string | null;
 }) {
   const { theme } = useTheme();
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -83,6 +86,17 @@ export default function PixabayGrid({
             (!images.length || images.length === 0) ?  "m-auto" : "mt-4"
           }`}
         >
+          <div>
+            {albumCover && (
+              <div className="m-auto place-items-center">
+                <img
+                  src={ albumCover}
+                  alt="Album cover"
+                  className="h-80 w-auto rounded-lg shadow-glow"
+                />
+              </div>
+            )}
+          </div>
           <div className="flex flex-col gap-4">
             {images.length >= 2 ? (
               <div className="mt-4">
@@ -101,7 +115,7 @@ export default function PixabayGrid({
           </div>
 
           <div className={infoPanelClass}>
-            {loading || keywords.length === 0 && (
+            {loading || !keywords || keywords.baseKeywords.length === 0 && (
               <div className="flex items-center gap-2 text-teal-500">
                 <span className="h-2 w-2 animate-ping rounded-full bg-teal-500" />
                 Finding imagery…
@@ -114,10 +128,10 @@ export default function PixabayGrid({
             {noSelection && !loading && !error && (
               <div>No images yet. Pick a track to get inspired.</div>
             )}
-            {keywords?.length > 0 && (
+            {!!keywords && keywords?.topSingles.length > 0 && (
               <div className="mt-3 flex flex-wrap items-center gap-2">
                 <span className="text-slate-400">Keywords:</span>
-                {keywords.map((k) => (
+                {keywords.topSingles.map((k) => (
                   <span key={k} className={keywordPill}>
                     {k}
                   </span>

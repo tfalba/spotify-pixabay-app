@@ -6,18 +6,20 @@ import type { Track } from "../types/types";
 import TracksListsContainer from "@/components/TrackListsContainer";
 import { useTheme } from "@/context/ThemeContext";
 import { useCurrentTrack } from "@/context/CurrentTrackContext";
-import type { Img } from "@/components/FlipPhotoGrid";
+import type { KeywordPlan } from "@/hooks/useLyricsImages";
+import type { ImageCard } from "@/api/lyricsTypes";
 
 type Props = {
   pixabay: {
-    images: Img[];
-    keywords: string[];
+    images: ImageCard[];
+    keywords: KeywordPlan | null;
     loading: boolean;
     error: string | null;
   };
+  albumCover?: string | null;
 };
 
-export default function Home({ pixabay }: Props) {
+export default function Home({ pixabay, albumCover }: Props) {
   const { theme } = useTheme();
   const { current, setCurrent } = useCurrentTrack();
   const [queue, setQueue] = useState<Track[]>([]);
@@ -63,6 +65,7 @@ export default function Home({ pixabay }: Props) {
         loading={pixabay.loading}
         error={pixabay.error}
         noSelection={!current}
+        albumCover={albumCover}
       />
     </main>
   );

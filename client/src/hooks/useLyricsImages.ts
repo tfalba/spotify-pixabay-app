@@ -1,4 +1,21 @@
+// client/src/hooks/useLyricsImages.ts
 import { useCallback, useRef, useState } from "react";
+
+export type KeywordPlan = {
+  baseKeywords: string[];
+  pairQueries: [string, string][];
+  topSingles: string[];
+};
+
+type DebugInfo = {
+  baseKeywords: string[];
+  pairQueries: [string, string][];
+  topSingles: string[];
+  searchQueries: {
+    pairs: string[];
+    singles: string[];
+  };
+};
 
 type ImageCard = {
   id: number;
@@ -10,23 +27,80 @@ type ImageCard = {
   pageURL: string;
 };
 
-type LyricsImagesResponse = {
-  keywords: string[];
+// New v2 server shape
+type LyricsImagesResponseV2 = {
+  keywords: KeywordPlan;
   images: ImageCard[];
   cached?: boolean;
+  debug?: DebugInfo;
 };
 
-type DemoImagesResponse = {
+// Old v1 server shape (flat keywords)
+type LyricsImagesResponseV1 = {
   keywords: string[];
   images: ImageCard[];
   cached?: boolean;
+  debug?: DebugInfo;
 };
+
+type AnyLyricsImagesResponse = LyricsImagesResponseV1 | LyricsImagesResponseV2;
+
+type NormalizedLyricsImagesResponse = {
+  keywords: KeywordPlan;
+  images: ImageCard[];
+  cached?: boolean;
+  debug?: DebugInfo;
+};
+
+// Demo endpoint may also be v1 or v2
+type DemoImagesResponse = NormalizedLyricsImagesResponse;
+
+// ---- helpers ----
+
+function isV1Response(
+  raw: AnyLyricsImagesResponse,
+): raw is LyricsImagesResponseV1 {
+  return Array.isArray((raw as any).keywords);
+}
+
+function normalizeResponse(
+  raw: AnyLyricsImagesResponse,
+): NormalizedLyricsImagesResponse {
+  if (isV1Response(raw)) {
+    const baseKeywords = raw.keywords;
+    const topSingles = baseKeywords.slice(0, 3);
+
+    const keywordPlan: KeywordPlan = {
+      baseKeywords,
+      pairQueries: [],
+      topSingles,
+    };
+
+    return {
+      keywords: keywordPlan,
+      images: raw.images,
+      cached: raw.cached,
+      debug: raw.debug,
+    };
+  }
+
+  // v2 shape
+  return {
+    keywords: raw.keywords,
+    images: raw.images,
+    cached: raw.cached,
+    debug: raw.debug,
+  };
+}
+
+// ---- hook ----
 
 export function useLyricsImages() {
-  const [keywords, setKeywords] = useState<string[]>([]);
+  const [keywords, setKeywords] = useState<KeywordPlan | null>(null);
   const [images, setImages] = useState<ImageCard[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
   const demoCacheRef = useRef<DemoImagesResponse | null>(null);
   const demoPromiseRef = useRef<Promise<DemoImagesResponse | null> | null>(null);
 
@@ -38,6 +112,7 @@ export function useLyricsImages() {
       setImages(demoCacheRef.current.images);
       return demoCacheRef.current;
     }
+
     if (demoPromiseRef.current) {
       const existing = await demoPromiseRef.current;
       if (existing) {
@@ -50,8 +125,10 @@ export function useLyricsImages() {
     demoPromiseRef.current = (async () => {
       try {
         const res = await fetch(`${API}/api/demo?cacheKey=demo-music`);
-        const data: DemoImagesResponse = await res.json();
-        if (!res.ok) throw new Error((data as any).error || "Request failed");
+        const raw = (await res.json()) as AnyLyricsImagesResponse;
+        if (!res.ok) throw new Error((raw as any).error || "Request failed");
+
+        const data = normalizeResponse(raw);
         demoCacheRef.current = data;
         setKeywords(data.keywords);
         setImages(data.images);
@@ -64,37 +141,73 @@ export function useLyricsImages() {
     return demoPromiseRef.current;
   }, [API]);
 
-  const fetchImages = useCallback(async (lyrics: string, opts?: { cacheKey?: string }) => {
-    if (!lyrics) {
-      await ensureDemoImages();
-      setLoading(false);
-      return;
-    }
-    setLoading(true);
-    setError(null);
-    void ensureDemoImages();
-    try {
-      const res = await fetch(
-        `${API}/api/lyrics-to-images`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ lyrics, cacheKey: opts?.cacheKey }),
-        }
-      );
+  const fetchImages = useCallback(
+    async (
+      lyrics: string,
+      opts?: {
+        songTitle?: string;
+        cacheKey?: string;
+        debug?: boolean;
+        legacy?: boolean;
+      },
+    ) => {
+      if (!lyrics) {
+        // fallback to demo if no lyrics entered
+        await ensureDemoImages();
+        setLoading(false);
+        return;
+      }
 
-      const data: LyricsImagesResponse = await res.json();
-      if (!res.ok) throw new Error((data as any).error || "Request failed");
+      setLoading(true);
+      setError(null);
+      void ensureDemoImages(); // pre-warm demo in background
 
-      setKeywords(data.keywords);
-      setImages(data.images);
-    } catch (err: any) {
-      setError(err.message || "Something went wrong");
-      await ensureDemoImages();
-    } finally {
-      setLoading(false);
-    }
-  }, [API, ensureDemoImages]);
+      try {
+        const params = new URLSearchParams();
+        if (opts?.debug) params.set("debug", "1");
+        if (opts?.legacy) params.set("legacy", "1");
 
-  return { fetchImages, ensureDemoImages, keywords, setKeywords, images, setImages, loading, error };
+        const res = await fetch(
+          `${API}/api/lyrics-to-images${params.toString() ? `?${params.toString()}` : ""}`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              lyrics,
+              songTitle: opts?.songTitle,
+              cacheKey: opts?.cacheKey,
+            }),
+          },
+        );
+
+        const raw = (await res.json()) as AnyLyricsImagesResponse & {
+          error?: string;
+        };
+
+        if (!res.ok) throw new Error(raw.error || "Request failed");
+
+        const data = normalizeResponse(raw);
+
+        setKeywords(data.keywords);
+        setImages(data.images);
+      } catch (err: any) {
+        setError(err.message || "Something went wrong");
+        await ensureDemoImages();
+      } finally {
+        setLoading(false);
+      }
+    },
+    [API, ensureDemoImages],
+  );
+
+  return {
+    fetchImages,
+    ensureDemoImages,
+    keywords, // KeywordPlan | null
+    setKeywords,
+    images,
+    setImages,
+    loading,
+    error,
+  };
 }
