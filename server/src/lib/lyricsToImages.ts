@@ -1,6 +1,7 @@
 // imagesFromLyrics.ts
 import { extractDescriptiveKeywords, type KeywordPlan } from "./keywordExtractor";
 import { dedupeById, fetchPixabayImagesForKeyword, PixabayImage, shuffle } from "./pixabayHelpers";
+import { generateSongMoodImage, type HeroImage } from "./songMoodImage";
 
 export type ImageCard = {
   id: number;
@@ -30,10 +31,18 @@ function sortByPopularity(images: PixabayImage[]): PixabayImage[] {
 export async function imagesFromLyrics(
   lyrics: string,
   songTitle?: string,
+  artistName?: string,
 ): Promise<{
   keywords: KeywordPlan;   // return the full plan so caller can inspect pairs/singles
   images: ImageCard[];
+  heroImage: HeroImage | null;
 }> {
+  const heroPromise = generateSongMoodImage({
+    lyrics,
+    songTitle,
+    artist: artistName,
+  }).catch(() => null);
+
   const keywordPlan = await extractDescriptiveKeywords(lyrics, songTitle);
   const { baseKeywords, pairQueries, topSingles } = keywordPlan;
 
@@ -74,9 +83,12 @@ export async function imagesFromLyrics(
     pageURL: h.pageURL,
   }));
 
+  const heroImage = await heroPromise;
+
   return {
     keywords: keywordPlan,
     images: shuffle(images),
+    heroImage,
   };
 }
 

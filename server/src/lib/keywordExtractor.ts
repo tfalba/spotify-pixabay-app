@@ -37,8 +37,8 @@ export async function extractDescriptiveKeywords(
   songTitle?: string,
 ): Promise<KeywordPlan> {
   const lines = lyrics.split(/\r?\n/);
-  const threeQuarter = Math.max(1, Math.ceil((lines.length * 3) / 4));
-  const truncatedLyrics = lines.slice(0, threeQuarter).join("\n");
+  const fourFifths = Math.max(1, Math.ceil((lines.length * 4) / 5));
+  const truncatedLyrics = lines.slice(0, fourFifths).join("\n");
 
   const schema = {
     type: "object",

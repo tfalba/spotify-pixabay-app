@@ -17,10 +17,19 @@ export type ImageCard = {
   pageURL: string;
 };
 
+export type HeroImage = {
+  url: string;
+  alt: string;
+  width: number;
+  height: number;
+  attribution?: string | null;
+};
+
 // New shape (v2) from server
 export type LyricsImagesResponseV2 = {
   keywords: KeywordPlan;
   images: ImageCard[];
+  heroImage?: HeroImage | null;
   cached?: boolean;
   debug?: DebugInfo;
 };
@@ -48,4 +57,5 @@ export type NormalizedLyricsImagesResult = {
   images: ImageCard[];
   cached: boolean;
   debug?: DebugInfo;
+  heroImage?: HeroImage | null;
 };

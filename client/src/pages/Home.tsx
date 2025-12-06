@@ -7,7 +7,7 @@ import TracksListsContainer from "@/components/TrackListsContainer";
 import { useTheme } from "@/context/ThemeContext";
 import { useCurrentTrack } from "@/context/CurrentTrackContext";
 import type { KeywordPlan } from "@/hooks/useLyricsImages";
-import type { ImageCard } from "@/api/lyricsTypes";
+import type { HeroImage, ImageCard } from "@/api/lyricsTypes";
 
 type Props = {
   pixabay: {
@@ -15,6 +15,7 @@ type Props = {
     keywords: KeywordPlan | null;
     loading: boolean;
     error: string | null;
+    heroImage?: HeroImage | null;
   };
   albumCover?: string | null;
 };
@@ -64,6 +65,7 @@ export default function Home({ pixabay, albumCover }: Props) {
         keywords={pixabay.keywords}
         loading={pixabay.loading}
         error={pixabay.error}
+        heroImage={pixabay.heroImage ?? null}
         noSelection={!current}
         albumCover={albumCover}
       />

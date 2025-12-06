@@ -112,7 +112,7 @@ export default function SpotifySearch({ onSetTracks }: Props) {
                 "w-full rounded-xl border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent/40",
                 isLight
                   ? "border-slate-200 bg-white text-slate-900 placeholder:text-slate-400"
-                  : "border-transparent bg-gradient-to-br from-[sapphire]/20 via-white/10 to-[sapphire]/70 text-amber-100 placeholder:text-white/50",
+                  : "border-transparent bg-gradient-to-br from-sapphire/90 via-sapphire to-sapphire/70 text-amber-100 placeholder:text-white/50",
               )}
             />
             {q && (
@@ -121,7 +121,7 @@ export default function SpotifySearch({ onSetTracks }: Props) {
                 onClick={clearSearch}
                 className={clsx(
                   "group inline-flex w-9 h-9 items-center justify-center rounded-full border border-transparent shadow-[0_12px_25px_-18px_rgba(251,191,36,0.9)] transition duration-200 hover:-translate-y-0.5 hover:shadow-[0_18px_35px_-16px_rgba(124,92,252,0.55)] focus:outline-none focus:ring-2 focus:ring-amber/50",
-                  isLight ? "bg-amber/20 text-slate-900" : "text-amber",
+                  isLight ? "bg-teal/20 text-slate-900" : "text-teal",
                 )}
                 aria-label="Clear search"
               >

@@ -1,5 +1,6 @@
 // client/src/hooks/useLyricsImages.ts
 import { useCallback, useRef, useState } from "react";
+import type { HeroImage } from "@/api/lyricsTypes";
 
 export type KeywordPlan = {
   baseKeywords: string[];
@@ -31,6 +32,7 @@ type ImageCard = {
 type LyricsImagesResponseV2 = {
   keywords: KeywordPlan;
   images: ImageCard[];
+  heroImage?: HeroImage | null;
   cached?: boolean;
   debug?: DebugInfo;
 };
@@ -50,6 +52,7 @@ type NormalizedLyricsImagesResponse = {
   images: ImageCard[];
   cached?: boolean;
   debug?: DebugInfo;
+  heroImage?: HeroImage | null;
 };
 
 // Demo endpoint may also be v1 or v2
@@ -81,6 +84,7 @@ function normalizeResponse(
       images: raw.images,
       cached: raw.cached,
       debug: raw.debug,
+      heroImage: null,
     };
   }
 
@@ -90,6 +94,7 @@ function normalizeResponse(
     images: raw.images,
     cached: raw.cached,
     debug: raw.debug,
+    heroImage: raw.heroImage ?? null,
   };
 }
 
@@ -98,6 +103,7 @@ function normalizeResponse(
 export function useLyricsImages() {
   const [keywords, setKeywords] = useState<KeywordPlan | null>(null);
   const [images, setImages] = useState<ImageCard[]>([]);
+  const [heroImage, setHeroImage] = useState<HeroImage | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -110,6 +116,7 @@ export function useLyricsImages() {
     if (demoCacheRef.current) {
       setKeywords(demoCacheRef.current.keywords);
       setImages(demoCacheRef.current.images);
+      setHeroImage(demoCacheRef.current.heroImage ?? null);
       return demoCacheRef.current;
     }
 
@@ -118,6 +125,7 @@ export function useLyricsImages() {
       if (existing) {
         setKeywords(existing.keywords);
         setImages(existing.images);
+        setHeroImage(existing.heroImage ?? null);
       }
       return existing;
     }
@@ -132,6 +140,7 @@ export function useLyricsImages() {
         demoCacheRef.current = data;
         setKeywords(data.keywords);
         setImages(data.images);
+        setHeroImage(data.heroImage ?? null);
         return data;
       } catch {
         return null;
@@ -146,21 +155,32 @@ export function useLyricsImages() {
       lyrics: string,
       opts?: {
         songTitle?: string;
+        songArtist?: string;
         cacheKey?: string;
         debug?: boolean;
         legacy?: boolean;
+        allowDemoFallback?: boolean;
       },
     ) => {
+      const allowDemoFallback = opts?.allowDemoFallback !== false;
       if (!lyrics) {
-        // fallback to demo if no lyrics entered
-        await ensureDemoImages();
+        if (allowDemoFallback) {
+          // fallback to demo if no lyrics entered
+          await ensureDemoImages();
+        } else {
+          setKeywords(null);
+          setImages([]);
+          setHeroImage(null);
+        }
         setLoading(false);
         return;
       }
 
       setLoading(true);
       setError(null);
-      void ensureDemoImages(); // pre-warm demo in background
+      if (allowDemoFallback) {
+        void ensureDemoImages(); // pre-warm demo in background
+      }
 
       try {
         const params = new URLSearchParams();
@@ -175,6 +195,7 @@ export function useLyricsImages() {
             body: JSON.stringify({
               lyrics,
               songTitle: opts?.songTitle,
+              songArtist: opts?.songArtist,
               cacheKey: opts?.cacheKey,
             }),
           },
@@ -190,9 +211,12 @@ export function useLyricsImages() {
 
         setKeywords(data.keywords);
         setImages(data.images);
+        setHeroImage(data.heroImage ?? null);
       } catch (err: any) {
         setError(err.message || "Something went wrong");
-        await ensureDemoImages();
+        if (allowDemoFallback) {
+          await ensureDemoImages();
+        }
       } finally {
         setLoading(false);
       }
@@ -207,6 +231,8 @@ export function useLyricsImages() {
     setKeywords,
     images,
     setImages,
+    heroImage,
+    setHeroImage,
     loading,
     error,
   };

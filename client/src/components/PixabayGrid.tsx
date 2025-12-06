@@ -5,12 +5,14 @@ import centerLogo from "../assets/center-logo.svg";
 import { useTheme } from "@/context/ThemeContext";
 import { useSectionClass } from "@/styleHooks/useStyleHooks";
 import type { KeywordPlan } from "@/hooks/useLyricsImages";
+import type { HeroImage } from "@/api/lyricsTypes";
 
 export default function PixabayGrid({
   images,
   keywords,
   loading,
   error,
+  heroImage,
   noSelection,
   albumCover,
 }: {
@@ -18,12 +20,19 @@ export default function PixabayGrid({
   keywords: KeywordPlan | null;
   loading: boolean;
   error: string | null;
+  heroImage?: HeroImage | null;
   noSelection: boolean;
   albumCover?: string | null;
 }) {
   const { theme } = useTheme();
   const [isFullscreen, setIsFullscreen] = useState(false);
   const isLight = theme === "light";
+  const hasSelection = !noSelection;
+  const showAlbumCoverOnly = Boolean(albumCover) && hasSelection && loading;
+  const hasImages = images.length >= 2;
+  const shouldShowGrid = hasImages && !showAlbumCoverOnly;
+  const shouldShowPlaceholderLogo = noSelection && !hasImages && !showAlbumCoverOnly;
+  const albumCoverForGrid = hasSelection && !loading ? albumCover : null;
 
   const sectionClass = useSectionClass(isLight, 3);
   const infoPanelClass = clsx(
@@ -70,6 +79,7 @@ export default function PixabayGrid({
           <button
             type="button"
             onClick={() => setIsFullscreen(true)}
+            disabled={ !hasSelection}
             className={clsx(
               "rounded-full border px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.14em] transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500",
               isLight
@@ -81,16 +91,12 @@ export default function PixabayGrid({
           </button>
         </div>
 
-        <div
-          className={`flex flex-col gap-4 ${
-            (!images.length || images.length === 0) ?  "m-auto" : "mt-4"
-          }`}
-        >
+        <div className={`flex flex-col gap-4 ${images.length === 0 ? "m-auto" : "mt-4"}`}>
           <div>
-            {albumCover && (
+            {albumCover && hasSelection && showAlbumCoverOnly && (
               <div className="m-auto place-items-center">
                 <img
-                  src={ albumCover}
+                  src={albumCover}
                   alt="Album cover"
                   className="h-80 w-auto rounded-lg shadow-glow"
                 />
@@ -98,20 +104,19 @@ export default function PixabayGrid({
             )}
           </div>
           <div className="flex flex-col gap-4">
-            {images.length >= 2 ? (
+            {shouldShowGrid ? (
               <div className="mt-4">
-                <FlipPhotoGrid images={images} />
+                <FlipPhotoGrid images={images} albumCover={albumCoverForGrid} heroImage={heroImage} />
               </div>
-            ) : (
-            
+            ) : shouldShowPlaceholderLogo ? (
               <div className="m-auto place-items-center">
                 <img
-                  src={ centerLogo}
+                  src={centerLogo}
                   alt="App logo"
                   className="h-80 w-auto animate-flipY"
                 />
               </div>
-            )}
+            ) : null}
           </div>
 
           <div className={infoPanelClass}>
@@ -159,6 +164,8 @@ export default function PixabayGrid({
                 images={images}
                 gridClassName="w-full grid grid-cols-3 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-3"
                 fullScreen={true}
+                albumCover={albumCoverForGrid}
+                heroImage={heroImage}
               />
             ) : (
               <div className="m-auto text-center text-sm text-white/80">

@@ -8,6 +8,7 @@ type ImagesFromLyricsV2 = Awaited<ReturnType<typeof imagesFromLyrics>>;
 type LegacyImagesPayload = {
   keywords: string[]; // flat keywords (v1 shape)
   images: ImagesFromLyricsV2["images"];
+  heroImage: ImagesFromLyricsV2["heroImage"];
   cached?: boolean;
   debug?: DebugInfo;
 };
@@ -15,6 +16,7 @@ type LegacyImagesPayload = {
 type CachedPayload = ImagesFromLyricsV2 | LegacyImagesPayload;
 
 const CACHE_TTL_MS = 1000 * 60 * 60; // 1 hour
+const CACHE_VERSION = "v3";
 const lyricImageCache = new Map<
   string,
   { expires: number; payload: CachedPayload }
@@ -24,7 +26,7 @@ const router = Router();
 
 router.post("/lyrics-to-images", async (req, res) => {
   try {
-    const { lyrics, cacheKey, songTitle } = req.body ?? {};
+    const { lyrics, cacheKey, songTitle, songArtist } = req.body ?? {};
     if (!lyrics || typeof lyrics !== "string") {
       return res.status(400).json({ error: "Missing lyrics" });
     }
@@ -53,16 +55,23 @@ router.post("/lyrics-to-images", async (req, res) => {
       typeof cacheKey === "string" && cacheKey.trim().length > 0
         ? cacheKey.trim()
         : null;
-    const cacheId =
-      baseKey != null ? `${baseKey}:${legacy ? "legacy" : "v2"}` : null;
+    const versionLabel = legacy ? `legacy-${CACHE_VERSION}` : `v-${CACHE_VERSION}`;
+    const cacheId = baseKey != null ? `${baseKey}:${versionLabel}` : null;
 
     // try cache
     if (cacheId) {
       const cached = lyricImageCache.get(cacheId);
       if (cached && cached.expires > Date.now()) {
-        const payload = cached.payload;
-        const responseBody = addDebugIfNeeded(payload, debug);
-        return res.json({ ...responseBody, cached: true });
+        const payload = cached.payload as any;
+        const hasHeroImageProp = Object.prototype.hasOwnProperty.call(
+          payload,
+          "heroImage",
+        );
+        if (hasHeroImageProp) {
+          const responseBody = addDebugIfNeeded(payload, debug);
+          return res.json({ ...responseBody, cached: true });
+        }
+        lyricImageCache.delete(cacheId);
       }
     }
 
@@ -71,7 +80,11 @@ router.post("/lyrics-to-images", async (req, res) => {
       typeof songTitle === "string" && songTitle.trim().length > 0
         ? songTitle.trim()
         : undefined;
-    const v2Payload = await imagesFromLyrics(lyrics, validSongTitle);
+    const validSongArtist =
+      typeof songArtist === "string" && songArtist.trim().length > 0
+        ? songArtist.trim()
+        : undefined;
+    const v2Payload = await imagesFromLyrics(lyrics, validSongTitle, validSongArtist);
 
     const payload: CachedPayload = legacy
       ? toLegacyPayload(v2Payload)
@@ -98,6 +111,7 @@ function toLegacyPayload(v2: ImagesFromLyricsV2): LegacyImagesPayload {
   return {
     keywords: v2.keywords.baseKeywords,
     images: v2.images,
+    heroImage: v2.heroImage,
   };
 }
 

@@ -8,6 +8,7 @@ import { normalizeLyricsImagesResponse } from "./normalizeLyricsResponse";
 export async function fetchImagesForLyrics(
   lyrics: string,
   songTitle?: string,
+  songArtist?: string,
   options?: { debug?: boolean; legacy?: boolean },
 ): Promise<NormalizedLyricsImagesResult> {
   const params = new URLSearchParams();
@@ -17,7 +18,7 @@ export async function fetchImagesForLyrics(
   const res = await fetch(`/api/lyrics-to-images?${params.toString()}`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ lyrics, songTitle }),
+    body: JSON.stringify({ lyrics, songTitle, songArtist }),
   });
 
   if (!res.ok) {

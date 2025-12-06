@@ -19,6 +19,7 @@ export function normalizeLyricsImagesResponse(
 ): NormalizedLyricsImagesResult {
   const cached = !!(raw as any).cached;
   const debug = (raw as any).debug as DebugInfo | undefined;
+  const heroImage = (raw as any).heroImage as any;
 
   if (isV1Response(raw)) {
     const baseKeywords = raw.keywords;
@@ -35,6 +36,7 @@ export function normalizeLyricsImagesResponse(
       images: raw.images,
       cached,
       debug,
+      heroImage: null,
     };
   }
 
@@ -44,5 +46,6 @@ export function normalizeLyricsImagesResponse(
     images: raw.images,
     cached,
     debug,
+    heroImage: heroImage ?? null,
   };
 }

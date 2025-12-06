@@ -21,6 +21,8 @@ function AppContent() {
     setKeywords,
     images,
     setImages,
+    heroImage,
+    setHeroImage,
     loading,
     error,
   } = useLyricsImages();
@@ -28,12 +30,16 @@ function AppContent() {
 
   useEffect(() => {
     if (!current?.artists?.length || !current?.name) {
+      setImages([]);
+      setKeywords(null);
+      setAlbumCoverUrl(null);
       void ensureDemoImages();
       return;
     }
-    // setImages([]);
+    setImages([]);
     setKeywords(null);
-    setAlbumCoverUrl(current.image);
+    setHeroImage(null);
+    setAlbumCoverUrl(current.image ?? null);
     const cacheKey =
       current.uri ||
       (current.artists[0]?.name && current.name
@@ -47,17 +53,26 @@ function AppContent() {
     )
       .then((d) => {
         if (!d?.lyrics) {
-          void ensureDemoImages();
+          setImages([]);
+          setKeywords(null);
+          setHeroImage(null);
           return;
         }
-        void fetchImages(d.lyrics, { cacheKey, songTitle: current.name });
+        void fetchImages(d.lyrics, {
+          cacheKey,
+          songTitle: current.name,
+          songArtist: current.artists[0]?.name,
+          allowDemoFallback: false,
+        });
       })
       .catch(() => {
-        void ensureDemoImages();
+        setImages([]);
+        setKeywords(null);
+        setHeroImage(null);
       });
-  }, [current, API, ensureDemoImages, fetchImages, setImages, setKeywords]);
+  }, [current, API, ensureDemoImages, fetchImages, setImages, setKeywords, setHeroImage]);
 
-  const pixabayProps = { images, keywords, loading, error };
+  const pixabayProps = { images, keywords, loading, error, heroImage };
 
   const { theme } = useTheme();
   const pageBg = clsx(
