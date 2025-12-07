@@ -6,6 +6,8 @@ import { useTheme } from "@/context/ThemeContext";
 import { useSectionClass } from "@/styleHooks/useStyleHooks";
 import type { KeywordPlan } from "@/hooks/useLyricsImages";
 import type { HeroImage } from "@/api/lyricsTypes";
+import type { StyleCategory } from "@/types/types";
+import { STYLE_CATEGORIES } from "@/types/types";
 
 export default function PixabayGrid({
   images,
@@ -13,20 +15,26 @@ export default function PixabayGrid({
   loading,
   error,
   heroImage,
+  heroLoading = false,
   noSelection,
   albumCover,
   trackTitle,
   trackArtist,
+  styleChoice = "surprise",
+  onStyleChange,
 }: {
   images: Img[] | null;
   keywords: KeywordPlan | null;
   loading: boolean;
   error: string | null;
   heroImage?: HeroImage | null;
+  heroLoading?: boolean;
   noSelection: boolean;
   albumCover?: string | null;
   trackTitle?: string | null;
   trackArtist?: string | null;
+  styleChoice?: StyleCategory | "surprise";
+  onStyleChange?: (choice: StyleCategory | "surprise") => void;
 }) {
   const { theme } = useTheme();
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -36,7 +44,8 @@ export default function PixabayGrid({
   const showAlbumCoverOnly = Boolean(albumCover) && hasSelection && loading;
   const hasImages = imageList.length >= 2;
   const shouldShowGrid = hasImages && !showAlbumCoverOnly;
-  const shouldShowPlaceholderLogo = noSelection && !hasImages && !showAlbumCoverOnly;
+  const shouldShowPlaceholderLogo =
+    noSelection && !hasImages && !showAlbumCoverOnly;
   const albumCoverForGrid = hasSelection && !loading ? albumCover : null;
 
   const sectionClass = useSectionClass(isLight, 3);
@@ -44,16 +53,24 @@ export default function PixabayGrid({
     "rounded-2xl border p-4 text-xs shadow-inner transition-colors duration-300",
     isLight
       ? "border-slate-200 bg-slate-50 text-slate-600"
-      : "border-white/10 bg-black/20 text-slate-300",
+      : "border-white/10 bg-black/20 text-slate-300"
   );
   const keywordPill = clsx(
     "rounded-full border px-3 py-1 text-[11px] uppercase tracking-wide transition-colors duration-300",
-    isLight ? "border-slate-200 bg-white text-slate-600" : "border-white/20 bg-white/10 text-slate-200",
+    isLight
+      ? "border-slate-200 bg-white text-slate-600"
+      : "border-white/20 bg-white/10 text-slate-200"
   );
-  const fullScreenClass = clsx("fixed inset-0 z-50 flex h-screen w-screen flex-col", isLight ? "bg-white" : "bg-black/90");
-  const fullScreenClose = clsx("rounded-full border px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.14em] transition  focus-visible:outline-none focus-visible:ring-2",
-    isLight ? "border-lilac/80 bg-lilac/10 hover:border-lilac/100 hover:bg-lical/30 focus-visible-lilac text-slate-900" : "border-white/30 bg-white/10 hover:border-white/60 hover:bg-white/20 focus-visible:ring-white text-white"
-  )
+  const fullScreenClass = clsx(
+    "fixed inset-0 z-50 flex h-screen w-screen flex-col",
+    isLight ? "bg-white" : "bg-black/90"
+  );
+  const fullScreenClose = clsx(
+    "rounded-full border px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.14em] transition  focus-visible:outline-none focus-visible:ring-2",
+    isLight
+      ? "border-lilac/80 bg-lilac/10 hover:border-lilac/100 hover:bg-lical/30 focus-visible-lilac text-slate-900"
+      : "border-white/30 bg-white/10 hover:border-white/60 hover:bg-white/20 focus-visible:ring-white text-white"
+  );
 
   useEffect(() => {
     if (!isFullscreen) return;
@@ -68,16 +85,21 @@ export default function PixabayGrid({
     <>
       <section className={sectionClass}>
         <div className="flex items-start justify-between gap-3">
-          <div>
+          <div className="flex flex-col gap-1">
             <h2
               className={clsx(
                 "text-lg font-semibold tracking-tight",
-                isLight ? "text-slate-900" : "text-slate-50",
+                isLight ? "text-slate-900" : "text-slate-50"
               )}
             >
               Visual Moodboard
             </h2>
-            <p className={clsx("text-sm", isLight ? "text-slate-500" : "text-slate-400")}>
+            <p
+              className={clsx(
+                "text-sm",
+                isLight ? "text-slate-500" : "text-slate-400"
+              )}
+            >
               Curated image prompts from your selected lyrics.
             </p>
           </div>
@@ -89,14 +111,18 @@ export default function PixabayGrid({
               "rounded-full border px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.14em] transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500",
               isLight
                 ? "border-slate-200 bg-white text-slate-600 hover:text-slate-900"
-                : "border-white/30 bg-white/10 text-slate-100 hover:text-white",
+                : "border-white/30 bg-white/10 text-slate-100 hover:text-white"
             )}
           >
             Fullscreen
           </button>
         </div>
 
-        <div className={`flex flex-col gap-4 ${imageList.length === 0 ? "m-auto" : "mt-4"}`}>
+        <div
+          className={`flex flex-col gap-1 ${
+            imageList.length === 0 ? "m-auto" : "mt-1"
+          }`}
+        >
           <div>
             {albumCover && hasSelection && showAlbumCoverOnly && (
               <div className="m-auto place-items-center">
@@ -111,7 +137,12 @@ export default function PixabayGrid({
           <div className="flex flex-col gap-4">
             {shouldShowGrid ? (
               <div className="mt-4">
-                <FlipPhotoGrid images={imageList} albumCover={albumCoverForGrid} heroImage={heroImage} />
+                <FlipPhotoGrid
+                  images={imageList}
+                  albumCover={albumCoverForGrid}
+                  heroImage={heroImage}
+                  heroLoading={heroLoading}
+                />
               </div>
             ) : shouldShowPlaceholderLogo ? (
               <div className="m-auto place-items-center">
@@ -125,12 +156,14 @@ export default function PixabayGrid({
           </div>
 
           <div className={infoPanelClass}>
-            {loading || !keywords || keywords.baseKeywords.length === 0 && (
-              <div className="flex items-center gap-2 text-teal-500">
-                <span className="h-2 w-2 animate-ping rounded-full bg-teal-500" />
-                Finding imagery…
-              </div>
-            )}
+            {loading ||
+              !keywords ||
+              (keywords.baseKeywords.length === 0 && (
+                <div className="flex items-center gap-2 text-teal-500">
+                  <span className="h-2 w-2 animate-ping rounded-full bg-teal-500" />
+                  Finding imagery…
+                </div>
+              ))}
             {/* {error && (
               <div className="text-red-400">Image search error: {error}</div>
             )} */}
@@ -161,7 +194,7 @@ export default function PixabayGrid({
                   <p
                     className={clsx(
                       "text-xs uppercase tracking-[0.28em]",
-                      isLight ? "text-slate-500" : "text-slate-400",
+                      isLight ? "text-slate-500" : "text-slate-400"
                     )}
                   >
                     Currently Playing
@@ -169,26 +202,65 @@ export default function PixabayGrid({
                   <h3
                     className={clsx(
                       "truncate text-2xl font-semibold",
-                      isLight ? "text-slate-900" : "text-slate-50",
+                      isLight ? "text-slate-900" : "text-slate-50"
                     )}
                   >
                     {trackTitle ?? "Unknown Title"}
                   </h3>
                   {trackArtist && (
-                    <p className={clsx("truncate text-sm", isLight ? "text-slate-600" : "text-slate-300")}>
+                    <p
+                      className={clsx(
+                        "truncate text-sm",
+                        isLight ? "text-slate-600" : "text-slate-300"
+                      )}
+                    >
                       {trackArtist}
                     </p>
                   )}
                 </div>
               )}
             </div>
-            <button
+            <div className="flex gap-2 flex-wrap flex-1 justify-end">
+              <div
+                className={clsx(
+                  "flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-wide focus-within:ring-2",
+                  isLight
+                    ? "border-slate-300 bg-white text-slate-600 focus-within:ring-lilac"
+                    : "border-white/30 bg-white/10 text-white focus-within:ring-white",
+                )}
+              >
+                <span className="text-[10px] tracking-[0.2em] text-slate-400">
+                  Art Style
+                </span>
+                <select
+                  value={styleChoice}
+                  disabled={!onStyleChange}
+                  onChange={(e) =>
+                    onStyleChange?.(e.target.value as StyleCategory | "surprise")
+                  }
+                  className={clsx(
+                    "hidden sm:inline-flex bg-transparent text-xs font-semibold uppercase tracking-wide focus-visible:outline-none text-transparent",
+                    isLight ? "sm:text-slate-800" : "sm:text-white",
+                  )}
+                >
+                  <option value="surprise">
+                    {styleChoice === "surprise" ? "Surprise me" : "Surprise me"}
+                  </option>
+                  {STYLE_CATEGORIES.map((category) => (
+                    <option key={category} value={category}>
+                      {styleChoice === category ? `${category}` : category}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <button
               type="button"
               onClick={() => setIsFullscreen(false)}
               className={fullScreenClose}
             >
               Close
             </button>
+            </div>
           </div>
           <div className="mx-auto flex w-full max-w-6xl flex-1 overflow-y-auto p-4 justify-center">
             {imageList.length >= 2 ? (
@@ -198,22 +270,20 @@ export default function PixabayGrid({
                 fullScreen={true}
                 albumCover={albumCoverForGrid}
                 heroImage={heroImage}
+                heroLoading={heroLoading}
               />
             ) : (
-               <div>
-            {albumCover && hasSelection && showAlbumCoverOnly && (
-              <div className="m-auto flex items-center justify-center place-items-center">
-                <img
-                  src={albumCover}
-                  alt="Album cover"
-                  className="h-80 w-auto rounded-lg shadow-glow"
-                />
+              <div>
+                {albumCover && hasSelection && showAlbumCoverOnly && (
+                  <div className="m-auto flex items-center justify-center place-items-center">
+                    <img
+                      src={albumCover}
+                      alt="Album cover"
+                      className="h-80 w-auto rounded-lg shadow-glow"
+                    />
+                  </div>
+                )}
               </div>
-            )}
-          </div>
-              // <div className="m-auto text-center text-sm text-white/80">
-              //   No images yet. Pick a track to get inspired.
-              // </div>
             )}
           </div>
         </div>

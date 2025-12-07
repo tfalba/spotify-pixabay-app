@@ -1,4 +1,4 @@
-import { useEffect, useState, ChangeEvent } from "react";
+import { useEffect, useState, type ChangeEvent } from "react";
 import clsx from "clsx";
 import { get } from "../lib/fetcher";
 import { LoginButton, LogoutButton } from "./LoginButtons";
@@ -77,21 +77,12 @@ export default function HeaderBar({ styleChoice, onStyleChange }: Props) {
             isLight ? "text-lilac" : "text-teal/90"
           )}
         >
-          {/* Portfolio Studio */}
           Spotify * Pixabay Showcase
         </p>
-        {/* <h1
-          className={clsx(
-            "text-2xl font-semibold tracking-tight",
-            isLight ? "text-slate-900" : "text-white",
-          )}
-        >
-          Spotify x Pixabay Showcase
-        </h1> */}
       </div>
 
       <div className="flex flex-col items-end gap-3">
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 flex-wrap justify-end">
           <button
             type="button"
             onClick={toggleTheme}
@@ -104,18 +95,26 @@ export default function HeaderBar({ styleChoice, onStyleChange }: Props) {
           >
             {isLight ? "Dark Mode" : "Light Mode"}
           </button>
-          <label className="text-[11px] uppercase tracking-wide text-slate-500">
-            <span className="sr-only">Art style</span>
+          <label className="sr-only">Art style</label>
+          <div
+            className={clsx(
+              "flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-wide focus-within:ring-2",
+              isLight
+                ? "border-slate-300 bg-white text-slate-600 focus-within:ring-lilac"
+                : "border-white/30 bg-white/10 text-white focus-within:ring-white"
+            )}
+          >
+            <span className="text-[10px] tracking-[0.2em] text-slate-400">
+              Art Style
+            </span>
             <select
               value={styleChoice}
               onChange={(e: ChangeEvent<HTMLSelectElement>) =>
                 onStyleChange(e.target.value as StyleChoice)
               }
               className={clsx(
-                "rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-wide transition-colors focus-visible:outline-none focus-visible:ring-2",
-                isLight
-                  ? "border-slate-300 bg-white text-slate-700 focus-visible:ring-lilac"
-                  : "border-white/30 bg-white/10 text-white focus-visible:ring-white"
+                "bg-transparent text-xs font-semibold uppercase tracking-wide focus-visible:outline-none",
+                isLight ? "text-slate-800" : "text-white"
               )}
             >
               <option value="surprise">Surprise me</option>
@@ -125,7 +124,7 @@ export default function HeaderBar({ styleChoice, onStyleChange }: Props) {
                 </option>
               ))}
             </select>
-          </label>
+          </div>
         </div>
 
         <div className="flex items-center gap-4 text-sm">

@@ -13,16 +13,21 @@ const API = import.meta.env.VITE_API_BASE || "http://127.0.0.1:5174";
 function LoginButton() {
   const { theme } = useTheme();
   const isLight = theme === "light";
-  const buttonClasses = clsx(baseButton, isLight ? "focus:ring-slate-300" : "focus:ring-teal/40");
+  const buttonClasses = clsx(
+    baseButton,
+    isLight ? "focus:ring-slate-300" : "focus:ring-teal/40"
+  );
   const borderPill = clsx(
     "pointer-events-none absolute inset-0 z-0 rounded-full border opacity-90 transition duration-200 group-hover:opacity-100",
     isLight
       ? "border-teal-500 bg-gradient-to-r from-teal-200 via-white to-teal-50"
-      : "border-teal bg-gradient-to-r from-teal/10 via-white/20 to-teal/40",
+      : "border-teal bg-gradient-to-r from-teal/10 via-white/20 to-teal/40"
   );
   const inner = clsx(
     baseInner,
-    isLight ? "border border-teal-500 bg-white text-teal-700" : "border border-transparent bg-teal-50 text-white",
+    isLight
+      ? "border border-teal-500 bg-white text-teal-700"
+      : "border border-transparent bg-teal-50 text-white"
   );
 
   return (
@@ -37,16 +42,21 @@ function LoginButton() {
 function LogoutButton() {
   const { theme } = useTheme();
   const isLight = theme === "light";
-  const buttonClasses = clsx(baseButton, isLight ? "focus:ring-slate-300" : "focus:ring-teal/40");
+  const buttonClasses = clsx(
+    baseButton,
+    isLight ? "focus:ring-slate-300" : "focus:ring-teal/40"
+  );
   const borderPill = clsx(
     "pointer-events-none absolute inset-0 z-0 rounded-full border opacity-90 transition duration-200 group-hover:opacity-100",
     isLight
       ? "border-slate-300 bg-gradient-to-r from-white via-slate-50 to-white"
-      : "border-teal bg-gradient-to-r from-teal/10 via-white/20 to-teal/40",
+      : "border-teal bg-gradient-to-r from-teal/10 via-white/20 to-teal/40"
   );
   const inner = clsx(
     baseInner,
-    isLight ? "border border-slate-200 bg-white text-slate-700" : "border border-transparent bg-teal-50 text-white",
+    isLight
+      ? "border border-slate-200 bg-white text-slate-700"
+      : "border border-transparent bg-teal-50 text-white"
   );
 
   async function logout() {

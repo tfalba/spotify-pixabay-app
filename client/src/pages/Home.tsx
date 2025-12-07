@@ -8,6 +8,7 @@ import { useTheme } from "@/context/ThemeContext";
 import { useCurrentTrack } from "@/context/CurrentTrackContext";
 import type { KeywordPlan } from "@/hooks/useLyricsImages";
 import type { HeroImage, ImageCard } from "@/api/lyricsTypes";
+import type { StyleCategory } from "@/types/types";
 
 type Props = {
   pixabay: {
@@ -16,6 +17,9 @@ type Props = {
     loading: boolean;
     error: string | null;
     heroImage?: HeroImage | null;
+    heroLoading?: boolean;
+    styleChoice?: StyleCategory | "surprise";
+    onStyleChange?: (choice: StyleCategory | "surprise") => void;
   };
   albumCover?: string | null;
 };
@@ -66,6 +70,9 @@ export default function Home({ pixabay, albumCover }: Props) {
         loading={pixabay.loading}
         error={pixabay.error}
         heroImage={pixabay.heroImage ?? null}
+        heroLoading={pixabay.heroLoading ?? false}
+        styleChoice={pixabay.styleChoice ?? "surprise"}
+        onStyleChange={pixabay.onStyleChange}
         noSelection={!current}
         albumCover={albumCover}
         trackTitle={current?.name ?? null}

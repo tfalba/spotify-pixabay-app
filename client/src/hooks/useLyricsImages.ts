@@ -106,12 +106,14 @@ export function useLyricsImages() {
   const [keywords, setKeywords] = useState<KeywordPlan | null>(null);
   const [images, setImages] = useState<ImageCard[] | null>(null);
   const [heroImage, setHeroImage] = useState<HeroImage | null>(null);
+  const [heroLoading, setHeroLoading] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const demoCacheRef = useRef<DemoImagesResponse | null>(null);
   const demoPromiseRef = useRef<Promise<DemoImagesResponse | null> | null>(null);
   const activeRequestRef = useRef<AbortController | null>(null);
+  const heroRequestRef = useRef<AbortController | null>(null);
 
   const API = import.meta.env.VITE_API_BASE || "http://127.0.0.1:5174";
 
@@ -129,6 +131,7 @@ export function useLyricsImages() {
         setKeywords(existing.keywords);
         setImages(existing.images);
         setHeroImage(existing.heroImage ?? null);
+        setHeroLoading(false);
       }
       return existing;
     }
@@ -144,6 +147,7 @@ export function useLyricsImages() {
         setKeywords(data.keywords);
         setImages(data.images);
         setHeroImage(data.heroImage ?? null);
+        setHeroLoading(false);
         return data;
       } catch {
         return null;
@@ -175,6 +179,10 @@ export function useLyricsImages() {
       };
       if (!lyrics) {
         abortActiveRequest();
+        if (heroRequestRef.current) {
+          heroRequestRef.current.abort();
+          heroRequestRef.current = null;
+        }
         if (allowDemoFallback) {
           // fallback to demo if no lyrics entered
           await ensureDemoImages();
@@ -182,6 +190,7 @@ export function useLyricsImages() {
           setKeywords(null);
           setImages(null);
           setHeroImage(null);
+          setHeroLoading(false);
         }
         setLoading(false);
         return;
@@ -195,6 +204,11 @@ export function useLyricsImages() {
       abortActiveRequest();
       const controller = new AbortController();
       activeRequestRef.current = controller;
+      if (heroRequestRef.current) {
+        heroRequestRef.current.abort();
+        heroRequestRef.current = null;
+      }
+      setHeroLoading(false);
 
       try {
         const params = new URLSearchParams();
@@ -228,11 +242,13 @@ export function useLyricsImages() {
         setKeywords(data.keywords);
         setImages(data.images);
         setHeroImage(data.heroImage ?? null);
+        setHeroLoading(false);
       } catch (err: any) {
         if (err?.name === "AbortError") {
           return;
         }
         setError(err.message || "Something went wrong");
+        setHeroLoading(false);
         if (allowDemoFallback) {
           await ensureDemoImages();
         }
@@ -246,6 +262,58 @@ export function useLyricsImages() {
     [API, ensureDemoImages],
   );
 
+  const refreshHeroImage = useCallback(
+    async (
+      lyrics: string,
+      opts?: {
+        songTitle?: string;
+        songArtist?: string;
+        cacheKey?: string;
+        styleCategory?: StyleCategory;
+      },
+    ) => {
+      if (!lyrics) return;
+      if (heroRequestRef.current) {
+        heroRequestRef.current.abort();
+      }
+      const controller = new AbortController();
+      heroRequestRef.current = controller;
+      setHeroImage(null);
+      setHeroLoading(true);
+      try {
+        const res = await fetch(`${API}/api/lyrics-to-images`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          signal: controller.signal,
+          body: JSON.stringify({
+            lyrics,
+            songTitle: opts?.songTitle,
+            songArtist: opts?.songArtist,
+            cacheKey: opts?.cacheKey,
+            styleCategory: opts?.styleCategory ?? "retro",
+          }),
+        });
+        const raw = (await res.json()) as AnyLyricsImagesResponse & {
+          error?: string;
+        };
+        if (!res.ok) throw new Error(raw.error || "Request failed");
+        const data = normalizeResponse(raw);
+        setHeroImage(data.heroImage ?? null);
+      } catch (err: any) {
+        if (err?.name === "AbortError") {
+          return;
+        }
+        setError(err.message || "Something went wrong");
+      } finally {
+        if (heroRequestRef.current === controller) {
+          heroRequestRef.current = null;
+          setHeroLoading(false);
+        }
+      }
+    },
+    [API],
+  );
+
   return {
     fetchImages,
     ensureDemoImages,
@@ -255,6 +323,8 @@ export function useLyricsImages() {
     setImages,
     heroImage,
     setHeroImage,
+    heroLoading,
+    refreshHeroImage,
     loading,
     error,
   };

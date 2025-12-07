@@ -16,7 +16,7 @@ export default function LyricPlayerContainer({
   const containerClass = useSectionClass(isLight, 2);
   const nowPlayingClass = clsx(
     "rounded-2xl p-3 shadow-glow mb-4 transition-colors duration-300",
-    isLight ? "bg-slate-100" : "bg-sapphire/80",
+    isLight ? "bg-slate-100" : "bg-sapphire/80"
   );
   const trackTitleClass = isLight ? "text-slate-900" : "text-white";
   const trackArtistClass = isLight ? "text-slate-600" : "text-slate-400";
@@ -27,7 +27,12 @@ export default function LyricPlayerContainer({
         <NowPlayingPanel onTrackFinished={onTrackFinished} />
         {current && (
           <div className="mt-3">
-            <div className={clsx("text-base font-medium truncate", trackTitleClass)}>
+            <div
+              className={clsx(
+                "text-base font-medium truncate",
+                trackTitleClass
+              )}
+            >
               {current.name}
             </div>
             <div className={clsx("text-sm truncate", trackArtistClass)}>

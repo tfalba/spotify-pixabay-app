@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import clsx from "clsx";
 import HeaderBar from "./components/HeaderBar";
 import Home from "./pages/Home";
@@ -14,6 +14,25 @@ function AppContent() {
   const { current, albumCover } = useCurrentTrack();
   const API = import.meta.env.VITE_API_BASE || "http://127.0.0.1:5174";
   const [styleChoice, setStyleChoice] = useState<StyleCategory | "surprise">("surprise");
+  const [currentLyrics, setCurrentLyrics] = useState<string | null>(null);
+  const [currentCacheKey, setCurrentCacheKey] = useState<string | null>(null);
+  const [hasInitialHero, setHasInitialHero] = useState(false);
+  const styleChoiceRef = useRef<StyleCategory | "surprise">(styleChoice);
+  const hasInitialHeroRef = useRef(false);
+  const pickRandomStyle = useCallback(
+    () => STYLE_CATEGORIES[Math.floor(Math.random() * STYLE_CATEGORIES.length)],
+    [],
+  );
+  const resolveStyle = useCallback(
+    (choice: StyleCategory | "surprise"): StyleCategory =>
+      choice === "surprise" ? pickRandomStyle() : choice,
+    [pickRandomStyle],
+  );
+  const styleCacheKey = useCallback(
+    (baseKey: string | null, style: StyleCategory) =>
+      baseKey ? `${baseKey}::${style}` : undefined,
+    [],
+  );
 
   const {
     fetchImages,
@@ -24,32 +43,41 @@ function AppContent() {
     setImages,
     heroImage,
     setHeroImage,
+    heroLoading,
+    refreshHeroImage,
     loading,
     error,
   } = useLyricsImages();
 
+  useEffect(() => {
+    styleChoiceRef.current = styleChoice;
+  }, [styleChoice]);
 
   useEffect(() => {
     if (!current?.artists?.length || !current?.name) {
       setImages(null);
       setKeywords(null);
       setHeroImage(null);
+      setCurrentLyrics(null);
+      setCurrentCacheKey(null);
+      setHasInitialHero(false);
       void ensureDemoImages();
       return;
     }
     setImages(null);
     setKeywords(null);
     setHeroImage(null);
+    setCurrentLyrics(null);
+    setCurrentCacheKey(null);
+    setHasInitialHero(false);
     const cacheKey =
       current.uri ||
       (current.artists[0]?.name && current.name
         ? `${current.artists[0]?.name}::${current.name}`
         : current.id);
+    setCurrentCacheKey(cacheKey);
 
-    const styleForRequest: StyleCategory =
-      styleChoice === "surprise"
-        ? STYLE_CATEGORIES[Math.floor(Math.random() * STYLE_CATEGORIES.length)]
-        : styleChoice;
+    const styleForRequest = resolveStyle(styleChoiceRef.current);
 
     get<{ lyrics: string; source: string }>(
       `${API}/api/lyrics?artist=${encodeURIComponent(
@@ -61,24 +89,58 @@ function AppContent() {
           setImages(null);
           setKeywords(null);
           setHeroImage(null);
+          setCurrentLyrics(null);
           return;
         }
+        setCurrentLyrics(d.lyrics);
+        const requestCacheKey = styleCacheKey(cacheKey, styleForRequest);
         void fetchImages(d.lyrics, {
-          cacheKey,
+          cacheKey: requestCacheKey,
           songTitle: current.name,
           songArtist: current.artists[0]?.name,
           allowDemoFallback: false,
           styleCategory: styleForRequest,
-        });
+        }).then(
+          () => setHasInitialHero(true),
+          () => {},
+        );
       })
       .catch(() => {
         setImages(null);
         setKeywords(null);
         setHeroImage(null);
+        setCurrentLyrics(null);
       });
-  }, [current, API, ensureDemoImages, fetchImages, setImages, setKeywords, setHeroImage, styleChoice]);
+  }, [current, API, ensureDemoImages, fetchImages, setImages, setKeywords, setHeroImage, resolveStyle, styleCacheKey]);
 
-  const pixabayProps = { images, keywords, loading, error, heroImage };
+  useEffect(() => {
+    hasInitialHeroRef.current = hasInitialHero;
+  }, [hasInitialHero]);
+
+  useEffect(() => {
+    if (!current?.artists?.length || !current?.name) return;
+    if (!currentLyrics) return;
+    if (!hasInitialHeroRef.current) return;
+    const concreteStyle = resolveStyle(styleChoice);
+    const heroCacheKey = styleCacheKey(currentCacheKey, concreteStyle);
+    void refreshHeroImage(currentLyrics, {
+      cacheKey: heroCacheKey,
+      songTitle: current.name,
+      songArtist: current.artists[0]?.name,
+      styleCategory: concreteStyle,
+    });
+  }, [styleChoice, current, currentLyrics, currentCacheKey, refreshHeroImage, resolveStyle, styleCacheKey]);
+
+  const pixabayProps = {
+    images,
+    keywords,
+    loading,
+    error,
+    heroImage,
+    heroLoading,
+    styleChoice,
+    onStyleChange: setStyleChoice,
+  };
 
   const { theme } = useTheme();
   const pageBg = clsx(

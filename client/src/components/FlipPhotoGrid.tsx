@@ -16,11 +16,15 @@ const MAX_COLUMN_TARGET = 3;
 const MAX_COLUMN_TARGET_FULLSCREEN = 4;
 
 function FlipCard({
-  front, back, delay, duration, fullScreen = false
+  front,
+  back,
+  delay,
+  duration,
+  fullScreen = false,
 }: {
   front: Img;
   back: Img;
-  delay: number;    // seconds
+  delay: number; // seconds
   duration: number; // seconds
   fullScreen: boolean;
 }) {
@@ -31,11 +35,9 @@ function FlipCard({
       rel="noreferrer"
       title={front.alt}
       className={clsx(
-  "relative block w-full overflow-hidden rounded-xl border-midnight-800/60 perspective-1000",
-  !fullScreen && "aspect-[4/3]"
-)}
-      // className={clsx(`"relative block w-full  overflow-hidden rounded-xl border-midnight-800/60 perspective-1000", ${!fullScreen} && "aspect-[4/3]"`)}
-      // className="relative block w-full aspect-[4/3] overflow-hidden rounded-xl border-midnight-800/60 perspective-1000"
+        "relative block w-full overflow-hidden rounded-xl border-midnight-800/60 perspective-1000",
+        !fullScreen && "aspect-[4/3]"
+      )}
     >
       {/* flipper */}
       <span
@@ -73,8 +75,6 @@ function FlipCard({
   );
 }
 
-
-
 type IndexConstraints = {
   avoidRows?: number[];
   avoidColumns?: number[];
@@ -83,7 +83,7 @@ type IndexConstraints = {
 function pickIndexWithParity(
   length: number,
   parity: 0 | 1,
-  constraints?: IndexConstraints,
+  constraints?: IndexConstraints
 ): number {
   const maxIndex = Math.max(0, length);
   const valid: number[] = [];
@@ -113,12 +113,14 @@ export function FlipPhotoGrid({
   fullScreen = false,
   albumCover,
   heroImage,
+  heroLoading = false,
 }: {
   images: Img[];
   gridClassName?: string;
   fullScreen?: boolean;
   albumCover?: string | null;
   heroImage?: HeroImage | null;
+  heroLoading?: boolean;
 }) {
   const baseImages = images.slice();
   const usable = [...baseImages];
@@ -148,8 +150,12 @@ export function FlipPhotoGrid({
     usable.splice(oddIndex, 0, backImg);
   }
 
-  const targetColumns = fullScreen ? MAX_COLUMN_TARGET_FULLSCREEN : MAX_COLUMN_TARGET;
-  const requiredCards = targetColumns * MIN_VISIBLE_ROWS - (heroImage ? 6 : 0);
+  const heroSlotActive = heroLoading || Boolean(heroImage);
+  const targetColumns = fullScreen
+    ? MAX_COLUMN_TARGET_FULLSCREEN
+    : MAX_COLUMN_TARGET;
+  const requiredCards =
+    targetColumns * MIN_VISIBLE_ROWS - (heroSlotActive ? 6 : 0);
   const requiredImages = requiredCards * 2;
 
   if (usable.length < requiredImages) {
@@ -175,24 +181,32 @@ export function FlipPhotoGrid({
 
   const gridClasses = clsx(
     gridClassName ?? "grid grid-cols-2 md:grid-cols-3 gap-3",
-    "auto-rows-[minmax(140px,_auto)]",
+    "auto-rows-[minmax(140px,_auto)]"
   );
 
   return (
     <div className={gridClasses}>
-      {heroImage && (
+      {heroSlotActive && (
         <div className="col-span-2 row-span-3 overflow-hidden rounded-[28px] shadow-lg md:col-span-2">
           <div className="relative h-full w-full">
-            <img
-              src={heroImage.url}
-              alt={heroImage.alt}
-              className="h-full w-full object-cover"
-              loading="lazy"
-            />
-            {heroImage.attribution && (
-              <div className="pointer-events-none absolute bottom-3 right-3 rounded-full bg-black/60 px-3 py-1 text-[10px] uppercase tracking-[0.2em] text-white/80">
-                {heroImage.attribution}
+            {heroLoading || !heroImage ? (
+              <div className="flex h-full w-full items-center justify-center">
+                <span className="h-10 w-10 animate-spin rounded-full border-4 border-white/30 border-t-teal-400" />
               </div>
+            ) : (
+              <>
+                <img
+                  src={heroImage.url}
+                  alt={heroImage.alt}
+                  className="h-full w-full object-cover"
+                  loading="lazy"
+                />
+                {heroImage.attribution && (
+                  <div className="pointer-events-none absolute bottom-3 right-3 rounded-full bg-black/60 px-3 py-1 text-[10px] uppercase tracking-[0.2em] text-white/80">
+                    {heroImage.attribution}
+                  </div>
+                )}
+              </>
             )}
           </div>
         </div>
@@ -200,7 +214,7 @@ export function FlipPhotoGrid({
       {pairs.map((p, idx) => {
         // randomized timing per tile
         const duration = Math.round((8 + Math.random() * 8) * 10) / 10; // 4–8s -- now 8-16s
-        const delay = Math.round((Math.random() * 3) * 10) / 10;        // 0–3s
+        const delay = Math.round(Math.random() * 3 * 10) / 10; // 0–3s
         return (
           <FlipCard
             key={`${p.front.id}-${p.back.id}-${idx}`}
