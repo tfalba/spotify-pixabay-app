@@ -66,8 +66,12 @@ export default function Home({ pixabay, albumCover }: Props) {
         loading={pixabay.loading}
         error={pixabay.error}
         heroImage={pixabay.heroImage ?? null}
-        noSelection={!albumCover}
+        noSelection={!current}
         albumCover={albumCover}
+        trackTitle={current?.name ?? null}
+        trackArtist={
+          current?.artists?.map((artist) => artist?.name).filter(Boolean).join(", ") || null
+        }
       />
     </main>
   );

@@ -10,20 +10,74 @@ export type HeroImage = {
   attribution?: string | null;
 };
 
+export type StyleCategory =
+  | "cinematic"
+  | "painterly"
+  | "surreal"
+  | "retro"
+  | "graphic"
+  | "romantic"
+  | "modern";
+
 type GenerateParams = {
   lyrics: string;
   songTitle?: string;
   artist?: string;
+  styleCategory?: StyleCategory;
+};
+
+const STYLE_MAP: Record<StyleCategory, string[]> = {
+  cinematic: [
+    "neo-noir lighting",
+    "moody atmospheric cinematography",
+    "dramatic shadow and contrast",
+    "filmic color grading"
+  ],
+  painterly: [
+    "impressionist brushwork",
+    "post-impressionist color palettes",
+    "expressionist texture and emotion"
+  ],
+  surreal: [
+    "dreamlike surrealism",
+    "symbolic visual metaphors",
+    "Dali-like warped perspectives"
+  ],
+  retro: [
+    "1970s analog album-cover aesthetic",
+    "psychedelic shapes and gradients",
+    "vintage lens haze and muted tones"
+  ],
+  graphic: [
+    "bold pop-art color blocking",
+    "modern minimalist layout",
+    "high-contrast stylized shapes"
+  ],
+  romantic: [
+    "soft chiaroscuro lighting",
+    "baroque-inspired ornamentation",
+    "emotion-forward classical composition"
+  ],
+  modern: [
+    "sleek digital painting",
+    "ultra-clean contemporary design",
+    "abstract atmospheric geometry"
+  ],
 };
 
 export async function generateSongMoodImage({
   lyrics,
   songTitle,
   artist,
+  styleCategory,
 }: GenerateParams): Promise<HeroImage | null> {
   const title = songTitle?.trim() || "Unknown Title";
   const artistName = artist?.trim() || "Unknown Artist";
   const excerpt = lyrics.split(/\r?\n/).slice(0, 12).join(" ").slice(0, 1200);
+
+  const chosenStyles = styleCategory
+  ? STYLE_MAP[styleCategory].join(", ")
+  : Object.values(STYLE_MAP).flat().join(", ");
 
 const prompt =
   `Create a single cinematic concept art image that visually captures the mood and emotional essence of a song.\n` +
@@ -31,11 +85,11 @@ const prompt =
   `Artist: ${artistName}\n` +
   `Key lyric excerpt: """${excerpt}"""\n\n` +
   `Style guidance:\n` +
-  `- Interpret the song mood using a flexible range of artistic styles, such as impressionist, surrealist, pop art, modern minimalist, neo-noir, retro 70s album art, baroque romanticism, or dreamlike digital painting.\n` +
-  `- Choose the style (or tasteful blend of styles) that best amplifies the emotional tone of the lyrics.\n` +
-  `- Prioritize strong atmospheric lighting, evocative color palettes, and expressive textures.\n` +
-  `- Composition should feel like bespoke album-cover artwork—never generic stock imagery.\n` +
-  `- Avoid all text, lettering, logos, or typography.\n`;
+  `- Draw inspiration from the following style categories and techniques: ${chosenStyles}.\n` +
+  `- Select or blend styles that best amplify the emotional tone and atmosphere of the lyrics.\n` +
+  `- Use expressive lighting, strong mood, and visually intentional color palettes.\n` +
+  `- Avoid all text, logos, or typography.\n` +
+  `- The artwork must feel bespoke—more like a unique album cover than generic stock art.\n`;
 
   try {
     const res = await openai.images.generate({

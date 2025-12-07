@@ -61,6 +61,7 @@ function AppContent() {
           songTitle: current.name,
           songArtist: current.artists[0]?.name,
           allowDemoFallback: false,
+          styleCategory: "retro",
         });
       })
       .catch(() => {

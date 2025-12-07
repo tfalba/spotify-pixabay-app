@@ -1,6 +1,7 @@
 // client/src/hooks/useLyricsImages.ts
 import { useCallback, useRef, useState } from "react";
 import type { HeroImage } from "@/api/lyricsTypes";
+import type { StyleCategory } from "@/types/types";
 
 export type KeywordPlan = {
   baseKeywords: string[];
@@ -162,6 +163,7 @@ export function useLyricsImages() {
         debug?: boolean;
         legacy?: boolean;
         allowDemoFallback?: boolean;
+        styleCategory?: StyleCategory;
       },
     ) => {
       const allowDemoFallback = opts?.allowDemoFallback !== false;
@@ -210,6 +212,7 @@ export function useLyricsImages() {
               songTitle: opts?.songTitle,
               songArtist: opts?.songArtist,
               cacheKey: opts?.cacheKey,
+              styleCategory: "retro",
             }),
           },
         );

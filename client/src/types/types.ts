@@ -10,3 +10,12 @@ export type Track = {
     images?: { url: string }[];
   };
 };
+
+export type StyleCategory =
+  | "cinematic"
+  | "painterly"
+  | "surreal"
+  | "retro"
+  | "graphic"
+  | "romantic"
+  | "modern";

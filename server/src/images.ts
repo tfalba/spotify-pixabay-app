@@ -26,7 +26,7 @@ const router = Router();
 
 router.post("/lyrics-to-images", async (req, res) => {
   try {
-    const { lyrics, cacheKey, songTitle, songArtist } = req.body ?? {};
+    const { lyrics, cacheKey, songTitle, songArtist, styleCategory } = req.body ?? {};
     if (!lyrics || typeof lyrics !== "string") {
       return res.status(400).json({ error: "Missing lyrics" });
     }
@@ -84,7 +84,7 @@ router.post("/lyrics-to-images", async (req, res) => {
       typeof songArtist === "string" && songArtist.trim().length > 0
         ? songArtist.trim()
         : undefined;
-    const v2Payload = await imagesFromLyrics(lyrics, validSongTitle, validSongArtist);
+    const v2Payload = await imagesFromLyrics(lyrics, validSongTitle, validSongArtist, styleCategory);
 
     const payload: CachedPayload = legacy
       ? toLegacyPayload(v2Payload)

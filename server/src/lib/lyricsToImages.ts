@@ -1,7 +1,7 @@
 // imagesFromLyrics.ts
 import { extractDescriptiveKeywords, type KeywordPlan } from "./keywordExtractor";
 import { dedupeById, fetchPixabayImagesForKeyword, PixabayImage, shuffle } from "./pixabayHelpers";
-import { generateSongMoodImage, type HeroImage } from "./songMoodImage";
+import { generateSongMoodImage, StyleCategory, type HeroImage } from "./songMoodImage";
 
 export type ImageCard = {
   id: number;
@@ -32,6 +32,7 @@ export async function imagesFromLyrics(
   lyrics: string,
   songTitle?: string,
   artistName?: string,
+  styleCategory?: StyleCategory,
 ): Promise<{
   keywords: KeywordPlan;   // return the full plan so caller can inspect pairs/singles
   images: ImageCard[];
@@ -41,6 +42,7 @@ export async function imagesFromLyrics(
     lyrics,
     songTitle,
     artist: artistName,
+    styleCategory: styleCategory,
   }).catch(() => null);
 
   const keywordPlan = await extractDescriptiveKeywords(lyrics, songTitle);

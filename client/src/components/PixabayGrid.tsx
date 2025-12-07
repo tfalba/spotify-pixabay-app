@@ -15,6 +15,8 @@ export default function PixabayGrid({
   heroImage,
   noSelection,
   albumCover,
+  trackTitle,
+  trackArtist,
 }: {
   images: Img[] | null;
   keywords: KeywordPlan | null;
@@ -23,6 +25,8 @@ export default function PixabayGrid({
   heroImage?: HeroImage | null;
   noSelection: boolean;
   albumCover?: string | null;
+  trackTitle?: string | null;
+  trackArtist?: string | null;
 }) {
   const { theme } = useTheme();
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -80,7 +84,7 @@ export default function PixabayGrid({
           <button
             type="button"
             onClick={() => setIsFullscreen(true)}
-            disabled={!hasImages}
+            disabled={!hasSelection}
             className={clsx(
               "rounded-full border px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.14em] transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500",
               isLight
@@ -150,7 +154,34 @@ export default function PixabayGrid({
 
       {isFullscreen && (
         <div className={fullScreenClass}>
-          <div className="flex items-center justify-end gap-2 p-4">
+          <div className="flex flex-wrap items-center justify-between gap-4 p-4">
+            <div className="min-w-0 flex-1">
+              {(trackTitle || trackArtist) && (
+                <div>
+                  <p
+                    className={clsx(
+                      "text-xs uppercase tracking-[0.28em]",
+                      isLight ? "text-slate-500" : "text-slate-400",
+                    )}
+                  >
+                    Currently Playing
+                  </p>
+                  <h3
+                    className={clsx(
+                      "truncate text-2xl font-semibold",
+                      isLight ? "text-slate-900" : "text-slate-50",
+                    )}
+                  >
+                    {trackTitle ?? "Unknown Title"}
+                  </h3>
+                  {trackArtist && (
+                    <p className={clsx("truncate text-sm", isLight ? "text-slate-600" : "text-slate-300")}>
+                      {trackArtist}
+                    </p>
+                  )}
+                </div>
+              )}
+            </div>
             <button
               type="button"
               onClick={() => setIsFullscreen(false)}
@@ -159,7 +190,7 @@ export default function PixabayGrid({
               Close
             </button>
           </div>
-          <div className="mx-auto flex w-full max-w-6xl flex-1 overflow-y-auto p-4">
+          <div className="mx-auto flex w-full max-w-6xl flex-1 overflow-y-auto p-4 justify-center">
             {imageList.length >= 2 ? (
               <FlipPhotoGrid
                 images={imageList}
@@ -169,9 +200,20 @@ export default function PixabayGrid({
                 heroImage={heroImage}
               />
             ) : (
-              <div className="m-auto text-center text-sm text-white/80">
-                No images yet. Pick a track to get inspired.
+               <div>
+            {albumCover && hasSelection && showAlbumCoverOnly && (
+              <div className="m-auto flex items-center justify-center place-items-center">
+                <img
+                  src={albumCover}
+                  alt="Album cover"
+                  className="h-80 w-auto rounded-lg shadow-glow"
+                />
               </div>
+            )}
+          </div>
+              // <div className="m-auto text-center text-sm text-white/80">
+              //   No images yet. Pick a track to get inspired.
+              // </div>
             )}
           </div>
         </div>
