@@ -9,6 +9,7 @@ import { useCurrentTrack } from "@/context/CurrentTrackContext";
 import type { KeywordPlan } from "@/hooks/useLyricsImages";
 import type { HeroImage, ImageCard } from "@/api/lyricsTypes";
 import type { StyleCategory } from "@/types/types";
+import { useSectionClass } from "@/styleHooks/useStyleHooks";
 
 type Props = {
   pixabay: {
@@ -29,14 +30,18 @@ export default function Home({ pixabay, albumCover }: Props) {
   const isLightTheme = theme === "light";
   const { current, setCurrent } = useCurrentTrack();
   const [queue, setQueue] = useState<Track[]>([]);
+  const sectionClass = useSectionClass(isLightTheme, 1);
+
   const [collapsed, setCollapsed] = useState<{
     tracks: boolean;
     lyrics: boolean;
     pixabay: boolean;
+    manage: boolean;
   }>({
     tracks: false,
     lyrics: false,
     pixabay: false,
+    manage: true,
   });
 
   const handleQueueChange = useCallback(
@@ -70,6 +75,18 @@ export default function Home({ pixabay, albumCover }: Props) {
         ratio: 27,
         render: () => (
           <TracksListsContainer handleQueueChange={handleQueueChange} />
+        ),
+      },
+        {
+        id: "manage" as const,
+        title: "Manage Playlists",
+        ratio: 69,
+        render: () => (
+          <section className={sectionClass}>
+            <div className="h-full rounded-3xl border border-dashed border-white/20 p-6 text-center text-sm text-white/80">
+              Manage Playlists (coming soon)
+            </div>
+          </section>
         ),
       },
       {
@@ -106,6 +123,7 @@ export default function Home({ pixabay, albumCover }: Props) {
           />
         ),
       },
+    
     ],
     [
       albumCover,
@@ -119,6 +137,7 @@ export default function Home({ pixabay, albumCover }: Props) {
       pixabay.keywords,
       pixabay.loading,
       pixabay.onStyleChange,
+      sectionClass,
       pixabay.styleChoice,
     ],
   );
@@ -130,11 +149,22 @@ export default function Home({ pixabay, albumCover }: Props) {
       : undefined;
 
   const toggleSection = useCallback((id: keyof typeof collapsed) => {
-    setCollapsed((prev) => ({ ...prev, [id]: !prev[id] }));
+    setCollapsed((prev) => {
+      const next = { ...prev, [id]: !prev[id] };
+      if (id === "manage" && next.manage === false) {
+        next.lyrics = true;
+        next.pixabay = true;
+      }
+      // if (id === "manage" && next.manage === true && prev.manage === false) {
+      //   next.lyrics = true;
+      //   next.pixabay = true;
+      // }
+      return next;
+    });
   }, []);
 
   const resetSections = useCallback(() => {
-    setCollapsed({ tracks: false, lyrics: false, pixabay: false });
+    setCollapsed({ tracks: false, lyrics: false, pixabay: false, manage: true });
   }, []);
 
   const mainClass = clsx(
@@ -157,7 +187,7 @@ export default function Home({ pixabay, albumCover }: Props) {
     >
       <div
         className={clsx(
-          "lg:col-span-full flex flex-wrap items-center gap-3 rounded-3xl border px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em]",
+          "lg:col-span-full flex flex-wrap items-center gap-3 rounded-3xl border px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] max-h-fit",
           isLightTheme
             ? "border-slate-200 bg-white/60 text-slate-700"
             : "border-white/20 bg-white/5 text-white/80",
@@ -200,7 +230,7 @@ export default function Home({ pixabay, albumCover }: Props) {
       </div>
 
       {activeSections.length === 0 && (
-        <div className="lg:col-span-full rounded-3xl border border-dashed border-white/20 p-6 text-center text-sm text-white/80">
+        <div className="lg:col-span-full rounded-3xl border border-dashed border-white/20 p-6 text-center text-sm text-white/80 min-h-[calc(80vh-4rem)]">
           All sections are collapsed. Use the controls above to expand a panel.
         </div>
       )}
@@ -210,7 +240,7 @@ export default function Home({ pixabay, albumCover }: Props) {
         if (isCollapsed) return null;
 
         return (
-          <div key={section.id} className="relative">
+          <div key={section.id} className="relative min-h-[calc(80vh-4rem)]">
             <button
               type="button"
               onClick={() => toggleSection(section.id)}
