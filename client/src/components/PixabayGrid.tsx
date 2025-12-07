@@ -189,7 +189,7 @@ export default function PixabayGrid({
       {isFullscreen && (
         <div className={fullScreenClass}>
           <div className="flex flex-wrap items-center justify-between gap-4 p-4">
-            <div className="min-w-0 flex-1">
+            <div className="min-w-0 flex-[1.5]">
               {(trackTitle || trackArtist) && (
                 <div>
                   <p
