@@ -19,3 +19,13 @@ export type StyleCategory =
   | "graphic"
   | "romantic"
   | "modern";
+
+export const STYLE_CATEGORIES: StyleCategory[] = [
+  "cinematic",
+  "painterly",
+  "surreal",
+  "retro",
+  "graphic",
+  "romantic",
+  "modern",
+];

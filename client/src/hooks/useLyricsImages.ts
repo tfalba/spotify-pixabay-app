@@ -212,7 +212,7 @@ export function useLyricsImages() {
               songTitle: opts?.songTitle,
               songArtist: opts?.songArtist,
               cacheKey: opts?.cacheKey,
-              styleCategory: "retro",
+              styleCategory: opts?.styleCategory ?? "retro",
             }),
           },
         );

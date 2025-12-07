@@ -1,15 +1,24 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, ChangeEvent } from "react";
 import clsx from "clsx";
 import { get } from "../lib/fetcher";
 import { LoginButton, LogoutButton } from "./LoginButtons";
 import { useTheme } from "@/context/ThemeContext";
+import type { StyleCategory } from "@/types/types";
+import { STYLE_CATEGORIES } from "@/types/types";
 
 type SpotifyUser = {
   id: string;
   display_name?: string | null;
 };
 
-export default function HeaderBar() {
+type StyleChoice = StyleCategory | "surprise";
+
+type Props = {
+  styleChoice: StyleChoice;
+  onStyleChange: (choice: StyleChoice) => void;
+};
+
+export default function HeaderBar({ styleChoice, onStyleChange }: Props) {
   const [user, setUser] = useState<SpotifyUser | null>(null);
   const [checkedAuth, setCheckedAuth] = useState(false);
   const { theme, toggleTheme } = useTheme();
@@ -82,18 +91,42 @@ export default function HeaderBar() {
       </div>
 
       <div className="flex flex-col items-end gap-3">
-        <button
-          type="button"
-          onClick={toggleTheme}
-          className={clsx(
-            "inline-flex items-center gap-2 rounded-full border px-4 py-1 text-xs font-semibold uppercase tracking-wide transition-colors",
-            isLight
-              ? "border-slate-300 bg-white text-slate-700 hover:bg-slate-100"
-              : "border-white/30 bg-white/10 text-white hover:bg-white/20"
-          )}
-        >
-          {isLight ? "Dark Mode" : "Light Mode"}
-        </button>
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={toggleTheme}
+            className={clsx(
+              "inline-flex items-center gap-2 rounded-full border px-4 py-1 text-xs font-semibold uppercase tracking-wide transition-colors",
+              isLight
+                ? "border-slate-300 bg-white text-slate-700 hover:bg-slate-100"
+                : "border-white/30 bg-white/10 text-white hover:bg-white/20"
+            )}
+          >
+            {isLight ? "Dark Mode" : "Light Mode"}
+          </button>
+          <label className="text-[11px] uppercase tracking-wide text-slate-500">
+            <span className="sr-only">Art style</span>
+            <select
+              value={styleChoice}
+              onChange={(e: ChangeEvent<HTMLSelectElement>) =>
+                onStyleChange(e.target.value as StyleChoice)
+              }
+              className={clsx(
+                "rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-wide transition-colors focus-visible:outline-none focus-visible:ring-2",
+                isLight
+                  ? "border-slate-300 bg-white text-slate-700 focus-visible:ring-lilac"
+                  : "border-white/30 bg-white/10 text-white focus-visible:ring-white"
+              )}
+            >
+              <option value="surprise">Surprise me</option>
+              {STYLE_CATEGORIES.map((category) => (
+                <option key={category} value={category}>
+                  {category}
+                </option>
+              ))}
+            </select>
+          </label>
+        </div>
 
         <div className="flex items-center gap-4 text-sm">
           {!checkedAuth ? null : user && displayName ? (

@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import clsx from "clsx";
 import HeaderBar from "./components/HeaderBar";
 import Home from "./pages/Home";
@@ -7,11 +7,13 @@ import { useLyricsImages } from "./hooks/useLyricsImages";
 import { SpotifyPlayerProvider } from "./context/SpotifyPlayerProvider";
 import { ThemeProvider, useTheme } from "./context/ThemeContext";
 import { CurrentTrackProvider, useCurrentTrack } from "./context/CurrentTrackContext";
+import type { StyleCategory } from "./types/types";
+import { STYLE_CATEGORIES } from "./types/types";
 
 function AppContent() {
   const { current, albumCover } = useCurrentTrack();
   const API = import.meta.env.VITE_API_BASE || "http://127.0.0.1:5174";
-
+  const [styleChoice, setStyleChoice] = useState<StyleCategory | "surprise">("surprise");
 
   const {
     fetchImages,
@@ -44,6 +46,11 @@ function AppContent() {
         ? `${current.artists[0]?.name}::${current.name}`
         : current.id);
 
+    const styleForRequest: StyleCategory =
+      styleChoice === "surprise"
+        ? STYLE_CATEGORIES[Math.floor(Math.random() * STYLE_CATEGORIES.length)]
+        : styleChoice;
+
     get<{ lyrics: string; source: string }>(
       `${API}/api/lyrics?artist=${encodeURIComponent(
         current.artists[0]?.name || ""
@@ -61,7 +68,7 @@ function AppContent() {
           songTitle: current.name,
           songArtist: current.artists[0]?.name,
           allowDemoFallback: false,
-          styleCategory: "retro",
+          styleCategory: styleForRequest,
         });
       })
       .catch(() => {
@@ -69,7 +76,7 @@ function AppContent() {
         setKeywords(null);
         setHeroImage(null);
       });
-  }, [current, API, ensureDemoImages, fetchImages, setImages, setKeywords, setHeroImage]);
+  }, [current, API, ensureDemoImages, fetchImages, setImages, setKeywords, setHeroImage, styleChoice]);
 
   const pixabayProps = { images, keywords, loading, error, heroImage };
 
@@ -87,7 +94,7 @@ function AppContent() {
     <SpotifyPlayerProvider>
       <div className={pageBg}>
         <div className={shell}>
-          <HeaderBar />
+          <HeaderBar styleChoice={styleChoice} onStyleChange={setStyleChoice} />
           <Home pixabay={pixabayProps} albumCover={albumCover} />
         </div>
       </div>
