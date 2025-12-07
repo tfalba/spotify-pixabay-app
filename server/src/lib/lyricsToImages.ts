@@ -54,8 +54,8 @@ export async function imagesFromLyrics(
   // Remove accidental duplicates just in case
   queries = Array.from(new Set(queries));
 
-  const desiredTotal = 30;
-  const oversample = 8;
+  const desiredTotal = 48;
+  const oversample = 12;
   const totalTarget = desiredTotal + oversample;
 
   const perQuery = Math.ceil(totalTarget / queries.length); // ~7 each for 6 queries

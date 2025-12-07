@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import clsx from "clsx";
 import HeaderBar from "./components/HeaderBar";
 import Home from "./pages/Home";
@@ -9,8 +9,7 @@ import { ThemeProvider, useTheme } from "./context/ThemeContext";
 import { CurrentTrackProvider, useCurrentTrack } from "./context/CurrentTrackContext";
 
 function AppContent() {
-  const { current } = useCurrentTrack();
-  const [albumCoverUrl, setAlbumCoverUrl] = useState<string | null>(null);
+  const { current, albumCover } = useCurrentTrack();
   const API = import.meta.env.VITE_API_BASE || "http://127.0.0.1:5174";
 
 
@@ -30,16 +29,15 @@ function AppContent() {
 
   useEffect(() => {
     if (!current?.artists?.length || !current?.name) {
-      setImages([]);
+      setImages(null);
       setKeywords(null);
-      setAlbumCoverUrl(null);
+      setHeroImage(null);
       void ensureDemoImages();
       return;
     }
-    setImages([]);
+    setImages(null);
     setKeywords(null);
     setHeroImage(null);
-    setAlbumCoverUrl(current.image ?? null);
     const cacheKey =
       current.uri ||
       (current.artists[0]?.name && current.name
@@ -53,7 +51,7 @@ function AppContent() {
     )
       .then((d) => {
         if (!d?.lyrics) {
-          setImages([]);
+          setImages(null);
           setKeywords(null);
           setHeroImage(null);
           return;
@@ -66,7 +64,7 @@ function AppContent() {
         });
       })
       .catch(() => {
-        setImages([]);
+        setImages(null);
         setKeywords(null);
         setHeroImage(null);
       });
@@ -89,7 +87,7 @@ function AppContent() {
       <div className={pageBg}>
         <div className={shell}>
           <HeaderBar />
-          <Home pixabay={pixabayProps} albumCover={albumCoverUrl} />
+          <Home pixabay={pixabayProps} albumCover={albumCover} />
         </div>
       </div>
     </SpotifyPlayerProvider>

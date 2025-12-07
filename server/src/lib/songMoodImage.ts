@@ -25,26 +25,25 @@ export async function generateSongMoodImage({
   const artistName = artist?.trim() || "Unknown Artist";
   const excerpt = lyrics.split(/\r?\n/).slice(0, 12).join(" ").slice(0, 1200);
 
-  const prompt =
-    `Create a single cinematic concept art image that visually captures the mood and emotional essence of a song.\n` +
-    `Title: "${title}"\n` +
-    `Artist: ${artistName}\n` +
-    `Key lyric excerpt: """${excerpt}"""\n\n` +
-    `Style guidance:\n` +
-    `- Blend surreal lyric-inspired storytelling with modern album-cover cinematography.\n` +
-    `- Emphasize texture, lighting, and color grading that match the song's atmosphere.\n` +
-    `- Avoid all text, logos, or typography.\n` +
-    `- The composition should feel like bespoke cover art inspired by the song, never generic stock art.\n`;
+const prompt =
+  `Create a single cinematic concept art image that visually captures the mood and emotional essence of a song.\n` +
+  `Title: "${title}"\n` +
+  `Artist: ${artistName}\n` +
+  `Key lyric excerpt: """${excerpt}"""\n\n` +
+  `Style guidance:\n` +
+  `- Interpret the song mood using a flexible range of artistic styles, such as impressionist, surrealist, pop art, modern minimalist, neo-noir, retro 70s album art, baroque romanticism, or dreamlike digital painting.\n` +
+  `- Choose the style (or tasteful blend of styles) that best amplifies the emotional tone of the lyrics.\n` +
+  `- Prioritize strong atmospheric lighting, evocative color palettes, and expressive textures.\n` +
+  `- Composition should feel like bespoke album-cover artwork—never generic stock imagery.\n` +
+  `- Avoid all text, lettering, logos, or typography.\n`;
 
   try {
-    console.log("Generating hero image with prompt:", prompt);
     const res = await openai.images.generate({
       model: "gpt-image-1",
       prompt,
       size: "1024x1536",
       quality: "low",
     });
-    console.log("Received image generation response", res.data?.[0]?.url);
 
     const b64 = res.data?.[0]?.b64_json;
     const imageUrl = b64

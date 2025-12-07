@@ -70,6 +70,7 @@ function normalizeResponse(
   raw: AnyLyricsImagesResponse,
 ): NormalizedLyricsImagesResponse {
   if (isV1Response(raw)) {
+    console.log("Normalizing v1 response");
     const baseKeywords = raw.keywords;
     const topSingles = baseKeywords.slice(0, 3);
 
@@ -102,13 +103,14 @@ function normalizeResponse(
 
 export function useLyricsImages() {
   const [keywords, setKeywords] = useState<KeywordPlan | null>(null);
-  const [images, setImages] = useState<ImageCard[]>([]);
+  const [images, setImages] = useState<ImageCard[] | null>(null);
   const [heroImage, setHeroImage] = useState<HeroImage | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const demoCacheRef = useRef<DemoImagesResponse | null>(null);
   const demoPromiseRef = useRef<Promise<DemoImagesResponse | null> | null>(null);
+  const activeRequestRef = useRef<AbortController | null>(null);
 
   const API = import.meta.env.VITE_API_BASE || "http://127.0.0.1:5174";
 
@@ -163,13 +165,20 @@ export function useLyricsImages() {
       },
     ) => {
       const allowDemoFallback = opts?.allowDemoFallback !== false;
+      const abortActiveRequest = () => {
+        if (activeRequestRef.current) {
+          activeRequestRef.current.abort();
+          activeRequestRef.current = null;
+        }
+      };
       if (!lyrics) {
+        abortActiveRequest();
         if (allowDemoFallback) {
           // fallback to demo if no lyrics entered
           await ensureDemoImages();
         } else {
           setKeywords(null);
-          setImages([]);
+          setImages(null);
           setHeroImage(null);
         }
         setLoading(false);
@@ -181,6 +190,9 @@ export function useLyricsImages() {
       if (allowDemoFallback) {
         void ensureDemoImages(); // pre-warm demo in background
       }
+      abortActiveRequest();
+      const controller = new AbortController();
+      activeRequestRef.current = controller;
 
       try {
         const params = new URLSearchParams();
@@ -192,6 +204,7 @@ export function useLyricsImages() {
           {
             method: "POST",
             headers: { "Content-Type": "application/json" },
+            signal: controller.signal,
             body: JSON.stringify({
               lyrics,
               songTitle: opts?.songTitle,
@@ -213,12 +226,18 @@ export function useLyricsImages() {
         setImages(data.images);
         setHeroImage(data.heroImage ?? null);
       } catch (err: any) {
+        if (err?.name === "AbortError") {
+          return;
+        }
         setError(err.message || "Something went wrong");
         if (allowDemoFallback) {
           await ensureDemoImages();
         }
       } finally {
-        setLoading(false);
+        if (activeRequestRef.current === controller) {
+          activeRequestRef.current = null;
+          setLoading(false);
+        }
       }
     },
     [API, ensureDemoImages],

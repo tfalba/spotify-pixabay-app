@@ -11,6 +11,9 @@ export type Img = {
 };
 
 const DEFAULT_COLUMNS = 2; // grid defaults to 2 columns on small screens
+const MIN_VISIBLE_ROWS = 5;
+const MAX_COLUMN_TARGET = 3;
+const MAX_COLUMN_TARGET_FULLSCREEN = 4;
 
 function FlipCard({
   front, back, delay, duration, fullScreen = false
@@ -117,9 +120,8 @@ export function FlipPhotoGrid({
   albumCover?: string | null;
   heroImage?: HeroImage | null;
 }) {
-  // Need at least 30; if fewer, just slice pairs we have
-  const base = images.slice(0, 30);
-  const usable = [...base];
+  const baseImages = images.slice();
+  const usable = [...baseImages];
 
   if (albumCover && images.length >= 2) {
     const frontImg: Img = {
@@ -146,9 +148,25 @@ export function FlipPhotoGrid({
     usable.splice(oddIndex, 0, backImg);
   }
 
-  const pairs: Array<{ front: Img; back: Img }> = [];
+  const targetColumns = fullScreen ? MAX_COLUMN_TARGET_FULLSCREEN : MAX_COLUMN_TARGET;
+  const requiredCards = targetColumns * MIN_VISIBLE_ROWS - (heroImage ? 6 : 0);
+  const requiredImages = requiredCards * 2;
 
-  for (let i = 0; i < 15 && i * 2 + 1 < usable.length; i++) {
+  if (usable.length < requiredImages) {
+    const pool = baseImages.length ? baseImages : usable;
+    if (pool.length > 0) {
+      let i = 0;
+      while (usable.length < requiredImages) {
+        usable.push(pool[i % pool.length]);
+        i += 1;
+      }
+    }
+  }
+
+  const pairs: Array<{ front: Img; back: Img }> = [];
+  const maxPairs = Math.min(Math.floor(usable.length / 2), requiredCards);
+
+  for (let i = 0; i < maxPairs; i++) {
     pairs.push({
       front: usable[i * 2],
       back: usable[i * 2 + 1],

@@ -11,7 +11,7 @@ import type { HeroImage, ImageCard } from "@/api/lyricsTypes";
 
 type Props = {
   pixabay: {
-    images: ImageCard[];
+    images: ImageCard[] | null;
     keywords: KeywordPlan | null;
     loading: boolean;
     error: string | null;
@@ -66,7 +66,7 @@ export default function Home({ pixabay, albumCover }: Props) {
         loading={pixabay.loading}
         error={pixabay.error}
         heroImage={pixabay.heroImage ?? null}
-        noSelection={!current}
+        noSelection={!albumCover}
         albumCover={albumCover}
       />
     </main>

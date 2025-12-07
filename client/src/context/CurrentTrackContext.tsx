@@ -3,6 +3,7 @@ import type { Track } from "@/types/types";
 
 type CurrentTrackContextValue = {
   current: Track | null;
+  albumCover: string | null;
   setCurrent: (track: Track | null) => void;
 };
 
@@ -10,7 +11,11 @@ const CurrentTrackContext = createContext<CurrentTrackContextValue | undefined>(
 
 export function CurrentTrackProvider({ children }: { children: ReactNode }) {
   const [current, setCurrent] = useState<Track | null>(null);
-  const value = useMemo(() => ({ current, setCurrent }), [current]);
+  const albumCover = current?.image ?? null;
+  const value = useMemo(
+    () => ({ current, albumCover, setCurrent }),
+    [current, albumCover],
+  );
   return <CurrentTrackContext.Provider value={value}>{children}</CurrentTrackContext.Provider>;
 }
 

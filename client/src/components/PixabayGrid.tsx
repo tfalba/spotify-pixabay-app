@@ -16,7 +16,7 @@ export default function PixabayGrid({
   noSelection,
   albumCover,
 }: {
-  images: Img[];
+  images: Img[] | null;
   keywords: KeywordPlan | null;
   loading: boolean;
   error: string | null;
@@ -27,9 +27,10 @@ export default function PixabayGrid({
   const { theme } = useTheme();
   const [isFullscreen, setIsFullscreen] = useState(false);
   const isLight = theme === "light";
+  const imageList = images ?? [];
   const hasSelection = !noSelection;
   const showAlbumCoverOnly = Boolean(albumCover) && hasSelection && loading;
-  const hasImages = images.length >= 2;
+  const hasImages = imageList.length >= 2;
   const shouldShowGrid = hasImages && !showAlbumCoverOnly;
   const shouldShowPlaceholderLogo = noSelection && !hasImages && !showAlbumCoverOnly;
   const albumCoverForGrid = hasSelection && !loading ? albumCover : null;
@@ -79,7 +80,7 @@ export default function PixabayGrid({
           <button
             type="button"
             onClick={() => setIsFullscreen(true)}
-            disabled={ !hasSelection}
+            disabled={!hasImages}
             className={clsx(
               "rounded-full border px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.14em] transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500",
               isLight
@@ -91,7 +92,7 @@ export default function PixabayGrid({
           </button>
         </div>
 
-        <div className={`flex flex-col gap-4 ${images.length === 0 ? "m-auto" : "mt-4"}`}>
+        <div className={`flex flex-col gap-4 ${imageList.length === 0 ? "m-auto" : "mt-4"}`}>
           <div>
             {albumCover && hasSelection && showAlbumCoverOnly && (
               <div className="m-auto place-items-center">
@@ -106,7 +107,7 @@ export default function PixabayGrid({
           <div className="flex flex-col gap-4">
             {shouldShowGrid ? (
               <div className="mt-4">
-                <FlipPhotoGrid images={images} albumCover={albumCoverForGrid} heroImage={heroImage} />
+                <FlipPhotoGrid images={imageList} albumCover={albumCoverForGrid} heroImage={heroImage} />
               </div>
             ) : shouldShowPlaceholderLogo ? (
               <div className="m-auto place-items-center">
@@ -159,9 +160,9 @@ export default function PixabayGrid({
             </button>
           </div>
           <div className="mx-auto flex w-full max-w-6xl flex-1 overflow-y-auto p-4">
-            {images.length >= 2 ? (
+            {imageList.length >= 2 ? (
               <FlipPhotoGrid
-                images={images}
+                images={imageList}
                 gridClassName="w-full grid grid-cols-3 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-3"
                 fullScreen={true}
                 albumCover={albumCoverForGrid}
