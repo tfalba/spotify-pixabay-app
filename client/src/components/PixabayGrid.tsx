@@ -47,6 +47,7 @@ export default function PixabayGrid({
   const shouldShowPlaceholderLogo =
     noSelection && !hasImages && !showAlbumCoverOnly;
   const albumCoverForGrid = hasSelection && !loading ? albumCover : null;
+  const resolvedStyleName = styleChoice === "surprise" ? "Surprise me" : styleChoice;
 
   const sectionClass = useSectionClass(isLight, 3);
   const infoPanelClass = clsx(
@@ -229,9 +230,14 @@ export default function PixabayGrid({
                     : "border-white/30 bg-white/10 text-white focus-within:ring-white",
                 )}
               >
-                <span className="text-[10px] tracking-[0.2em] text-slate-400">
-                  Art Style
-                </span>
+                <div className="group relative flex items-center">
+                  <span className="text-[10px] tracking-[0.2em] text-slate-400">
+                    Art Style
+                  </span>
+                  <span className="pointer-events-none absolute left-1/2 top-full mt-2 w-max -translate-x-1/2 rounded-full bg-black/80 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-white opacity-0 transition-opacity duration-150 sm:hidden group-hover:opacity-100">
+                    {resolvedStyleName}
+                  </span>
+                </div>
                 <select
                   value={styleChoice}
                   disabled={!onStyleChange}
@@ -239,16 +245,16 @@ export default function PixabayGrid({
                     onStyleChange?.(e.target.value as StyleCategory | "surprise")
                   }
                   className={clsx(
-                    "hidden sm:inline-flex bg-transparent text-xs font-semibold uppercase tracking-wide focus-visible:outline-none text-transparent",
+                    "bg-transparent text-xs font-semibold uppercase tracking-wide focus-visible:outline-none text-transparent sm:text-inherit w-[15px] sm:w-full",
                     isLight ? "sm:text-slate-800" : "sm:text-white",
                   )}
                 >
                   <option value="surprise">
-                    {styleChoice === "surprise" ? "Surprise me" : "Surprise me"}
+                    {"Surprise me"}
                   </option>
                   {STYLE_CATEGORIES.map((category) => (
                     <option key={category} value={category}>
-                      {styleChoice === category ? `${category}` : category}
+                      {category}
                     </option>
                   ))}
                 </select>
