@@ -51,7 +51,7 @@ export default function PixabayGrid({
 
   const sectionClass = useSectionClass(isLight, 3);
   const infoPanelClass = clsx(
-    "rounded-2xl border p-4 text-xs shadow-inner transition-colors duration-300",
+    "rounded-2xl border p-3 text-xs shadow-inner transition-colors duration-300",
     isLight
       ? "border-slate-200 bg-slate-50 text-slate-600"
       : "border-white/10 bg-black/20 text-slate-300"
@@ -85,7 +85,7 @@ export default function PixabayGrid({
   return (
     <>
       <section className={sectionClass}>
-        <div className="flex items-start justify-between gap-3">
+        <div className="flex items-start gap-3 flex-wrap w-[83%]">
           <div className="flex flex-col gap-1">
             <h2
               className={clsx(
@@ -124,7 +124,7 @@ export default function PixabayGrid({
             imageList.length === 0 ? "m-auto" : "mt-1"
           }`}
         >
-          <div>
+          <div className="flex items-center justify-center mt-4">
             {albumCover && hasSelection && showAlbumCoverOnly && (
               <div className="m-auto place-items-center">
                 <img
@@ -157,14 +157,14 @@ export default function PixabayGrid({
           </div>
 
           <div className={infoPanelClass}>
-            {loading ||
+            {(loading ||
               !keywords ||
-              (keywords.baseKeywords.length === 0 && (
+              keywords.baseKeywords.length === 0) && (
                 <div className="flex items-center gap-2 text-teal-500">
-                  <span className="h-2 w-2 animate-ping rounded-full bg-teal-500" />
+                  <span className="h-2 w-2 animate-ping rounded-full bg-teal-500 text-text" />
                   Finding imagery…
                 </div>
-              ))}
+              )}
             {/* {error && (
               <div className="text-red-400">Image search error: {error}</div>
             )} */}
@@ -173,7 +173,7 @@ export default function PixabayGrid({
               <div>No images yet. Pick a track to get inspired.</div>
             )}
             {!!keywords && keywords?.topSingles.length > 0 && (
-              <div className="mt-3 flex flex-wrap items-center gap-2">
+              <div className=" flex flex-wrap items-center gap-2">
                 <span className="text-slate-400">Keywords:</span>
                 {keywords.topSingles.map((k) => (
                   <span key={k} className={keywordPill}>
@@ -245,7 +245,7 @@ export default function PixabayGrid({
                     onStyleChange?.(e.target.value as StyleCategory | "surprise")
                   }
                   className={clsx(
-                    "bg-transparent text-xs font-semibold uppercase tracking-wide focus-visible:outline-none text-transparent sm:text-inherit w-[15px] sm:w-full",
+                    "bg-transparent text-xs font-semibold uppercase tracking-wide focus-visible:outline-none text-transparent sm:text-inherit w-[15px] sm:w-auto",
                     isLight ? "sm:text-slate-800" : "sm:text-white",
                   )}
                 >

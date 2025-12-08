@@ -35,10 +35,7 @@ const mapToTrack = (t: SpotifyTrack): Track => ({
   uri: t.uri,
 });
 
-export default function PlaylistPicker({
-  onQueueChange,
-  onSetTracks,
-}: Props) {
+export default function PlaylistPicker({ onQueueChange, onSetTracks }: Props) {
   const [loading, setLoading] = useState(true);
   const [playlists, setPlaylists] = useState<SpotifyPlaylist[]>([]);
   const [selectedId, setSelectedId] = useState<string>("");
@@ -106,13 +103,20 @@ export default function PlaylistPicker({
         <h2
           className={clsx(
             "text-sm font-semibold uppercase tracking-[0.2em]",
-            isLight ? "text-slate-500" : "text-slate-400",
+            isLight ? "text-slate-500" : "text-slate-400"
           )}
         >
           Playlists
         </h2>
         {loading ? (
-          <span className={clsx("text-xs", isLight ? "text-slate-500" : "text-slate-400")}>loading…</span>
+          <span
+            className={clsx(
+              "text-xs",
+              isLight ? "text-slate-500" : "text-slate-400"
+            )}
+          >
+            loading…
+          </span>
         ) : null}
       </div>
 
@@ -120,7 +124,9 @@ export default function PlaylistPicker({
         <div
           className={clsx(
             "mb-4 rounded-xl border px-3 py-2 text-xs",
-            isLight ? "border-red-200 bg-red-50 text-red-700" : "border-red-500/30 bg-red-500/10 text-red-200",
+            isLight
+              ? "border-red-200 bg-red-50 text-red-700"
+              : "border-red-500/30 bg-red-500/10 text-red-200"
           )}
         >
           {" Please try refreshing the page or logging back in."}
@@ -142,7 +148,9 @@ export default function PlaylistPicker({
         <SelectTrigger
           className={clsx(
             "w-full rounded-xl border h-14 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-accent/40",
-            isLight ? "border-slate-200 bg-white text-slate-900" : "border-white/40 bg-sapphire text-white",
+            isLight
+              ? "border-slate-200 bg-white text-slate-900"
+              : "border-white/40 bg-sapphire text-white"
           )}
         >
           <SelectValue
@@ -154,7 +162,9 @@ export default function PlaylistPicker({
         <SelectContent
           className={clsx(
             "text-sm",
-            isLight ? "border border-slate-200 bg-white text-slate-900" : "border-white/10 bg-sapphire text-white",
+            isLight
+              ? "border border-slate-200 bg-white text-slate-900"
+              : "border-white/10 bg-sapphire text-white"
           )}
           position="popper"
           align="start"
@@ -172,10 +182,10 @@ export default function PlaylistPicker({
                   key={o.id}
                   value={o.id}
                   className={clsx(
-                    "focus:bg-aurora/30 data-[highlighted]:bg-white/25 data-[state=checked]:bg-white/30 rounded-md focus:border-white",
+                    "focus:bg-aurora/30 data-[highlighted]:bg-white/15 data-[state=checked]:bg-white/30 rounded-md focus:border-white",
                     isLight
-                      ? "text-slate-900 data-[highlighted]:text-slate-900 data-[state=checked]:text-slate-900"
-                      : "text-white data-[highlighted]:text-white data-[state=checked]:text-white",
+                      ? "text-slate-900 data-[highlighted]:bg-teal/15 data-[state=checked]:bg-teal/30 data-[highlighted]:text-slate-900 data-[state=checked]:text-slate-900"
+                      : "text-white data-[highlighted]:bg-white/15 data-[state=checked]:bg-white/30 data-[highlighted]:text-white data-[state=checked]:text-white"
                   )}
                 >
                   <div className="flex items-center gap-3">
@@ -191,7 +201,12 @@ export default function PlaylistPicker({
                     )}
                     <div className="min-w-0">
                       <div className="truncate text-sm">{o.name}</div>
-                      <div className="truncate text-xs text-slate-300">
+                      <div
+                        className={clsx(
+                          "truncate text-xs",
+                          isLight ? "text-slate-900" : "text-white"
+                        )}
+                      >
                         {o.owner ? `by ${o.owner} · ` : ""}
                         {o.count} tracks
                       </div>

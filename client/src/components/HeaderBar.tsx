@@ -5,6 +5,8 @@ import { LoginButton, LogoutButton } from "./LoginButtons";
 import { useTheme } from "@/context/ThemeContext";
 import type { StyleCategory } from "@/types/types";
 import { STYLE_CATEGORIES } from "@/types/types";
+import { NowPlayingPanel } from "./NowPlayingPanel";
+import { useCurrentTrack } from "@/context/CurrentTrackContext";
 
 type SpotifyUser = {
   id: string;
@@ -22,6 +24,7 @@ export default function HeaderBar({ styleChoice, onStyleChange }: Props) {
   const [user, setUser] = useState<SpotifyUser | null>(null);
   const [checkedAuth, setCheckedAuth] = useState(false);
   const { theme, toggleTheme } = useTheme();
+  const { handleTrackFinished } = useCurrentTrack();
   const isLight = theme === "light";
 
   const API = import.meta.env.VITE_API_BASE;
@@ -60,25 +63,28 @@ export default function HeaderBar({ styleChoice, onStyleChange }: Props) {
   }, [API]);
 
   const displayName = user?.display_name?.trim() ? user.display_name : user?.id;
+  const resolvedStyleName =
+    styleChoice === "surprise" ? "Surprise me" : styleChoice;
 
   return (
     <header
       className={clsx(
-        "md:sticky top-0 z-50 flex items-center justify-between rounded-3xl border px-6 py-5 backdrop-blur-lg shadow-glow transition-colors duration-300 lg:px-10 mb-4 md:mb-0",
-        isLight
-          ? "border-slate-200 bg-white/80 text-slate-900"
-          : "border-white/30 bg-teal/5 text-white"
+        "md:sticky top-0 z-50 flex items-start md:items-center justify-between rounded-3xl backdrop-blur-lg shadow-glow transition-colors duration-300 px-4 mb-4 md:mb-0",
+        isLight ? " bg-white/80 text-slate-900" : "bg-teal/5 text-white"
       )}
     >
-      <div className="flex-1">
-        <p
-          className={clsx(
-            "text-xl uppercase tracking-[0.4em] font-semibold",
-            isLight ? "text-lilac" : "text-teal/90"
-          )}
-        >
-          Spotify * Pixabay Showcase
-        </p>
+      <div className="flex flex-col gap-1">
+        <div className="flex-1">
+          <p
+            className={clsx(
+              "text-xl uppercase tracking-[0.4em] font-semibold",
+              isLight ? "text-lilac" : "text-teal/90"
+            )}
+          >
+            Spotify * Pixabay Showcase
+          </p>
+        </div>
+        <NowPlayingPanel onTrackFinished={handleTrackFinished} />
       </div>
 
       <div className="flex flex-col items-end gap-3">
@@ -95,7 +101,7 @@ export default function HeaderBar({ styleChoice, onStyleChange }: Props) {
           >
             {isLight ? "Dark Mode" : "Light Mode"}
           </button>
-          <label className="sr-only">Art style</label>
+{/* Make Into a Component and resuse in Pixabay Grid */}
           <div
             className={clsx(
               "flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-wide focus-within:ring-2",
@@ -104,20 +110,26 @@ export default function HeaderBar({ styleChoice, onStyleChange }: Props) {
                 : "border-white/30 bg-white/10 text-white focus-within:ring-white"
             )}
           >
-            <span className="text-[10px] tracking-[0.2em] text-slate-400">
-              Art Style
-            </span>
+            <div className="group relative flex items-center">
+              <span className="text-[10px] tracking-[0.2em] text-slate-400">
+                Art Style
+              </span>
+              <span className="pointer-events-none absolute left-1/2 top-full mt-2 w-max -translate-x-1/2 rounded-full bg-black/80 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-white opacity-0 transition-opacity duration-150 sm:hidden group-hover:opacity-100">
+                {resolvedStyleName}
+              </span>
+            </div>
             <select
               value={styleChoice}
-              onChange={(e: ChangeEvent<HTMLSelectElement>) =>
-                onStyleChange(e.target.value as StyleChoice)
+              disabled={!onStyleChange}
+              onChange={(e) =>
+                onStyleChange?.(e.target.value as StyleCategory | "surprise")
               }
               className={clsx(
-                "bg-transparent text-xs font-semibold uppercase tracking-wide focus-visible:outline-none",
-                isLight ? "text-slate-800" : "text-white"
+                "bg-transparent text-xs font-semibold uppercase tracking-wide focus-visible:outline-none text-transparent sm:text-inherit w-[15px] sm:w-auto",
+                isLight ? "sm:text-slate-800" : "sm:text-white"
               )}
             >
-              <option value="surprise">Surprise me</option>
+              <option value="surprise">{"Surprise me"}</option>
               {STYLE_CATEGORIES.map((category) => (
                 <option key={category} value={category}>
                   {category}
@@ -132,7 +144,7 @@ export default function HeaderBar({ styleChoice, onStyleChange }: Props) {
             <>
               <span
                 className={clsx(
-                  "hidden sm:inline",
+                  "hidden md:inline",
                   isLight ? "text-slate-500" : "text-slate-300"
                 )}
               >

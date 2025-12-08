@@ -105,23 +105,14 @@ export function NowPlayingPanel({
     <div>
       {/* Controls row (small) */}
 
-      <h2
-        className={clsx(
-          "text-sm font-semibold uppercase tracking-[0.2em]",
-          isLight ? "text-slate-500" : "text-slate-400"
-        )}
-      >
-        Now Playing
-      </h2>
-
       <div
         className={clsx(
-          "mt-3 overflow-hidden rounded-2xl border shadow-inner transition-colors duration-300",
+          "mt-1 overflow-hidden rounded-2xl border shadow-inner transition-colors duration-300",
           isLight ? "border-slate-200 bg-white" : "border-white/10 bg-black/40"
         )}
       >
         {/* Artwork + meta */}
-        <div className="flex items-center justify-between p-3">
+        <div className="flex items-center justify-between p-1">
           <div className="flex flex-1 min-w-0 items-center gap-3">
             <img
               src={cover}
@@ -148,6 +139,8 @@ export function NowPlayingPanel({
             </div>
           </div>
 
+<div className="flex flex-col flex-1 min-w-0 items-center">
+<div className="flex items-center">
           <div className="flex items-center p-4 shrink-0">
             {paused ? (
               <button
@@ -173,9 +166,16 @@ export function NowPlayingPanel({
               </button>
             )}
           </div>
-        </div>
-
-        {/* Seek bar */}
+          <h2
+            className={clsx(
+              "text-sm font-semibold uppercase tracking-[0.2em]",
+              isLight ? "text-slate-500" : "text-slate-400"
+            )}
+          >
+            Now Playing
+          </h2>
+          </div>
+           {/* Seek bar */}
         <div className="flex items-center gap-2 px-3 pb-3">
           <span
             className={clsx(
@@ -209,6 +209,43 @@ export function NowPlayingPanel({
             {formatTime(duration)}
           </span>
         </div>
+        </div>
+        </div>
+
+        {/* Seek bar */}
+        {/* <div className="flex items-center gap-2 px-3 pb-3">
+          <span
+            className={clsx(
+              "w-10 text-right text-[11px] tabular-nums",
+              isLight ? "text-slate-500" : "text-slate-400"
+            )}
+          >
+            {formatTime(pos)}
+          </span>
+          <input
+            type="range"
+            className={clsx(
+              "w-full accent-teal-500",
+              isLight ? "bg-transparent" : "bg-transparent"
+            )}
+            min={0}
+            max={Math.max(duration, 1)}
+            step={1000}
+            value={pos}
+            onChange={(e) => setPos(Number(e.target.value))}
+            onMouseUp={() => seek(pos)}
+            onTouchEnd={() => seek(pos)}
+            disabled={!deviceId}
+          />
+          <span
+            className={clsx(
+              "w-10 text-[11px] tabular-nums",
+              isLight ? "text-slate-500" : "text-slate-400"
+            )}
+          >
+            {formatTime(duration)}
+          </span>
+        </div> */}
       </div>
     </div>
   );
