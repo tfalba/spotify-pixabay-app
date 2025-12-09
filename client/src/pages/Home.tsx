@@ -6,14 +6,13 @@ import {
 import clsx from "clsx";
 import LyricPlayerContainer from "../components/LyricPlayerContainer";
 import PixabayGrid from "../components/PixabayGrid";
-import TracksListsContainer from "@/components/TrackListsContainer";
 import { useTheme } from "@/context/ThemeContext";
 import { useCurrentTrack } from "@/context/CurrentTrackContext";
 import type { KeywordPlan } from "@/hooks/useLyricsImages";
 import type { HeroImage, ImageCard } from "@/api/lyricsTypes";
 import type { StyleCategory } from "@/types/types";
-import ManagePlaylistsPanel from "@/components/ManagePlaylistsPanel";
 import { SectionsContextProvider } from "@/context/SectionsContext";
+import ManagePlaylistsAndSearch from "@/components/ManagePlaylistAndSearch";
 
 type Props = {
   pixabay: {
@@ -46,21 +45,25 @@ export default function Home({ pixabay, albumCover }: Props) {
     manage: true,
   });
 
+  const allPanelsExpanded = !collapsed.manage && !collapsed.lyrics && !collapsed.pixabay;
+
   const sectionMeta = useMemo(
     () => [
-      {
-        id: "tracks" as const,
-        title: "Track Discovery",
-        ratio: 27,
-        render: () => (
-          <TracksListsContainer handleQueueChange={handleQueueChange} />
-        ),
-      },
+      // {
+      //   id: "tracks" as const,
+      //   title: "Track Discovery",
+      //   ratio: 27,
+      //   render: () => (
+      //     <TracksListsContainer handleQueueChange={handleQueueChange} />
+      //   ),
+      // },
       {
         id: "manage" as const,
         title: "Manage Playlists",
         ratio: 42,
-        render: () => <ManagePlaylistsPanel />,
+        render: () => (
+          <ManagePlaylistsAndSearch compactPlaylistGrid={allPanelsExpanded} />
+        ),
       },
       {
         id: "lyrics" as const,
@@ -109,6 +112,7 @@ export default function Home({ pixabay, albumCover }: Props) {
       pixabay.loading,
       pixabay.onStyleChange,
       pixabay.styleChoice,
+      allPanelsExpanded,
     ]
   );
 
@@ -121,14 +125,10 @@ export default function Home({ pixabay, albumCover }: Props) {
       : undefined;
 
   const toggleSection = useCallback((id: keyof typeof collapsed) => {
-    setCollapsed((prev) => {
-      const next = { ...prev, [id]: !prev[id] };
-      if (id === "manage" && next.manage === false) {
-        next.lyrics = true;
-        next.pixabay = true;
-      }
-      return next;
-    });
+    setCollapsed((prev) => ({
+      ...prev,
+      [id]: !prev[id],
+    }));
   }, []);
 
   const resetSections = useCallback(() => {
@@ -143,7 +143,7 @@ export default function Home({ pixabay, albumCover }: Props) {
   const focusOnLyricsPanel = useCallback(() => {
     setCollapsed((prev) => ({
       ...prev,
-      manage: true,
+      manage: false,
       lyrics: false,
       pixabay: false,
     }));

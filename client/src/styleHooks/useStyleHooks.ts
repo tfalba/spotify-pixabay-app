@@ -2,7 +2,7 @@
 
  export function useSectionClass(isLight: boolean, colNum: number = 2) {
   return clsx(
-    "xl:col-span-1 flex min-w-0 flex-col rounded-3xl md:border-thick p-4 shadow-glow max-h-[max(600px,calc(100vh-10rem))] overflow-y-scroll transition-colors duration-300",
+    "xl:col-span-1 flex min-w-0 flex-col rounded-3xl md:border-thick p-4 shadow-glow max-h-[max(600px,calc(100vh-12rem))] min-h-[calc(100vh-12rem)] overflow-y-scroll transition-colors duration-300",
     isLight ? " bg-white text-slate-900" : "text-slate-100",
     colNum === 2 && !isLight ? "border-amber/60" : "border-slate-200/50",
     colNum === 1 && "xl:col-start-1",

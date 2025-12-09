@@ -3,12 +3,37 @@ import { useSectionsContext } from "@/context/SectionsContext";
 import { useTheme } from "@/context/ThemeContext";
 import { getAllPlaylistTracks, getAllUserPlaylists, type SpotifyPlaylist, type SpotifyTrack } from "@/lib/spotify";
 import clsx from "clsx";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import type { Track } from "@/types/types";
+
+function mapSpotifyTrackToTrack(track: SpotifyTrack): Track {
+  const albumImages = track.album?.images ?? [];
+  const fallbackImage =
+    albumImages[0]?.url ??
+    albumImages[albumImages.length - 1]?.url ??
+    track.image ??
+    null;
+
+  return {
+    id: track.id,
+    name: track.name,
+    artists: track.artists ?? [],
+    image: fallbackImage,
+    preview_url: track.preview_url,
+    external_url: track.external_url,
+    uri: track.uri ?? null,
+    album: { images: albumImages },
+  };
+}
 
 
-function ManagePlaylistsPanel() {
+type ManagePlaylistsPanelProps = {
+  compactPlaylistGrid?: boolean;
+};
+
+function ManagePlaylistsPanel({ compactPlaylistGrid = false }: ManagePlaylistsPanelProps) {
   const { theme } = useTheme();
-  const { setCurrent } = useCurrentTrack();
+  const { setCurrent, handleQueueChange } = useCurrentTrack();
   const { focusOnLyricsPanel } = useSectionsContext();
   const isLight = theme === "light";
   const [playlists, setPlaylists] = useState<SpotifyPlaylist[]>([]);
@@ -60,27 +85,20 @@ function ManagePlaylistsPanel() {
     setTracksError(null);
   }, []);
 
+  const playlistQueue = useMemo(() => tracks.map(mapSpotifyTrackToTrack), [tracks]);
+
   const handleTrackSelect = useCallback(
     (track: SpotifyTrack) => {
-      const albumImages = track.album?.images ?? [];
-      const fallbackImage =
-        albumImages[0]?.url ??
-        albumImages[albumImages.length - 1]?.url ??
-        track.image ??
-        null;
-      setCurrent({
-        id: track.id,
-        name: track.name,
-        artists: track.artists ?? [],
-        image: fallbackImage,
-        preview_url: track.preview_url,
-        external_url: track.external_url,
-        uri: track.uri ?? null,
-        album: { images: albumImages },
-      });
+      const queueTracks = playlistQueue.length
+        ? playlistQueue
+        : [mapSpotifyTrackToTrack(track)];
+      handleQueueChange(queueTracks);
+      const nextCurrent =
+        queueTracks.find((t) => t.id === track.id) ?? mapSpotifyTrackToTrack(track);
+      setCurrent(nextCurrent);
       focusOnLyricsPanel();
     },
-    [focusOnLyricsPanel, setCurrent]
+    [focusOnLyricsPanel, handleQueueChange, playlistQueue, setCurrent]
   );
 
   return (
@@ -197,7 +215,7 @@ function ManagePlaylistsPanel() {
                       type="button"
                       onClick={() => handleTrackSelect(track)}
                       className={clsx(
-                        "flex flex-col gap-2 w-[140px] rounded-xl border p-3 text-left text-xs shadow-sm transition hover:border-teal-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal",
+                        "flex flex-col gap-2 w-[5%] min-w-[max(146px,10%)] rounded-xl border p-3 text-left text-xs shadow-sm transition hover:border-teal-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal",
                         isLight
                           ? "border-slate-200 bg-white"
                           : "border-white/10 bg-black/40"
@@ -231,7 +249,12 @@ function ManagePlaylistsPanel() {
           )}
         </div>
       ) : (
-        <div className="grid flex-1 grid-cols-1 gap-4 overflow-y-auto pr-1 md:grid-cols-2 xl:grid-cols-3">
+        <div
+          className={clsx(
+            "grid flex-1 grid-cols-1 gap-4 overflow-y-auto pr-1 md:grid-cols-2",
+            compactPlaylistGrid ? "xl:grid-cols-2" : "xl:grid-cols-3"
+          )}
+        >
           {playlists.map((playlist) => {
             const playlistImages = playlist.images ?? [];
             const thumb =
