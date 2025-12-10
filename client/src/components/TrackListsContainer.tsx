@@ -5,7 +5,6 @@ import { useCallback, useState } from "react";
 import TrackList from "./TrackList";
 import clsx from "clsx";
 import { useTheme } from "@/context/ThemeContext";
-import { useCurrentTrack } from "@/context/CurrentTrackContext";
 import { useSpotifyPlayerContext } from "@/context/SpotifyPlayerProvider";
 import { useSectionClass } from "@/styleHooks/useStyleHooks";
 
@@ -15,7 +14,6 @@ export default function TracksListsContainer({
   handleQueueChange: (tracks: Track[]) => void;
 }) {
   const { theme } = useTheme();
-  const { setCurrent } = useCurrentTrack();
   const { pause } = useSpotifyPlayerContext();
   const [tracks, setTracks] = useState<Track[]>([]);
   const [activePanel, setActivePanel] = useState<"search" | "playlists">(
@@ -23,16 +21,14 @@ export default function TracksListsContainer({
   );
 
   const clearSelectionAndPause = useCallback(() => {
-    setCurrent(null);
     pause().catch(() => {});
-  }, [pause, setCurrent]);
+  }, [pause]);
 
   const handleSetTracks = useCallback(
     (nextTracks: Track[]) => {
-      setCurrent(null);
       setTracks(nextTracks);
     },
-    [setCurrent],
+    [],
   );
 
   const isLight = theme === "light";

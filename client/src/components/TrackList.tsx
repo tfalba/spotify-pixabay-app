@@ -50,7 +50,12 @@ function TrackCard({ track, selected = false, isLight }: CardProps) {
   );
 }
 
-export default function TrackList({ tracks }: { tracks: Track[] }) {
+type Props = {
+  tracks: Track[];
+  onTrackSelected?: (track: Track) => void;
+};
+
+export default function TrackList({ tracks, onTrackSelected }: Props) {
   const { theme } = useTheme();
   const isLight = theme === "light";
   const { current, setCurrent } = useCurrentTrack();
@@ -70,7 +75,10 @@ export default function TrackList({ tracks }: { tracks: Track[] }) {
         return (
           <button
             key={t.id}
-            onClick={() => setCurrent(t)}
+            onClick={() => {
+              onTrackSelected?.(t);
+              setCurrent(t);
+            }}
             className={clsx(
               "flex w-full min-w-0 p-2 text-left rounded-2xl transition border",
               isSelected

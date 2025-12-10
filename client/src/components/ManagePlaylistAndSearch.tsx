@@ -1,11 +1,10 @@
 import SpotifySearch from "./SpotifySearch";
 import type { Track } from "@/types/types";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import TrackList from "./TrackList";
 import clsx from "clsx";
 import { useTheme } from "@/context/ThemeContext";
 import { useCurrentTrack } from "@/context/CurrentTrackContext";
-import { useSpotifyPlayerContext } from "@/context/SpotifyPlayerProvider";
 import { useSectionClass } from "@/styleHooks/useStyleHooks";
 import ManagePlaylistsPanel from "./ManagePlaylistsPanel";
 
@@ -13,27 +12,52 @@ type ManagePlaylistsAndSearchProps = {
   compactPlaylistGrid?: boolean;
 };
 
+type DiscoverPanelSnapshot = {
+  activePanel: "search" | "playlists";
+  tracks: Track[];
+};
+
+let lastTrackSource: "search" | "playlists" | null = null;
+let persistedDiscoverState: DiscoverPanelSnapshot | null = null;
+
 export default function ManagePlaylistsAndSearch({ compactPlaylistGrid = false }: ManagePlaylistsAndSearchProps) {
   const { theme } = useTheme();
-  const { setCurrent } = useCurrentTrack();
-  const { pause } = useSpotifyPlayerContext();
-  const [tracks, setTracks] = useState<Track[]>([]);
+  const { handleQueueChange } = useCurrentTrack();
+  const [tracks, setTracks] = useState<Track[]>(() => persistedDiscoverState?.tracks ?? []);
   const [activePanel, setActivePanel] = useState<"search" | "playlists">(
-    "search"
+    () => persistedDiscoverState?.activePanel ?? lastTrackSource ?? "search",
   );
-
-  const clearSelectionAndPause = useCallback(() => {
-    setCurrent(null);
-    pause().catch(() => {});
-  }, [pause, setCurrent]);
 
   const handleSetTracks = useCallback(
     (nextTracks: Track[]) => {
-      setCurrent(null);
       setTracks(nextTracks);
     },
-    [setCurrent],
+    [],
   );
+
+  const handleSearchTrackSelected = useCallback(
+    (track: Track) => {
+      lastTrackSource = "search";
+      setActivePanel("search");
+      const queueTracks = tracks.length ? tracks : [track];
+      handleQueueChange(queueTracks);
+    },
+    [handleQueueChange, tracks],
+  );
+
+  const handlePlaylistTrackSelected = useCallback(() => {
+    lastTrackSource = "playlists";
+    setActivePanel("playlists");
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      persistedDiscoverState = {
+        activePanel,
+        tracks,
+      };
+    };
+  }, [activePanel, tracks]);
 
   const isLight = theme === "light";
   const sectionClass = useSectionClass(isLight, 1);
@@ -68,9 +92,6 @@ export default function ManagePlaylistsAndSearch({ compactPlaylistGrid = false }
             key={tab.key}
             type="button"
             onClick={() => {
-              if (activePanel === "playlists" && tab.key === "search") {
-                clearSelectionAndPause();
-              }
               setActivePanel(tab.key);
             }}
             className={clsx(
@@ -91,12 +112,15 @@ export default function ManagePlaylistsAndSearch({ compactPlaylistGrid = false }
         {activePanel === "search" ? (
           <SpotifySearch onSetTracks={handleSetTracks} />
         ) : (
-          <ManagePlaylistsPanel compactPlaylistGrid={compactPlaylistGrid} />
+          <ManagePlaylistsPanel
+            compactPlaylistGrid={compactPlaylistGrid}
+            onTrackSourceChange={handlePlaylistTrackSelected}
+          />
         )}
       </div>
 
       {tracks.length > 0 && activePanel === "search" && (
-        <TrackList tracks={tracks} />
+        <TrackList tracks={tracks} onTrackSelected={handleSearchTrackSelected} />
       )}
     </section>
   );

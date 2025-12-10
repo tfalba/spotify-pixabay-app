@@ -2,8 +2,15 @@ import clsx from "clsx";
 import { useTheme } from "@/context/ThemeContext";
 import { useCurrentTrack } from "@/context/CurrentTrackContext";
 import { useSectionClass } from "@/styleHooks/useStyleHooks";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { get } from "@/lib/fetcher";
+
+type CachedLyrics = {
+  lyrics: string;
+  source: string;
+};
+
+const lyricsCache = new Map<string, CachedLyrics>();
 
 export default function LyricPlayerContainer() {
   const { current } = useCurrentTrack();
@@ -21,20 +28,31 @@ export default function LyricPlayerContainer() {
       setSource("");
       return;
     }
+    const key = `${current.artists[0].name}::${current.name}`;
+    const cached = lyricsCache.get(key);
+    if (cached) {
+      setText(cached.lyrics);
+      setSource(cached.source);
+      return;
+    }
     setText("Loading lyrics...");
     setSource("");
     get<{ lyrics: string; source: string }>(
       `${API}/api/lyrics?artist=${encodeURIComponent(
-        current.artists[0].name
-      )}&title=${encodeURIComponent(current.name)}`
+        current.artists[0].name,
+      )}&title=${encodeURIComponent(current.name)}`,
     )
       .then((d) => {
-        setText(d.lyrics || "");
-        setSource(d.source || "");
+        const payload = { lyrics: d.lyrics || "", source: d.source || "" };
+        lyricsCache.set(key, payload);
+        setText(payload.lyrics);
+        setSource(payload.source);
       })
       .catch(() => {
-        setText("Lyrics not available.");
-        setSource("");
+        const fallback = { lyrics: "Lyrics not available.", source: "" };
+        lyricsCache.set(key, fallback);
+        setText(fallback.lyrics);
+        setSource(fallback.source);
       });
   }, [current, API]);
 

@@ -1,6 +1,8 @@
 import {
   useCallback,
+  useEffect,
   useMemo,
+  useRef,
   useState,
 } from "react";
 import clsx from "clsx";
@@ -44,6 +46,7 @@ export default function Home({ pixabay, albumCover }: Props) {
     pixabay: false,
     manage: true,
   });
+  const previousCollapsedRef = useRef<typeof collapsed | null>(null);
 
   const allPanelsExpanded = !collapsed.manage && !collapsed.lyrics && !collapsed.pixabay;
 
@@ -141,6 +144,33 @@ export default function Home({ pixabay, albumCover }: Props) {
       ? "border-slate-200 bg-lilac/5 text-slate-900 ring-white/40 before:bg-gradient-to-br before:from-white/50 before:via-transparent before:to-slate-100/60 shadow-[0_25px_80px_rgba(4,6,11,0.35)]"
       : "border-white/5 bg-gradient-to-br from-midnight/80 via-amber/5 to-sapphire/80 text-slate-100 ring-white/10 before:bg-gradient-to-br before:from-white/10 before:via-transparent before:to-white/5 shadow-[0_25px_80px_rgba(45,212,191,0.30)]"
   );
+
+  useEffect(() => {
+    if (!current) {
+      setCollapsed((prev) => {
+        if (!previousCollapsedRef.current) {
+          previousCollapsedRef.current = prev;
+        }
+        if (
+          prev.tracks === true &&
+          prev.lyrics === true &&
+          prev.pixabay === true &&
+          prev.manage === false
+        ) {
+          return prev;
+        }
+        return {
+          tracks: true,
+          lyrics: true,
+          pixabay: true,
+          manage: false,
+        };
+      });
+    } else if (previousCollapsedRef.current) {
+      setCollapsed(previousCollapsedRef.current);
+      previousCollapsedRef.current = null;
+    }
+  }, [current]);
 
   return (
     <SectionsContextProvider value={{ focusOnLyricsPanel }}>

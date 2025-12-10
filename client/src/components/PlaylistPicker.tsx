@@ -18,7 +18,6 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useSpotifyPlayerContext } from "@/context/SpotifyPlayerProvider";
 import { useTheme } from "@/context/ThemeContext";
-import { useCurrentTrack } from "@/context/CurrentTrackContext";
 
 type Props = {
   onQueueChange?: (tracks: Track[]) => void;
@@ -44,12 +43,10 @@ export default function PlaylistPicker({ onQueueChange, onSetTracks }: Props) {
   const { isAuthenticated, pause } = useSpotifyPlayerContext();
   const { theme } = useTheme();
   const isLight = theme === "light";
-  const { setCurrent } = useCurrentTrack();
 
   const stopPlayback = useCallback(() => {
-    setCurrent(null);
     pause().catch(() => {});
-  }, [pause, setCurrent]);
+  }, [pause]);
 
   useEffect(() => {
     (async () => {

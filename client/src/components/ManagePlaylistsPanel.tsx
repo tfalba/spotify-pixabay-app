@@ -29,23 +29,42 @@ function mapSpotifyTrackToTrack(track: SpotifyTrack): Track {
 
 type ManagePlaylistsPanelProps = {
   compactPlaylistGrid?: boolean;
+  onTrackSourceChange?: (source: "search" | "playlists") => void;
 };
 
-function ManagePlaylistsPanel({ compactPlaylistGrid = false }: ManagePlaylistsPanelProps) {
+type PanelSnapshot = {
+  playlists: SpotifyPlaylist[];
+  selectedPlaylistId: string | null;
+  tracks: SpotifyTrack[];
+  trackCache: Record<string, SpotifyTrack[]>;
+};
+
+let lastPanelState: PanelSnapshot | null = null;
+
+function ManagePlaylistsPanel({ compactPlaylistGrid = false, onTrackSourceChange }: ManagePlaylistsPanelProps) {
   const { theme } = useTheme();
   const { setCurrent, handleQueueChange } = useCurrentTrack();
   const { focusOnLyricsPanel } = useSectionsContext();
   const isLight = theme === "light";
-  const [playlists, setPlaylists] = useState<SpotifyPlaylist[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [playlists, setPlaylists] = useState<SpotifyPlaylist[]>(() => lastPanelState?.playlists ?? []);
+  const [loading, setLoading] = useState(() => !(lastPanelState?.playlists?.length));
   const [error, setError] = useState<string | null>(null);
-  const [selected, setSelected] = useState<SpotifyPlaylist | null>(null);
-  const [tracks, setTracks] = useState<SpotifyTrack[]>([]);
+  const [selectedId, setSelectedId] = useState<string | null>(() => lastPanelState?.selectedPlaylistId ?? null);
+  const [trackCache, setTrackCache] = useState<Record<string, SpotifyTrack[]>>(
+    () => lastPanelState?.trackCache ?? {},
+  );
+  const [tracks, setTracks] = useState<SpotifyTrack[]>(() => lastPanelState?.tracks ?? []);
   const [tracksLoading, setTracksLoading] = useState(false);
   const [tracksError, setTracksError] = useState<string | null>(null);
 
   useEffect(() => {
     let active = true;
+    if (playlists.length) {
+      setLoading(false);
+      return () => {
+        active = false;
+      };
+    }
     (async () => {
       try {
         setLoading(true);
@@ -62,25 +81,48 @@ function ManagePlaylistsPanel({ compactPlaylistGrid = false }: ManagePlaylistsPa
     return () => {
       active = false;
     };
-  }, []);
+  }, [playlists.length]);
+
+  const selected = useMemo(() => {
+    if (!selectedId) return null;
+    return playlists.find((p) => p.id === selectedId) ?? null;
+  }, [playlists, selectedId]);
+
+  useEffect(() => {
+    return () => {
+      lastPanelState = {
+        playlists,
+        selectedPlaylistId: selected ? selected.id : null,
+        tracks,
+        trackCache,
+      };
+    };
+  }, [playlists, selected, tracks, trackCache]);
 
   const handleSelect = useCallback(async (playlist: SpotifyPlaylist) => {
-    setSelected(playlist);
-    setTracks([]);
+    setSelectedId(playlist.id);
     setTracksError(null);
+    const cached = trackCache[playlist.id];
+    if (cached) {
+      setTracks(cached);
+      setTracksLoading(false);
+      return;
+    }
+    setTracks([]);
     setTracksLoading(true);
     try {
       const ts = await getAllPlaylistTracks(playlist.id);
       setTracks(ts);
+      setTrackCache((prev) => ({ ...prev, [playlist.id]: ts }));
     } catch (e: any) {
       setTracksError(e?.message ?? "Failed to load playlist tracks");
     } finally {
       setTracksLoading(false);
     }
-  }, []);
+  }, [trackCache]);
 
   const handleBack = useCallback(() => {
-    setSelected(null);
+    setSelectedId(null);
     setTracks([]);
     setTracksError(null);
   }, []);
@@ -97,8 +139,9 @@ function ManagePlaylistsPanel({ compactPlaylistGrid = false }: ManagePlaylistsPa
         queueTracks.find((t) => t.id === track.id) ?? mapSpotifyTrackToTrack(track);
       setCurrent(nextCurrent);
       focusOnLyricsPanel();
+      onTrackSourceChange?.("playlists");
     },
-    [focusOnLyricsPanel, handleQueueChange, playlistQueue, setCurrent]
+    [focusOnLyricsPanel, handleQueueChange, onTrackSourceChange, playlistQueue, setCurrent]
   );
 
   return (

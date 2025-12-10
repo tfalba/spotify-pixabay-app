@@ -5,7 +5,6 @@ import type { Track } from "../types/types";
 import { useSpotifyPlayerContext } from "../context/SpotifyPlayerProvider";
 import { LoginButton } from "./LoginButtons";
 import { useTheme } from "@/context/ThemeContext";
-import { useCurrentTrack } from "@/context/CurrentTrackContext";
 
 type Props = {
   onSetTracks?: (tracks: Track[]) => void;
@@ -21,14 +20,12 @@ export default function SpotifySearch({ onSetTracks }: Props) {
   const API_BASE = import.meta.env.VITE_API_BASE ?? "";
 
   const { isAuthenticated, pause } = useSpotifyPlayerContext();
-  const { setCurrent } = useCurrentTrack();
   const { theme } = useTheme();
   const isLight = theme === "light";
 
   const stopPlayback = useCallback(() => {
-    setCurrent(null);
     pause().catch(() => {});
-  }, [pause, setCurrent]);
+  }, [pause]);
 
   const search = useCallback(async (term: string) => {
     if (ctrl.current) ctrl.current.abort();
