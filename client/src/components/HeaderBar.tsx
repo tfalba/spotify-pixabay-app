@@ -67,6 +67,7 @@ export default function HeaderBar({ styleChoice, onStyleChange }: Props) {
     styleChoice === "surprise" ? "Surprise me" : styleChoice;
 
   return (
+    <>
     <header
       className={clsx(
         "md:sticky top-0 z-50 flex items-start md:items-center justify-between rounded-3xl backdrop-blur-lg shadow-glow transition-colors duration-300 px-4 mb-4 md:mb-0",
@@ -84,30 +85,7 @@ export default function HeaderBar({ styleChoice, onStyleChange }: Props) {
             Spotify * Pixabay Showcase
           </p>
         </div>
-        <NowPlayingPanel onTrackFinished={handleTrackFinished} />
       </div>
-
-      <div className="flex flex-col items-end gap-3">
-        <div className="flex items-center gap-3 flex-wrap justify-end">
-          <button
-            type="button"
-            onClick={toggleTheme}
-            className={clsx(
-              "inline-flex items-center gap-2 rounded-full border px-4 py-1 text-xs font-semibold uppercase tracking-wide transition-colors",
-              isLight
-                ? "border-slate-300 bg-white text-slate-700 hover:bg-slate-100"
-                : "border-white/30 bg-white/10 text-white hover:bg-white/20"
-            )}
-          >
-            {isLight ? "Dark Mode" : "Light Mode"}
-          </button>
-          <ArtStyleDropdown
-            resolvedStyleName={resolvedStyleName}
-            styleChoice={styleChoice}
-            onStyleChange={onStyleChange}
-          />
-        </div>
-
         <div className="flex items-center gap-4 text-sm">
           {!checkedAuth ? null : user && displayName ? (
             <>
@@ -134,7 +112,33 @@ export default function HeaderBar({ styleChoice, onStyleChange }: Props) {
             <LoginButton />
           )}
         </div>
+      </header>
+
+      <div className="flex flex-col md:flex-row justify-between items-end gap-3 px-8 my-4">
+                <NowPlayingPanel onTrackFinished={handleTrackFinished} />
+
+        <div className="flex items-center gap-3 flex-wrap justify-end">
+          <button
+            type="button"
+            onClick={toggleTheme}
+            className={clsx(
+              "inline-flex items-center gap-2 rounded-full border px-4 py-1 text-xs font-semibold uppercase tracking-wide transition-colors",
+              isLight
+                ? "border-slate-300 bg-white text-slate-700 hover:bg-slate-100"
+                : "border-white/30 bg-white/10 text-white hover:bg-white/20"
+            )}
+          >
+            {isLight ? "Dark Mode" : "Light Mode"}
+          </button>
+          <ArtStyleDropdown
+            resolvedStyleName={resolvedStyleName}
+            styleChoice={styleChoice}
+            onStyleChange={onStyleChange}
+          />
+        </div>
+
+      
       </div>
-    </header>
+    </>
   );
 }

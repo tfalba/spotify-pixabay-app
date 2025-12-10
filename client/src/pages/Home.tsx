@@ -116,13 +116,9 @@ export default function Home({ pixabay, albumCover }: Props) {
     ]
   );
 
-  const activeSections = sectionMeta.filter(
-    (section) => !collapsed[section.id]
-  );
-  const dynamicColumns =
-    activeSections.length > 0
-      ? activeSections.map((section) => `${section.ratio}fr`).join(" ")
-      : undefined;
+  const dynamicColumns = sectionMeta
+    .map((section) => (collapsed[section.id] ? "56px" : `${section.ratio}fr`))
+    .join(" ");
 
   const toggleSection = useCallback((id: keyof typeof collapsed) => {
     setCollapsed((prev) => ({
@@ -130,17 +126,8 @@ export default function Home({ pixabay, albumCover }: Props) {
       [id]: !prev[id],
     }));
   }, []);
-
-  const resetSections = useCallback(() => {
-    setCollapsed({
-      tracks: false,
-      lyrics: false,
-      pixabay: false,
-      manage: true,
-    });
-  }, []);
-
-  const focusOnLyricsPanel = useCallback(() => {
+  
+    const focusOnLyricsPanel = useCallback(() => {
     setCollapsed((prev) => ({
       ...prev,
       manage: false,
@@ -148,7 +135,6 @@ export default function Home({ pixabay, albumCover }: Props) {
       pixabay: false,
     }));
   }, []);
-
   const mainClass = clsx(
     "relative md:mt-4 flex flex-1 flex-col gap-6 rounded-[32px] border md:p-2 ring-1 before:pointer-events-none before:absolute before:inset-0 before:rounded-[32px] before:opacity-80 before:blur before:content-[''] lg:grid",
     isLightTheme
@@ -160,87 +146,58 @@ export default function Home({ pixabay, albumCover }: Props) {
     <SectionsContextProvider value={{ focusOnLyricsPanel }}>
       <main
         className={mainClass}
-        style={
-          dynamicColumns
-            ? {
-                gridTemplateColumns: dynamicColumns,
-              }
-            : undefined
-        }
+        style={{ gridTemplateColumns: dynamicColumns }}
       >
-        <div
-          className={clsx(
-            "lg:col-span-full flex flex-wrap items-center gap-3 rounded-3xl border px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] max-h-fit",
-            isLightTheme
-              ? "border-slate-200 bg-white/60 text-slate-700"
-              : "border-white/20 bg-white/5 text-white/80"
-          )}
-        >
-          {sectionMeta.map((section) => {
-            const isCollapsed = collapsed[section.id];
-            return (
-              <button
-                key={section.id}
-                type="button"
-                onClick={() => toggleSection(section.id)}
-                className={clsx(
-                  "rounded-full px-3 py-1 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal",
-                  isCollapsed
-                    ? isLightTheme
-                      ? "bg-white/90 text-slate-600"
-                      : "bg-white/10 text-white"
-                    : isLightTheme
-                    ? "bg-teal/40 text-midnight"
-                    : "bg-teal text-midnight"
-                )}
-              >
-                {isCollapsed ? "Expand" : "Collapse"} {section.title}
-              </button>
-            );
-          })}
-          <button
-            type="button"
-            onClick={resetSections}
-            className={clsx(
-              "ml-auto rounded-full border px-3 py-1 text-[11px] uppercase tracking-[0.2em] transition focus-visible:outline-none focus-visible:ring-2",
-              isLightTheme
-                ? "border-slate-300 text-slate-600 hover:text-slate-900 focus-visible:ring-slate-400"
-                : "border-white/30 text-white/80 hover:text-white focus-visible:ring-white"
-            )}
-          >
-            Reset Layout
-          </button>
-        </div>
-
-        {activeSections.length === 0 && (
-          <div className="lg:col-span-full rounded-3xl border border-dashed border-white/20 p-6 text-center text-sm text-white/80 min-h-[calc(80vh-4rem)]">
-            All sections are collapsed. Use the controls above to expand a
-            panel.
-          </div>
-        )}
+        
 
         {sectionMeta.map((section) => {
           const isCollapsed = collapsed[section.id];
-          if (isCollapsed) return null;
-
           return (
             <div
               key={section.id}
-              className="relative md:min-h-[calc(80vh-4rem)]"
+              className={clsx(
+                "relative md:min-h-[calc(80vh-4rem)] transition-all duration-300",
+                isCollapsed ? "flex items-start justify-center" : "block"
+              )}
             >
-              <button
-                type="button"
-                onClick={() => toggleSection(section.id)}
-                className={clsx(
-                  "absolute right-4 top-4 z-10 rounded-full px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] transition focus-visible:outline-none focus-visible:ring-2",
-                  isLightTheme
-                    ? "border-slate-200 bg-white/80 text-slate-600 hover:bg-white focus-visible:ring-slate-400"
-                    : "border-white/30 bg-black/40 text-white hover:bg-black/60 focus-visible:ring-white"
-                )}
-              >
-                Collapse
-              </button>
-              {section.render()}
+              {isCollapsed ? (
+                <button
+                  type="button"
+                  onClick={() => toggleSection(section.id)}
+                  className={clsx(
+                    "mt-2 flex flex-col items-center gap-2 rounded-2xl border px-2 py-3 text-xs font-semibold uppercase tracking-[0.2em] focus-visible:outline-none focus-visible:ring-2",
+                    isLightTheme
+                      ? "border-slate-200 bg-lilac/40 text-slate-600 focus-visible:ring-slate-400"
+                      : "border-white/30 bg-teal/20 text-white focus-visible:ring-white"
+                  )}
+                  aria-label={`Expand ${section.title}`}
+                >
+                  <span className="text-lg leading-none">+</span>
+                  <span
+                    className="text-[11px]"
+                    style={{ writingMode: "vertical-rl", textOrientation: "mixed" }}
+                  >
+                    {section.title}
+                  </span>
+                </button>
+              ) : (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => toggleSection(section.id)}
+                    className={clsx(
+                      "absolute right-4 top-4 z-10 flex h-9 w-9 items-center justify-center rounded-full border text-lg font-semibold focus-visible:outline-none focus-visible:ring-2",
+                      isLightTheme
+                        ? "border-slate-200 bg-white/80 text-slate-600 hover:bg-white focus-visible:ring-slate-400"
+                        : "border-white/30 bg-black/40 text-white hover:bg-black/60 focus-visible:ring-white"
+                    )}
+                    aria-label={`Collapse ${section.title}`}
+                  >
+                    −
+                  </button>
+                  {section.render()}
+                </>
+              )}
             </div>
           );
         })}

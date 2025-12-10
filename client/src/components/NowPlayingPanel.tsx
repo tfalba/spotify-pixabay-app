@@ -70,6 +70,14 @@ export function NowPlayingPanel({
   const { theme } = useTheme();
   const isLight = theme === "light";
 
+  const wrapperClass = clsx(
+    "relative overflow-hidden rounded-[28px] p-[2px] shadow-[0_20px_60px_rgba(15,23,42,0.35)] transition-transform duration-300",
+    isLight
+      ? "bg-gradient-to-br from-white/40 via-lilac/30 to-amber/40 before:from-white/50 before:to-teal/40"
+      : "bg-gradient-to-br from-slate-900 via-midnight/60 to-teal/40 before:from-white/20 before:to-sky-500/30",
+    "before:absolute before:inset-0 before:-z-10 before:rounded-[32px] before:bg-gradient-to-br before:blur-3xl before:opacity-70 before:content-[''] hover:-translate-y-0.5"
+  );
+
   useEffect(() => {
     if (!onTrackFinished) return;
     const currentUri =
@@ -102,17 +110,16 @@ export function NowPlayingPanel({
   ]);
 
   return (
-    <div>
-      {/* Controls row (small) */}
-
+    <div className={wrapperClass}>
       <div
         className={clsx(
-          "mt-1 overflow-hidden rounded-2xl border shadow-inner transition-colors duration-300",
-          isLight ? "border-slate-200 bg-white" : "border-white/10 bg-black/40"
+          "relative z-10 flex items-center justify-between overflow-hidden rounded-[24px] border px-2 py-1 shadow-[inset_0_1px_0_rgba(255,255,255,0.3)] backdrop-blur-xl transition-colors duration-300",
+          isLight
+            ? "border-white/40 bg-white/80"
+            : "border-white/10 bg-slate-900/70"
         )}
       >
         {/* Artwork + meta */}
-        <div className="flex items-center justify-between p-1">
           <div className="flex flex-1 min-w-0 items-center gap-3">
             <img
               src={cover}
@@ -139,114 +146,78 @@ export function NowPlayingPanel({
             </div>
           </div>
 
-<div className="flex flex-col flex-1 min-w-0 items-center">
-<div className="flex items-center">
-          <div className="flex items-center p-4 shrink-0">
-            {paused ? (
-              <button
-                onClick={() => {
-                  if (!trackUri || !deviceId) return;
-                  resumeOrStart({ uris: [trackUri] }).catch(() => {});
-                }}
-                className="text-white text-2xl hover:text-slate-300"
-              >
-                ▶️
-              </button>
-            ) : (
-              <button
-                onClick={pause}
+          <div className="flex flex-col flex-1 min-w-0 items-center">
+            <div className="flex items-center">
+              <div className="flex items-center p-4 shrink-0">
+                {paused ? (
+                  <button
+                    onClick={() => {
+                      if (!trackUri || !deviceId) return;
+                      resumeOrStart({ uris: [trackUri] }).catch(() => {});
+                    }}
+                    className="text-white text-2xl hover:text-slate-300"
+                  >
+                    ▶️
+                  </button>
+                ) : (
+                  <button
+                    onClick={pause}
+                    className={clsx(
+                      "text-2xl",
+                      isLight
+                        ? "text-slate-700 hover:text-teal-700"
+                        : "text-white hover:text-slate-300"
+                    )}
+                  >
+                    ⏸
+                  </button>
+                )}
+              </div>
+              <h2
                 className={clsx(
-                  "text-2xl",
-                  isLight
-                    ? "text-slate-700 hover:text-teal-700"
-                    : "text-white hover:text-slate-300"
+                  "text-sm font-semibold uppercase tracking-[0.2em]",
+                  isLight ? "text-slate-500" : "text-slate-400"
                 )}
               >
-                ⏸
-              </button>
-            )}
+                Now Playing
+              </h2>
+            </div>
+            {/* Seek bar */}
+            <div className="flex items-center gap-2 px-3 pb-3">
+              <span
+                className={clsx(
+                  "w-10 text-right text-[11px] tabular-nums",
+                  isLight ? "text-slate-500" : "text-slate-400"
+                )}
+              >
+                {formatTime(pos)}
+              </span>
+              <input
+                type="range"
+                className={clsx(
+                  "w-full accent-teal-500",
+                  isLight ? "bg-transparent" : "bg-transparent"
+                )}
+                min={0}
+                max={Math.max(duration, 1)}
+                step={1000}
+                value={pos}
+                onChange={(e) => setPos(Number(e.target.value))}
+                onMouseUp={() => seek(pos)}
+                onTouchEnd={() => seek(pos)}
+                disabled={!deviceId}
+              />
+              <span
+                className={clsx(
+                  "w-10 text-[11px] tabular-nums",
+                  isLight ? "text-slate-500" : "text-slate-400"
+                )}
+              >
+                {formatTime(duration)}
+              </span>
+            </div>
           </div>
-          <h2
-            className={clsx(
-              "text-sm font-semibold uppercase tracking-[0.2em]",
-              isLight ? "text-slate-500" : "text-slate-400"
-            )}
-          >
-            Now Playing
-          </h2>
-          </div>
-           {/* Seek bar */}
-        <div className="flex items-center gap-2 px-3 pb-3">
-          <span
-            className={clsx(
-              "w-10 text-right text-[11px] tabular-nums",
-              isLight ? "text-slate-500" : "text-slate-400"
-            )}
-          >
-            {formatTime(pos)}
-          </span>
-          <input
-            type="range"
-            className={clsx(
-              "w-full accent-teal-500",
-              isLight ? "bg-transparent" : "bg-transparent"
-            )}
-            min={0}
-            max={Math.max(duration, 1)}
-            step={1000}
-            value={pos}
-            onChange={(e) => setPos(Number(e.target.value))}
-            onMouseUp={() => seek(pos)}
-            onTouchEnd={() => seek(pos)}
-            disabled={!deviceId}
-          />
-          <span
-            className={clsx(
-              "w-10 text-[11px] tabular-nums",
-              isLight ? "text-slate-500" : "text-slate-400"
-            )}
-          >
-            {formatTime(duration)}
-          </span>
         </div>
-        </div>
-        </div>
-
-        {/* Seek bar */}
-        {/* <div className="flex items-center gap-2 px-3 pb-3">
-          <span
-            className={clsx(
-              "w-10 text-right text-[11px] tabular-nums",
-              isLight ? "text-slate-500" : "text-slate-400"
-            )}
-          >
-            {formatTime(pos)}
-          </span>
-          <input
-            type="range"
-            className={clsx(
-              "w-full accent-teal-500",
-              isLight ? "bg-transparent" : "bg-transparent"
-            )}
-            min={0}
-            max={Math.max(duration, 1)}
-            step={1000}
-            value={pos}
-            onChange={(e) => setPos(Number(e.target.value))}
-            onMouseUp={() => seek(pos)}
-            onTouchEnd={() => seek(pos)}
-            disabled={!deviceId}
-          />
-          <span
-            className={clsx(
-              "w-10 text-[11px] tabular-nums",
-              isLight ? "text-slate-500" : "text-slate-400"
-            )}
-          >
-            {formatTime(duration)}
-          </span>
-        </div> */}
       </div>
-    </div>
   );
 }
