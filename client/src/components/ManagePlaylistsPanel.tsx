@@ -30,6 +30,7 @@ function mapSpotifyTrackToTrack(track: SpotifyTrack): Track {
 type ManagePlaylistsPanelProps = {
   compactPlaylistGrid?: boolean;
   onTrackSourceChange?: (source: "search" | "playlists") => void;
+  onSetTracks: (tracks: Track[]) => void;
 };
 
 type PanelSnapshot = {
@@ -41,7 +42,7 @@ type PanelSnapshot = {
 
 let lastPanelState: PanelSnapshot | null = null;
 
-function ManagePlaylistsPanel({ compactPlaylistGrid = false, onTrackSourceChange }: ManagePlaylistsPanelProps) {
+function ManagePlaylistsPanel({ compactPlaylistGrid = false, onTrackSourceChange, onSetTracks }: ManagePlaylistsPanelProps) {
   const { theme } = useTheme();
   const { setCurrent, handleQueueChange } = useCurrentTrack();
   const { focusOnLyricsPanel } = useSectionsContext();
@@ -113,6 +114,7 @@ function ManagePlaylistsPanel({ compactPlaylistGrid = false, onTrackSourceChange
     try {
       const ts = await getAllPlaylistTracks(playlist.id);
       setTracks(ts);
+      onSetTracks(ts);
       setTrackCache((prev) => ({ ...prev, [playlist.id]: ts }));
     } catch (e: any) {
       setTracksError(e?.message ?? "Failed to load playlist tracks");
@@ -212,6 +214,7 @@ function ManagePlaylistsPanel({ compactPlaylistGrid = false, onTrackSourceChange
             >
               ← Back
             </button>
+           
             <div className="min-w-0">
               <div className="truncate text-base font-semibold">
                 {selected.name}
@@ -223,6 +226,7 @@ function ManagePlaylistsPanel({ compactPlaylistGrid = false, onTrackSourceChange
                 {selected.tracks?.total ?? 0} tracks
               </div>
             </div>
+
           </div>
 
           {tracksError && (
@@ -243,52 +247,8 @@ function ManagePlaylistsPanel({ compactPlaylistGrid = false, onTrackSourceChange
               Loading tracks…
             </div>
           ) : (
-            <div className="flex-1 min-h-0 overflow-y-auto pr-1">
-              <div className="flex flex-wrap gap-2">
-                {tracks.map((track) => {
-                  const albumImages = track.album?.images ?? [];
-                  const thumb =
-                    albumImages[albumImages.length - 1]?.url ??
-                    albumImages[0]?.url ??
-                    track.image ??
-                    "";
-                  return (
-                    <button
-                      key={track.id}
-                      type="button"
-                      onClick={() => handleTrackSelect(track)}
-                      className={clsx(
-                        "flex flex-col gap-2 w-[5%] min-w-[max(122px,10%)] max-w-[125px] rounded-xl border p-3 text-left text-xs shadow-sm transition hover:border-teal-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal",
-                        isLight
-                          ? "border-slate-200 bg-white"
-                          : "border-white/10 bg-black/40"
-                      )}
-                    >
-                      {thumb ? (
-                        <img
-                          src={thumb}
-                          alt=""
-                          className="h-24 w-full rounded-lg object-cover"
-                          loading="lazy"
-                        />
-                      ) : (
-                        <div className="flex h-24 items-center justify-center rounded-lg bg-gradient-to-br from-teal-400 to-sky-600 text-white">
-                          {track.name.charAt(0)}
-                        </div>
-                      )}
-                      <div className="min-w-0">
-                        <div className="truncate font-semibold text-sm">
-                          {track.name}
-                        </div>
-                        <div className="truncate text-[11px] text-slate-500 dark:text-slate-300">
-                          {(track.artists ?? []).map((a) => a.name).join(", ")}
-                        </div>
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
+            null
+
           )}
         </div>
       ) : (

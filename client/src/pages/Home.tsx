@@ -49,6 +49,7 @@ export default function Home({ pixabay, albumCover }: Props) {
   const previousCollapsedRef = useRef<typeof collapsed | null>(null);
 
   const allPanelsExpanded = !collapsed.manage && !collapsed.lyrics && !collapsed.pixabay;
+  const manageSoloExpanded = !collapsed.manage && collapsed.lyrics && collapsed.pixabay;
 
   const sectionMeta = useMemo(
     () => [
@@ -65,7 +66,10 @@ export default function Home({ pixabay, albumCover }: Props) {
         title: "Manage Playlists",
         ratio: 42,
         render: () => (
-          <ManagePlaylistsAndSearch compactPlaylistGrid={allPanelsExpanded} />
+          <ManagePlaylistsAndSearch
+            compactPlaylistGrid={allPanelsExpanded}
+            soloExpanded={manageSoloExpanded}
+          />
         ),
       },
       {
@@ -116,6 +120,7 @@ export default function Home({ pixabay, albumCover }: Props) {
       pixabay.onStyleChange,
       pixabay.styleChoice,
       allPanelsExpanded,
+      manageSoloExpanded,
     ]
   );
 

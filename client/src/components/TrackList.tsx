@@ -53,23 +53,31 @@ function TrackCard({ track, selected = false, isLight }: CardProps) {
 type Props = {
   tracks: Track[];
   onTrackSelected?: (track: Track) => void;
+  twoColumnOnLarge?: boolean;
 };
 
-export default function TrackList({ tracks, onTrackSelected }: Props) {
+export default function TrackList({ tracks, onTrackSelected, twoColumnOnLarge = false }: Props) {
   const { theme } = useTheme();
   const isLight = theme === "light";
   const { current, setCurrent } = useCurrentTrack();
   const selectedTrackId = current?.id ?? null;
 
   return (
-    <ul
+    <div
       className={clsx(
-        "flex-[2] divide-y overflow-hidden overflow-scroll mt-6 shadow-inner rounded-2xl",
+        "flex-[2] mt-6 overflow-hidden overflow-y-auto rounded-2xl shadow-inner",
         isLight
-          ? "divide-slate-200 border border-slate-200 bg-white"
-          : "divide-white/5 bg-gradient-to-br from-teal/10 via-aurora/25 to-teal/40",
+          ? "border border-slate-200 bg-white"
+          : "bg-gradient-to-br from-teal/10 via-aurora/25 to-teal/40",
       )}
     >
+      <div
+        className={clsx(
+          "divide-y",
+          twoColumnOnLarge ? "flex flex-col lg:grid lg:grid-cols-2 lg:gap-3 lg:divide-y-0 p-2" : "flex flex-col",
+          isLight ? "divide-slate-200" : "divide-white/5",
+        )}
+      >
       {tracks.map((t) => {
         const isSelected = selectedTrackId === t.id;
         return (
@@ -96,10 +104,11 @@ export default function TrackList({ tracks, onTrackSelected }: Props) {
         );
       })}
       {tracks.length === 0 && (
-        <li className={clsx("p-4 text-center text-sm", isLight ? "text-slate-500" : "text-slate-400")}>
+        <div className={clsx("p-4 text-center text-sm", isLight ? "text-slate-500" : "text-slate-400")}>
           No tracks
-        </li>
+        </div>
       )}
-    </ul>
+      </div>
+    </div>
   );
 }

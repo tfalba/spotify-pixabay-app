@@ -10,6 +10,7 @@ import ManagePlaylistsPanel from "./ManagePlaylistsPanel";
 
 type ManagePlaylistsAndSearchProps = {
   compactPlaylistGrid?: boolean;
+  soloExpanded?: boolean;
 };
 
 type DiscoverPanelSnapshot = {
@@ -20,7 +21,7 @@ type DiscoverPanelSnapshot = {
 let lastTrackSource: "search" | "playlists" | null = null;
 let persistedDiscoverState: DiscoverPanelSnapshot | null = null;
 
-export default function ManagePlaylistsAndSearch({ compactPlaylistGrid = false }: ManagePlaylistsAndSearchProps) {
+export default function ManagePlaylistsAndSearch({ compactPlaylistGrid = false, soloExpanded = false }: ManagePlaylistsAndSearchProps) {
   const { theme } = useTheme();
   const { handleQueueChange } = useCurrentTrack();
   const [tracks, setTracks] = useState<Track[]>(() => persistedDiscoverState?.tracks ?? []);
@@ -113,14 +114,19 @@ export default function ManagePlaylistsAndSearch({ compactPlaylistGrid = false }
           <SpotifySearch onSetTracks={handleSetTracks} />
         ) : (
           <ManagePlaylistsPanel
+            onSetTracks={handleSetTracks}
             compactPlaylistGrid={compactPlaylistGrid}
             onTrackSourceChange={handlePlaylistTrackSelected}
           />
         )}
       </div>
 
-      {tracks.length > 0 && activePanel === "search" && (
-        <TrackList tracks={tracks} onTrackSelected={handleSearchTrackSelected} />
+      {tracks.length > 0 && (
+        <TrackList
+          tracks={tracks}
+          onTrackSelected={handleSearchTrackSelected}
+          twoColumnOnLarge={soloExpanded}
+        />
       )}
     </section>
   );

@@ -2,7 +2,7 @@ import clsx from "clsx";
 import { useTheme } from "@/context/ThemeContext";
 import { useCurrentTrack } from "@/context/CurrentTrackContext";
 import { useSectionClass } from "@/styleHooks/useStyleHooks";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { get } from "@/lib/fetcher";
 
 type CachedLyrics = {
