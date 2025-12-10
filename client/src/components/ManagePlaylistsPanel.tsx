@@ -215,7 +215,7 @@ function ManagePlaylistsPanel({ compactPlaylistGrid = false }: ManagePlaylistsPa
                       type="button"
                       onClick={() => handleTrackSelect(track)}
                       className={clsx(
-                        "flex flex-col gap-2 w-[5%] min-w-[max(146px,10%)] rounded-xl border p-3 text-left text-xs shadow-sm transition hover:border-teal-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal",
+                        "flex flex-col gap-2 w-[5%] min-w-[max(122px,10%)] max-w-[125px] rounded-xl border p-3 text-left text-xs shadow-sm transition hover:border-teal-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal",
                         isLight
                           ? "border-slate-200 bg-white"
                           : "border-white/10 bg-black/40"

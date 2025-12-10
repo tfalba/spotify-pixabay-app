@@ -71,7 +71,7 @@ export function NowPlayingPanel({
   const isLight = theme === "light";
 
   const wrapperClass = clsx(
-    "relative overflow-hidden rounded-[28px] p-[2px] shadow-[0_20px_60px_rgba(15,23,42,0.35)] transition-transform duration-300",
+    "relative overflow-hidden rounded-[28px] shadow-[0_20px_60px_rgba(15,23,42,0.15)] transition-transform duration-300",
     isLight
       ? "bg-gradient-to-br from-white/40 via-lilac/30 to-amber/40 before:from-white/50 before:to-teal/40"
       : "bg-gradient-to-br from-slate-900 via-midnight/60 to-teal/40 before:from-white/20 before:to-sky-500/30",
@@ -113,7 +113,7 @@ export function NowPlayingPanel({
     <div className={wrapperClass}>
       <div
         className={clsx(
-          "relative z-10 flex items-center justify-between overflow-hidden rounded-[24px] border px-2 py-1 shadow-[inset_0_1px_0_rgba(255,255,255,0.3)] backdrop-blur-xl transition-colors duration-300",
+          "relative z-10 flex items-center justify-between overflow-hidden rounded-[24px] border p-2 shadow-[inset_0_1px_0_rgba(255,255,255,0.4)] backdrop-blur-xl transition-colors duration-300",
           isLight
             ? "border-white/40 bg-white/80"
             : "border-white/10 bg-slate-900/70"
@@ -124,7 +124,7 @@ export function NowPlayingPanel({
             <img
               src={cover}
               alt={title}
-              className="h-16 w-16 rounded-xl object-cover shrink-0"
+              className="h-12 w-12 rounded-xl object-cover shrink-0"
             />
             <div className="p-2 min-w-0 flex-1">
               <div
@@ -148,7 +148,7 @@ export function NowPlayingPanel({
 
           <div className="flex flex-col flex-1 min-w-0 items-center">
             <div className="flex items-center">
-              <div className="flex items-center p-4 shrink-0">
+              <div className="flex items-center p-2 shrink-0">
                 {paused ? (
                   <button
                     onClick={() => {
@@ -183,7 +183,7 @@ export function NowPlayingPanel({
               </h2>
             </div>
             {/* Seek bar */}
-            <div className="flex items-center gap-2 px-3 pb-3">
+            <div className="flex items-center gap-2 px-2 pb-1">
               <span
                 className={clsx(
                   "w-10 text-right text-[11px] tabular-nums",

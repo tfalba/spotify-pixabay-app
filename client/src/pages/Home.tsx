@@ -138,7 +138,7 @@ export default function Home({ pixabay, albumCover }: Props) {
   const mainClass = clsx(
     "relative md:mt-4 flex flex-1 flex-col gap-6 rounded-[32px] border md:p-2 ring-1 before:pointer-events-none before:absolute before:inset-0 before:rounded-[32px] before:opacity-80 before:blur before:content-[''] lg:grid",
     isLightTheme
-      ? "border-slate-200 bg-lilac/15 text-slate-900 ring-white/40 before:bg-gradient-to-br before:from-white/50 before:via-transparent before:to-slate-100/60 shadow-[0_25px_80px_rgba(4,6,11,0.35)]"
+      ? "border-slate-200 bg-lilac/5 text-slate-900 ring-white/40 before:bg-gradient-to-br before:from-white/50 before:via-transparent before:to-slate-100/60 shadow-[0_25px_80px_rgba(4,6,11,0.35)]"
       : "border-white/5 bg-gradient-to-br from-midnight/80 via-amber/5 to-sapphire/80 text-slate-100 ring-white/10 before:bg-gradient-to-br before:from-white/10 before:via-transparent before:to-white/5 shadow-[0_25px_80px_rgba(45,212,191,0.30)]"
   );
 
@@ -156,7 +156,7 @@ export default function Home({ pixabay, albumCover }: Props) {
             <div
               key={section.id}
               className={clsx(
-                "relative md:min-h-[calc(80vh-4rem)] transition-all duration-300",
+                "relative lg:min-h-[calc(80vh-4rem)] transition-all duration-300",
                 isCollapsed ? "flex items-start justify-center" : "block"
               )}
             >
@@ -165,19 +165,22 @@ export default function Home({ pixabay, albumCover }: Props) {
                   type="button"
                   onClick={() => toggleSection(section.id)}
                   className={clsx(
-                    "mt-2 flex flex-col items-center gap-2 rounded-2xl border px-2 py-3 text-xs font-semibold uppercase tracking-[0.2em] focus-visible:outline-none focus-visible:ring-2",
+                    "mt-2 flex lg:flex-col w-full lg:w-auto items-center gap-2 rounded-2xl border px-4 lg:px-2 py-1 lg:py-3 text-xs font-semibold uppercase tracking-[0.2em] focus-visible:outline-none focus-visible:ring-2",
                     isLightTheme
-                      ? "border-slate-200 bg-lilac/40 text-slate-600 focus-visible:ring-slate-400"
-                      : "border-white/30 bg-teal/20 text-white focus-visible:ring-white"
+                      ? "border-slate-200 bg-white/80 text-slate-600 focus-visible:ring-slate-400"
+                      : "border-white/30 bg-teal/5 text-white focus-visible:ring-white"
                   )}
                   aria-label={`Expand ${section.title}`}
                 >
                   <span className="text-lg leading-none">+</span>
                   <span
-                    className="text-[11px]"
-                    style={{ writingMode: "vertical-rl", textOrientation: "mixed" }}
+                    className="text-[11px] uppercase tracking-[0.3em]"
                   >
-                    {section.title}
+                    <span className="hidden lg:inline" style={{ writingMode: "vertical-rl", textOrientation: "mixed" }}>
+                      {section.title}
+                    </span>
+                    <span className="lg:hidden">{section.title}</span>
+                  
                   </span>
                 </button>
               ) : (
