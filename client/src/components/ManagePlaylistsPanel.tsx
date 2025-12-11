@@ -1,10 +1,9 @@
-import { useCurrentTrack } from "@/context/CurrentTrackContext";
-import { useSectionsContext } from "@/context/SectionsContext";
 import { useTheme } from "@/context/ThemeContext";
 import { getAllPlaylistTracks, getAllUserPlaylists, type SpotifyPlaylist, type SpotifyTrack } from "@/lib/spotify";
 import clsx from "clsx";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { Track } from "@/types/types";
+import TrackList from "./TrackList";
 
 function mapSpotifyTrackToTrack(track: SpotifyTrack): Track {
   const albumImages = track.album?.images ?? [];
@@ -29,32 +28,43 @@ function mapSpotifyTrackToTrack(track: SpotifyTrack): Track {
 
 type ManagePlaylistsPanelProps = {
   compactPlaylistGrid?: boolean;
-  onTrackSourceChange?: (source: "search" | "playlists") => void;
-  onSetTracks: (tracks: Track[]) => void;
+  twoColumnOnLarge?: boolean;
+  onTrackSelected?: (track: Track, queue: Track[]) => void;
 };
 
 type PanelSnapshot = {
   playlists: SpotifyPlaylist[];
   selectedPlaylistId: string | null;
-  tracks: SpotifyTrack[];
-  trackCache: Record<string, SpotifyTrack[]>;
+  tracks: Track[];
+  trackCache: Record<string, Track[]>;
+};
+
+const restoreTracks = (raw?: Track[] | SpotifyTrack[]) =>
+  (raw ?? []).map((entry) => mapSpotifyTrackToTrack(entry as SpotifyTrack));
+
+const restoreCache = (raw?: Record<string, Track[] | SpotifyTrack[]>) => {
+  if (!raw) return {};
+  const entries = Object.entries(raw).map(([id, cached]) => [id, (cached as SpotifyTrack[]).map(mapSpotifyTrackToTrack)]);
+  return Object.fromEntries(entries);
 };
 
 let lastPanelState: PanelSnapshot | null = null;
 
-function ManagePlaylistsPanel({ compactPlaylistGrid = false, onTrackSourceChange, onSetTracks }: ManagePlaylistsPanelProps) {
+function ManagePlaylistsPanel({
+  compactPlaylistGrid = false,
+  twoColumnOnLarge = false,
+  onTrackSelected,
+}: ManagePlaylistsPanelProps) {
   const { theme } = useTheme();
-  const { setCurrent, handleQueueChange } = useCurrentTrack();
-  const { focusOnLyricsPanel } = useSectionsContext();
   const isLight = theme === "light";
   const [playlists, setPlaylists] = useState<SpotifyPlaylist[]>(() => lastPanelState?.playlists ?? []);
   const [loading, setLoading] = useState(() => !(lastPanelState?.playlists?.length));
   const [error, setError] = useState<string | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(() => lastPanelState?.selectedPlaylistId ?? null);
-  const [trackCache, setTrackCache] = useState<Record<string, SpotifyTrack[]>>(
-    () => lastPanelState?.trackCache ?? {},
+  const [trackCache, setTrackCache] = useState<Record<string, Track[]>>(
+    () => restoreCache(lastPanelState?.trackCache as Record<string, Track[] | SpotifyTrack[]> | undefined),
   );
-  const [tracks, setTracks] = useState<SpotifyTrack[]>(() => lastPanelState?.tracks ?? []);
+  const [tracks, setTracks] = useState<Track[]>(() => restoreTracks(lastPanelState?.tracks));
   const [tracksLoading, setTracksLoading] = useState(false);
   const [tracksError, setTracksError] = useState<string | null>(null);
 
@@ -113,9 +123,9 @@ function ManagePlaylistsPanel({ compactPlaylistGrid = false, onTrackSourceChange
     setTracksLoading(true);
     try {
       const ts = await getAllPlaylistTracks(playlist.id);
-      setTracks(ts);
-      onSetTracks(ts);
-      setTrackCache((prev) => ({ ...prev, [playlist.id]: ts }));
+      const normalized = ts.map(mapSpotifyTrackToTrack);
+      setTracks(normalized);
+      setTrackCache((prev) => ({ ...prev, [playlist.id]: normalized }));
     } catch (e: any) {
       setTracksError(e?.message ?? "Failed to load playlist tracks");
     } finally {
@@ -129,21 +139,12 @@ function ManagePlaylistsPanel({ compactPlaylistGrid = false, onTrackSourceChange
     setTracksError(null);
   }, []);
 
-  const playlistQueue = useMemo(() => tracks.map(mapSpotifyTrackToTrack), [tracks]);
-
   const handleTrackSelect = useCallback(
-    (track: SpotifyTrack) => {
-      const queueTracks = playlistQueue.length
-        ? playlistQueue
-        : [mapSpotifyTrackToTrack(track)];
-      handleQueueChange(queueTracks);
-      const nextCurrent =
-        queueTracks.find((t) => t.id === track.id) ?? mapSpotifyTrackToTrack(track);
-      setCurrent(nextCurrent);
-      focusOnLyricsPanel();
-      onTrackSourceChange?.("playlists");
+    (track: Track) => {
+      const queueTracks = tracks.length ? tracks : [track];
+      onTrackSelected?.(track, queueTracks);
     },
-    [focusOnLyricsPanel, handleQueueChange, onTrackSourceChange, playlistQueue, setCurrent]
+    [onTrackSelected, tracks],
   );
 
   return (
@@ -247,8 +248,11 @@ function ManagePlaylistsPanel({ compactPlaylistGrid = false, onTrackSourceChange
               Loading tracks…
             </div>
           ) : (
-            null
-
+            <TrackList
+              tracks={tracks}
+              onTrackSelected={handleTrackSelect}
+              twoColumnOnLarge={twoColumnOnLarge}
+            />
           )}
         </div>
       ) : (

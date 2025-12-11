@@ -5,6 +5,7 @@ import TrackList from "./TrackList";
 import clsx from "clsx";
 import { useTheme } from "@/context/ThemeContext";
 import { useCurrentTrack } from "@/context/CurrentTrackContext";
+import { useSectionsContext } from "@/context/SectionsContext";
 import { useSectionClass } from "@/styleHooks/useStyleHooks";
 import ManagePlaylistsPanel from "./ManagePlaylistsPanel";
 
@@ -23,7 +24,8 @@ let persistedDiscoverState: DiscoverPanelSnapshot | null = null;
 
 export default function ManagePlaylistsAndSearch({ compactPlaylistGrid = false, soloExpanded = false }: ManagePlaylistsAndSearchProps) {
   const { theme } = useTheme();
-  const { handleQueueChange } = useCurrentTrack();
+  const { setCurrent, handleQueueChange } = useCurrentTrack();
+  const { focusOnLyricsPanel } = useSectionsContext();
   const [tracks, setTracks] = useState<Track[]>(() => persistedDiscoverState?.tracks ?? []);
   const [activePanel, setActivePanel] = useState<"search" | "playlists">(
     () => persistedDiscoverState?.activePanel ?? lastTrackSource ?? "search",
@@ -42,14 +44,22 @@ export default function ManagePlaylistsAndSearch({ compactPlaylistGrid = false, 
       setActivePanel("search");
       const queueTracks = tracks.length ? tracks : [track];
       handleQueueChange(queueTracks);
+      setCurrent(track);
+      focusOnLyricsPanel();
     },
-    [handleQueueChange, tracks],
+    [focusOnLyricsPanel, handleQueueChange, setCurrent, tracks],
   );
 
-  const handlePlaylistTrackSelected = useCallback(() => {
-    lastTrackSource = "playlists";
-    setActivePanel("playlists");
-  }, []);
+  const handlePlaylistTrackSelected = useCallback(
+    (track: Track, queue: Track[]) => {
+      lastTrackSource = "playlists";
+      setActivePanel("playlists");
+      handleQueueChange(queue.length ? queue : [track]);
+      setCurrent(track);
+      focusOnLyricsPanel();
+    },
+    [focusOnLyricsPanel, handleQueueChange, setCurrent],
+  );
 
   useEffect(() => {
     return () => {
@@ -114,14 +124,14 @@ export default function ManagePlaylistsAndSearch({ compactPlaylistGrid = false, 
           <SpotifySearch onSetTracks={handleSetTracks} />
         ) : (
           <ManagePlaylistsPanel
-            onSetTracks={handleSetTracks}
             compactPlaylistGrid={compactPlaylistGrid}
-            onTrackSourceChange={handlePlaylistTrackSelected}
+            twoColumnOnLarge={soloExpanded}
+            onTrackSelected={handlePlaylistTrackSelected}
           />
         )}
       </div>
 
-      {tracks.length > 0 && (
+      {tracks.length > 0 && activePanel === "search" && (
         <TrackList
           tracks={tracks}
           onTrackSelected={handleSearchTrackSelected}
