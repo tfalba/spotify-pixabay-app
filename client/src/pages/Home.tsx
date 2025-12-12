@@ -194,7 +194,7 @@ export default function Home({ pixabay, albumCover }: Props) {
             <div
               key={section.id}
               className={clsx(
-                "relative lg:min-h-[calc(80vh-4rem)] transition-all duration-300",
+                "relative min-w-0 lg:min-h-[calc(80vh-4rem)] transition-all duration-300",
                 isCollapsed ? "flex items-start justify-center" : "block"
               )}
             >
@@ -227,8 +227,8 @@ export default function Home({ pixabay, albumCover }: Props) {
               ) : (
                 <div
                   className={clsx(
-                    "relative flex h-full w-full",
-                    section.maxWidth ? "justify-center" : "justify-start"
+                    "relative flex h-full w-full min-w-0",
+                    section.maxWidth ? "justify-center" : "justify-start",
                   )}
                   style={wrapperStyle}
                 >

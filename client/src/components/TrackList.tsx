@@ -15,7 +15,7 @@ type CardProps = {
 
 function TrackCard({ track, selected = false, isLight, actions }: CardProps) {
   const containerClasses = clsx(
-    "flex w-full items-center gap-4 rounded-2xl border p-1 pr-2 transition",
+    "flex w-full min-w-0 items-center gap-4 rounded-2xl border p-1 pr-2 transition",
     selected
       ? isLight
         ? "border-teal/70 border-4 bg-sapphire/10 shadow-glow"
@@ -26,7 +26,7 @@ function TrackCard({ track, selected = false, isLight, actions }: CardProps) {
   );
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-2 min-w-0">
       <div className={containerClasses}>
         {track.image && (
           <img
@@ -35,7 +35,7 @@ function TrackCard({ track, selected = false, isLight, actions }: CardProps) {
             alt="album art"
           />
         )}
-        <div className="flex flex-[3] items-center gap-3 min-w-0">
+        <div className="flex-[3] min-w-0 gap-3">
           <div className="min-w-0">
             <div
               className={clsx(
@@ -115,10 +115,9 @@ export default function TrackList({
   return (
     <div
       className={clsx(
-        "flex-[2] mt-6 overflow-hidden overflow-y-auto rounded-2xl shadow-inner",
+        "flex-[2] mt-6 min-w-0 overflow-hidden overflow-y-auto rounded-2xl shadow-inner",
         isLight
           ? "border border-slate-200 bg-white"
-          // : "border border-white/10 bg-black/20",
           : "bg-gradient-to-br from-teal/10 via-aurora/25 to-teal/20"
       )}
     >
@@ -126,8 +125,8 @@ export default function TrackList({
       <div
         className={clsx(
           twoColumnOnLarge
-            ? "flex flex-col gap-3 p-3 lg:grid lg:grid-cols-2 lg:gap-4"
-            : "flex flex-col divide-y",
+            ? "flex min-w-0 flex-col gap-3 p-3 lg:grid lg:grid-cols-2 lg:gap-4"
+            : "flex min-w-0 flex-col divide-y",
           !twoColumnOnLarge && (isLight ? "divide-slate-200" : "divide-white/5")
         )}
       >
@@ -137,7 +136,7 @@ export default function TrackList({
             <div
               key={t.id}
               className={clsx(
-                "flex w-full flex-col gap-2 rounded-2xl border p-2 transition",
+                "flex w-full min-w-0 flex-col gap-2 rounded-2xl border p-2 transition",
                 isSelected
                   ? isLight
                     ? "border-amber/70 bg-white/70 shadow-glow"

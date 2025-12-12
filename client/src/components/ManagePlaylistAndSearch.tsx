@@ -136,7 +136,7 @@ export default function ManagePlaylistsAndSearch({
         </div>
       </div>
 
-      <div className="mt-4 mb-6 flex justify-end gap-4">
+      <div className="mt-4 flex justify-end gap-4">
         {[
           { key: "search" as const, label: "Search" },
           { key: "playlists" as const, label: "Playlists" },
