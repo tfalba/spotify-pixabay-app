@@ -9,6 +9,8 @@ import clsx from "clsx";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { Track } from "@/types/types";
 import TrackList from "./TrackList";
+import { useSpotifyPlayerContext } from "@/context/SpotifyPlayerProvider";
+import { LoginButton } from "./LoginButtons";
 
 function mapSpotifyTrackToTrack(track: SpotifyTrack): Track {
   const albumImages = track.album?.images ?? [];
@@ -76,6 +78,8 @@ function ManagePlaylistsPanel({
   const [loading, setLoading] = useState(
     () => !lastPanelState?.playlists?.length
   );
+    const { isAuthenticated } = useSpotifyPlayerContext();
+  
   const [error, setError] = useState<string | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(
     () => lastPanelState?.selectedPlaylistId ?? null
@@ -95,7 +99,7 @@ function ManagePlaylistsPanel({
 
   useEffect(() => {
     let active = true;
-    if (playlists.length) {
+    if (playlists.length || !isAuthenticated) {
       setLoading(false);
       return () => {
         active = false;
@@ -198,6 +202,10 @@ function ManagePlaylistsPanel({
             soon.
           </p>
         </div>
+        {!isAuthenticated ? (
+                   <LoginButton />
+
+        ) : (
         <button
           type="button"
           className={clsx(
@@ -207,8 +215,11 @@ function ManagePlaylistsPanel({
         >
           Sync
         </button>
+        )}
       </div>
 
+    {isAuthenticated && (
+        <div>
       {error && (
         <div
           className={clsx(
@@ -342,8 +353,11 @@ function ManagePlaylistsPanel({
               </button>
             );
           })}
+          </div>
+        )}
         </div>
       )}
+    
     </section>
   );
 }

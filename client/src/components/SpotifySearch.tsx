@@ -114,7 +114,7 @@ export default function SpotifySearch({
       )}
     >
       {" "}
-      <div className="flex items-center justify-start mb-4 gap-3 flex-wrap">
+      <div className="flex items-center justify-between mb-4 gap-3 flex-wrap md:flex-nowrap">
         <h2
           className={clsx(
             "text-sm font-semibold uppercase tracking-[0.2em]",
@@ -124,7 +124,7 @@ export default function SpotifySearch({
           Search
         </h2>
     
-      <div className="space-y-4 p-1 text-center min-w-full md:min-w-[400px]">
+      <div className="space-y-4 p-1 text-right w-full">
         {isAuthenticated ? (
           <div className="flex items-center gap-2 rounded-2xl shadow-glow">
             <input

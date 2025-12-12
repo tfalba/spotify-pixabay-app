@@ -34,7 +34,7 @@ export default function ManagePlaylistsAndSearch({
     () => persistedDiscoverState?.tracks ?? []
   );
   const [activePanel, setActivePanel] = useState<"search" | "playlists">(
-    () => persistedDiscoverState?.activePanel ?? lastTrackSource ?? "search"
+    () => persistedDiscoverState?.activePanel ?? lastTrackSource ?? "playlists"
   );
   const [playlists, setPlaylists] = useState<SpotifyPlaylist[]>(() => []);
 
@@ -138,8 +138,9 @@ export default function ManagePlaylistsAndSearch({
 
       <div className="mt-4 flex justify-end gap-4">
         {[
-          { key: "search" as const, label: "Search" },
           { key: "playlists" as const, label: "Playlists" },
+                    { key: "search" as const, label: "Search" },
+
         ].map((tab) => (
           <button
             key={tab.key}
@@ -181,16 +182,6 @@ export default function ManagePlaylistsAndSearch({
           />
         )}
       </div>
-
-      {/* {tracks.length > 0 && activePanel === "search" && (
-        <TrackList
-          tracks={tracks}
-          onTrackSelected={handleSearchTrackSelected}
-          twoColumnOnLarge={soloExpanded}
-          playlists={playlists}
-          onMoveTrack={onMoveTrack}
-        />
-      )} */}
     </section>
   );
 }
