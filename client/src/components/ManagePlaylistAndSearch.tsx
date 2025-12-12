@@ -1,7 +1,6 @@
 import SpotifySearch from "./SpotifySearch";
 import type { Track } from "@/types/types";
 import { useCallback, useEffect, useState } from "react";
-import TrackList from "./TrackList";
 import clsx from "clsx";
 import { useTheme } from "@/context/ThemeContext";
 import { useCurrentTrack } from "@/context/CurrentTrackContext";
@@ -108,7 +107,7 @@ export default function ManagePlaylistsAndSearch({
   const isLight = theme === "light";
   const sectionClass = clsx(
     useSectionClass(isLight, 1),
-    "mx-auto w-full max-w-[900px]"
+    "mx-auto w-full"
   );
 
   return (
@@ -137,7 +136,7 @@ export default function ManagePlaylistsAndSearch({
         </div>
       </div>
 
-      <div className="mb-4 flex rounded-full border p-1 text-xs font-semibold uppercase tracking-[0.2em] bg-white/5 border-white/10 dark:bg-white/5 dark:border-white/10">
+      <div className="mt-4 mb-6 flex justify-end gap-4">
         {[
           { key: "search" as const, label: "Search" },
           { key: "playlists" as const, label: "Playlists" },
@@ -149,14 +148,14 @@ export default function ManagePlaylistsAndSearch({
               setActivePanel(tab.key);
             }}
             className={clsx(
-              "flex-1 rounded-full px-3 py-1 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber",
+              "flex-1 rounded-t-xl px-4 py-2 transition  text-xs font-semibold uppercase tracking-[0.35em] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber",
               activePanel === tab.key
                 ? isLight
                   ? "bg-teal/40 text-midnight"
                   : "bg-teal text-midnight"
                 : isLight
-                ? "text-slate-600 hover:text-slate-900"
-                : "text-white/60 hover:text-white"
+                ? "bg-teal/5 text-slate-600 hover:text-slate-900"
+                : "bg-white/10 text-white/60 hover:text-white"
             )}
           >
             {tab.label}
@@ -164,9 +163,15 @@ export default function ManagePlaylistsAndSearch({
         ))}
       </div>
 
-      <div className="max-h-max min-h-fit flex-1 overflow-y-auto pr-1">
+      <div className="max-h-max min-h-fit flex-1 overflow-y-auto">
         {activePanel === "search" ? (
-          <SpotifySearch onSetTracks={handleSetTracks} />
+          <SpotifySearch onSetTracks={handleSetTracks}
+          tracks={tracks}
+          onTrackSelected={handleSearchTrackSelected}
+          twoColumnOnLarge={soloExpanded}
+          playlists={playlists}
+          onMoveTrack={onMoveTrack}
+        />
         ) : (
           <ManagePlaylistsPanel
             compactPlaylistGrid={compactPlaylistGrid}
@@ -177,7 +182,7 @@ export default function ManagePlaylistsAndSearch({
         )}
       </div>
 
-      {tracks.length > 0 && activePanel === "search" && (
+      {/* {tracks.length > 0 && activePanel === "search" && (
         <TrackList
           tracks={tracks}
           onTrackSelected={handleSearchTrackSelected}
@@ -185,7 +190,7 @@ export default function ManagePlaylistsAndSearch({
           playlists={playlists}
           onMoveTrack={onMoveTrack}
         />
-      )}
+      )} */}
     </section>
   );
 }

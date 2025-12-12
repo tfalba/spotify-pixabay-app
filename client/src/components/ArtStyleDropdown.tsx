@@ -40,7 +40,7 @@ export default function ArtStyleDropdown({
           onStyleChange?.(e.target.value as StyleCategory | "surprise")
         }
         className={clsx(
-          "bg-transparent text-xs font-semibold uppercase tracking-wide focus-visible:outline-none text-transparent sm:text-inherit w-[15px] sm:w-auto",
+          "bg-transparent text-xs font-semibold uppercase tracking-wide focus-visible:outline-none text-inherit w-auto",
           isLight ? "sm:text-slate-800" : "sm:text-white"
         )}
       >

@@ -73,7 +73,7 @@ export default function Home({ pixabay, albumCover }: Props) {
             soloExpanded={manageSoloExpanded}
           />
         ),
-        maxWidth: 900,
+        maxWidth: 1050,
       },
       {
         id: "lyrics" as const,

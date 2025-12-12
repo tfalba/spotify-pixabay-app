@@ -31,12 +31,12 @@ function TrackCard({ track, selected = false, isLight, actions }: CardProps) {
         {track.image && (
           <img
             src={track.image}
-            className="h-16 w-16 rounded-xl object-cover shadow-inner"
+            className="h-16 w-16  rounded-xl object-cover shadow-inner"
             alt="album art"
           />
         )}
-        <div className="flex flex-1 items-center gap-3 min-w-0">
-          <div className="flex-1 min-w-0">
+        <div className="flex flex-[3] items-center gap-3 min-w-0">
+          <div className="min-w-0">
             <div
               className={clsx(
                 "truncate text-sm font-semibold",
@@ -57,10 +57,11 @@ function TrackCard({ track, selected = false, isLight, actions }: CardProps) {
                 : (track.artists as unknown as string)}
             </div>
           </div>
-          {actions && (
-            <div className="flex gap-2 items-end shrink-0">{actions}</div>
-          )}
+         
         </div>
+         {actions && (
+            <div className="flex flex-1 gap-2 items-end shrink-0">{actions}</div>
+          )}
       </div>
     </div>
   );
@@ -117,9 +118,11 @@ export default function TrackList({
         "flex-[2] mt-6 overflow-hidden overflow-y-auto rounded-2xl shadow-inner",
         isLight
           ? "border border-slate-200 bg-white"
-          : "bg-gradient-to-br from-teal/10 via-aurora/25 to-teal/40"
+          // : "border border-white/10 bg-black/20",
+          : "bg-gradient-to-br from-teal/10 via-aurora/25 to-teal/20"
       )}
     >
+      {tracks.length > 0 && (
       <div
         className={clsx(
           twoColumnOnLarge
@@ -183,17 +186,8 @@ export default function TrackList({
             </div>
           );
         })}
-        {tracks.length === 0 && (
-          <div
-            className={clsx(
-              "p-4 text-center text-sm",
-              isLight ? "text-slate-500" : "text-slate-400"
-            )}
-          >
-            No tracks
-          </div>
-        )}
       </div>
+      )}
       <MoveTrackModal
         isOpen={moveModalOpen}
         track={trackToMove}

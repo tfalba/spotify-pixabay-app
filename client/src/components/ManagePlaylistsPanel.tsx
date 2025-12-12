@@ -178,15 +178,19 @@ function ManagePlaylistsPanel({
   return (
     <section
       className={clsx(
-        "flex h-full min-h-0 flex-col gap-4 rounded-3xl border p-6",
-        isLight
-          ? "border-slate-200 bg-white/80 text-slate-700"
-          : "border-white/10 bg-white/5 text-white"
+        "flex h-full min-h-0 flex-col gap-4 rounded-b-3xl p-6",
+        isLight ? "bg-white/80 text-slate-700" : " bg-white/5 text-white"
       )}
     >
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
-          <h2 className="text-lg font-semibold tracking-tight">
+          <h2
+            className={clsx(
+              "text-sm font-semibold uppercase tracking-[0.2em]",
+              isLight ? "text-slate-500" : "text-slate-400"
+            )}
+          >
+            {" "}
             Manage Playlists
           </h2>
           <p className="text-sm text-slate-500 dark:text-slate-300">

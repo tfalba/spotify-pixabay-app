@@ -47,7 +47,7 @@ export default function HeroBar({
         <div className="absolute right-0 -bottom-24 h-48 w-48 rounded-full bg-lilac/40 blur-3xl" />
       </div>
 
-      <div className="absolute inset-x-0 bottom-6 flex justify-end px-4">
+      <div className="absolute inset-x-0 bottom-10 flex justify-end px-4">
         <motion.div
           initial={{ y: 40, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
@@ -67,7 +67,7 @@ export default function HeroBar({
                 type="button"
                 onClick={() => setActiveTab(tab.key)}
                 className={clsx(
-                  "flex-1 rounded-full px-4 py-2 text-xs font-semibold uppercase tracking-[0.35em] transition",
+                  "flex-1 rounded-t-xl px-4 py-2 text-xs font-semibold uppercase tracking-[0.35em] transition",
                   activeTab === tab.key
                     ? isLight
                       ? "bg-teal/50 text-midnight"
@@ -107,22 +107,11 @@ export default function HeroBar({
                 <p className="text-xs font-semibold uppercase tracking-[0.25em] text-slate-400">
                   Art Style
                 </p>
-                {/* <p className="mt-2 text-sm md:text-base">
-                  Current style: {" "}
-                  <span
-                    className={clsx(
-                      "font-semibold",
-                      isLight ? "text-teal-700" : "text-teal-200",
-                    )}
-                  >
-                    {resolvedStyleName}
-                  </span>
-                </p> */}
-                <p className="mt-2 text-sm md:text-base">
+                <p className="mt-2 text-sm text-slate-400">
                   Swap styles anytime—your next PNG will take on a whole new mood.
                 </p>
               </div>
-              <div className="flex flex-col gap-3 md:flex-row">
+              <div className="flex flex-col gap-3 md:flex-row justify-end items-end">
                 <button
                   type="button"
                   onClick={onToggleTheme}
