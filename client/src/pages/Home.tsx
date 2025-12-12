@@ -4,6 +4,7 @@ import {
   useMemo,
   useRef,
   useState,
+  type JSX,
 } from "react";
 import clsx from "clsx";
 import LyricPlayerContainer from "../components/LyricPlayerContainer";
@@ -30,6 +31,13 @@ type Props = {
   albumCover?: string | null;
 };
 
+type SectionConfig = {
+  id: "manage" | "lyrics" | "pixabay";
+  title: string;
+  ratio: number;
+  render: () => JSX.Element;
+  maxWidth?: number;
+};
 
 export default function Home({ pixabay, albumCover }: Props) {
   const { theme } = useTheme();
@@ -48,19 +56,13 @@ export default function Home({ pixabay, albumCover }: Props) {
   });
   const previousCollapsedRef = useRef<typeof collapsed | null>(null);
 
-  const allPanelsExpanded = !collapsed.manage && !collapsed.lyrics && !collapsed.pixabay;
-  const manageSoloExpanded = !collapsed.manage && collapsed.lyrics && collapsed.pixabay;
+  const allPanelsExpanded =
+    !collapsed.manage && !collapsed.lyrics && !collapsed.pixabay;
+  const manageSoloExpanded =
+    !collapsed.manage && collapsed.lyrics && collapsed.pixabay;
 
-  const sectionMeta = useMemo(
+  const sectionMeta = useMemo<SectionConfig[]>(
     () => [
-      // {
-      //   id: "tracks" as const,
-      //   title: "Track Discovery",
-      //   ratio: 27,
-      //   render: () => (
-      //     <TracksListsContainer handleQueueChange={handleQueueChange} />
-      //   ),
-      // },
       {
         id: "manage" as const,
         title: "Manage Playlists",
@@ -71,14 +73,14 @@ export default function Home({ pixabay, albumCover }: Props) {
             soloExpanded={manageSoloExpanded}
           />
         ),
+        maxWidth: 900,
       },
       {
         id: "lyrics" as const,
         title: "Lyrics",
         ratio: 27,
-        render: () => (
-          <LyricPlayerContainer />
-        ),
+        render: () => <LyricPlayerContainer />,
+        maxWidth: 700,
       },
       {
         id: "pixabay" as const,
@@ -134,8 +136,8 @@ export default function Home({ pixabay, albumCover }: Props) {
       [id]: !prev[id],
     }));
   }, []);
-  
-    const focusOnLyricsPanel = useCallback(() => {
+
+  const focusOnLyricsPanel = useCallback(() => {
     setCollapsed((prev) => ({
       ...prev,
       manage: false,
@@ -183,10 +185,11 @@ export default function Home({ pixabay, albumCover }: Props) {
         className={mainClass}
         style={{ gridTemplateColumns: dynamicColumns }}
       >
-        
-
         {sectionMeta.map((section) => {
           const isCollapsed = collapsed[section.id];
+          const wrapperStyle = section.maxWidth
+            ? { maxWidth: `${section.maxWidth}px` }
+            : undefined;
           return (
             <div
               key={section.id}
@@ -208,18 +211,27 @@ export default function Home({ pixabay, albumCover }: Props) {
                   aria-label={`Expand ${section.title}`}
                 >
                   <span className="text-lg leading-none">+</span>
-                  <span
-                    className="text-[11px] uppercase tracking-[0.3em]"
-                  >
-                    <span className="hidden lg:inline" style={{ writingMode: "vertical-rl", textOrientation: "mixed" }}>
+                  <span className="text-[11px] uppercase tracking-[0.3em]">
+                    <span
+                      className="hidden lg:inline"
+                      style={{
+                        writingMode: "vertical-rl",
+                        textOrientation: "mixed",
+                      }}
+                    >
                       {section.title}
                     </span>
                     <span className="lg:hidden">{section.title}</span>
-                  
                   </span>
                 </button>
               ) : (
-                <>
+                <div
+                  className={clsx(
+                    "relative flex h-full w-full",
+                    section.maxWidth ? "justify-center" : "justify-start"
+                  )}
+                  style={wrapperStyle}
+                >
                   <button
                     type="button"
                     onClick={() => toggleSection(section.id)}
@@ -233,8 +245,8 @@ export default function Home({ pixabay, albumCover }: Props) {
                   >
                     −
                   </button>
-                  {section.render()}
-                </>
+                  <div className="h-full w-full">{section.render()}</div>
+                </div>
               )}
             </div>
           );

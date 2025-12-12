@@ -8,6 +8,8 @@ import { useCurrentTrack } from "@/context/CurrentTrackContext";
 import { useSectionsContext } from "@/context/SectionsContext";
 import { useSectionClass } from "@/styleHooks/useStyleHooks";
 import ManagePlaylistsPanel from "./ManagePlaylistsPanel";
+import { getAllUserPlaylists, type SpotifyPlaylist } from "@/lib/spotify";
+import { moveTrackOnServer } from "@/lib/spotifyActions";
 
 type ManagePlaylistsAndSearchProps = {
   compactPlaylistGrid?: boolean;
@@ -22,21 +24,24 @@ type DiscoverPanelSnapshot = {
 let lastTrackSource: "search" | "playlists" | null = null;
 let persistedDiscoverState: DiscoverPanelSnapshot | null = null;
 
-export default function ManagePlaylistsAndSearch({ compactPlaylistGrid = false, soloExpanded = false }: ManagePlaylistsAndSearchProps) {
+export default function ManagePlaylistsAndSearch({
+  compactPlaylistGrid = false,
+  soloExpanded = false,
+}: ManagePlaylistsAndSearchProps) {
   const { theme } = useTheme();
   const { setCurrent, handleQueueChange } = useCurrentTrack();
   const { focusOnLyricsPanel } = useSectionsContext();
-  const [tracks, setTracks] = useState<Track[]>(() => persistedDiscoverState?.tracks ?? []);
+  const [tracks, setTracks] = useState<Track[]>(
+    () => persistedDiscoverState?.tracks ?? []
+  );
   const [activePanel, setActivePanel] = useState<"search" | "playlists">(
-    () => persistedDiscoverState?.activePanel ?? lastTrackSource ?? "search",
+    () => persistedDiscoverState?.activePanel ?? lastTrackSource ?? "search"
   );
+  const [playlists, setPlaylists] = useState<SpotifyPlaylist[]>(() => []);
 
-  const handleSetTracks = useCallback(
-    (nextTracks: Track[]) => {
-      setTracks(nextTracks);
-    },
-    [],
-  );
+  const handleSetTracks = useCallback((nextTracks: Track[]) => {
+    setTracks(nextTracks);
+  }, []);
 
   const handleSearchTrackSelected = useCallback(
     (track: Track) => {
@@ -47,7 +52,7 @@ export default function ManagePlaylistsAndSearch({ compactPlaylistGrid = false, 
       setCurrent(track);
       focusOnLyricsPanel();
     },
-    [focusOnLyricsPanel, handleQueueChange, setCurrent, tracks],
+    [focusOnLyricsPanel, handleQueueChange, setCurrent, tracks]
   );
 
   const handlePlaylistTrackSelected = useCallback(
@@ -58,8 +63,16 @@ export default function ManagePlaylistsAndSearch({ compactPlaylistGrid = false, 
       setCurrent(track);
       focusOnLyricsPanel();
     },
-    [focusOnLyricsPanel, handleQueueChange, setCurrent],
+    [focusOnLyricsPanel, handleQueueChange, setCurrent]
   );
+
+  const onMoveTrack = async (
+    trackId: string,
+    sourcePlaylistId: string,
+    targetPlaylistId: string
+  ) => {
+    await moveTrackOnServer(trackId, sourcePlaylistId, targetPlaylistId);
+  };
 
   useEffect(() => {
     return () => {
@@ -70,9 +83,34 @@ export default function ManagePlaylistsAndSearch({ compactPlaylistGrid = false, 
     };
   }, [activePanel, tracks]);
 
+  useEffect(() => {
+    let active = true;
+    if (playlists.length) {
+      return () => {
+        active = false;
+      };
+    }
+    (async () => {
+      try {
+        const pls = await getAllUserPlaylists();
+        if (!active) return;
+        setPlaylists(pls);
+      } catch (e: any) {
+        if (!active) return;
+        // absorb error
+      }
+    })();
+    return () => {
+      active = false;
+    };
+  }, [playlists.length]);
+
   const isLight = theme === "light";
-  const sectionClass = useSectionClass(isLight, 1);
- 
+  const sectionClass = clsx(
+    useSectionClass(isLight, 1),
+    "mx-auto w-full max-w-[900px]"
+  );
+
   return (
     <section className={sectionClass}>
       <div className="flex items-center gap-3 pb-3">
@@ -83,12 +121,17 @@ export default function ManagePlaylistsAndSearch({ compactPlaylistGrid = false, 
           <h2
             className={clsx(
               "text-lg font-semibold tracking-tight",
-              isLight ? "text-slate-900" : "text-slate-50",
+              isLight ? "text-slate-900" : "text-slate-50"
             )}
           >
             Discover Tracks
           </h2>
-          <p className={clsx("text-sm", isLight ? "text-slate-500" : "text-slate-400")}>
+          <p
+            className={clsx(
+              "text-sm",
+              isLight ? "text-slate-500" : "text-slate-400"
+            )}
+          >
             Search Spotify, view playlists, and set the tone.
           </p>
         </div>
@@ -108,10 +151,12 @@ export default function ManagePlaylistsAndSearch({ compactPlaylistGrid = false, 
             className={clsx(
               "flex-1 rounded-full px-3 py-1 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber",
               activePanel === tab.key
-                ? isLight ? "bg-teal/40 text-midnight" : "bg-teal text-midnight"
+                ? isLight
+                  ? "bg-teal/40 text-midnight"
+                  : "bg-teal text-midnight"
                 : isLight
-                  ? "text-slate-600 hover:text-slate-900"
-                  : "text-white/60 hover:text-white",
+                ? "text-slate-600 hover:text-slate-900"
+                : "text-white/60 hover:text-white"
             )}
           >
             {tab.label}
@@ -127,6 +172,7 @@ export default function ManagePlaylistsAndSearch({ compactPlaylistGrid = false, 
             compactPlaylistGrid={compactPlaylistGrid}
             twoColumnOnLarge={soloExpanded}
             onTrackSelected={handlePlaylistTrackSelected}
+            onMoveTrack={onMoveTrack}
           />
         )}
       </div>
@@ -136,6 +182,8 @@ export default function ManagePlaylistsAndSearch({ compactPlaylistGrid = false, 
           tracks={tracks}
           onTrackSelected={handleSearchTrackSelected}
           twoColumnOnLarge={soloExpanded}
+          playlists={playlists}
+          onMoveTrack={onMoveTrack}
         />
       )}
     </section>

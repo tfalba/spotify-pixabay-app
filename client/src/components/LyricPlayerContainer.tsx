@@ -20,7 +20,10 @@ export default function LyricPlayerContainer() {
 
   const { theme } = useTheme();
   const isLight = theme === "light";
-  const containerClass = useSectionClass(isLight, 2);
+  const containerClass = clsx(
+    useSectionClass(isLight, 2),
+    "mx-auto w-full max-w-[700px]",
+  );
 
   useEffect(() => {
     if (!current?.artists[0].name || !current?.name) {

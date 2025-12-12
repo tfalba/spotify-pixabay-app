@@ -3,16 +3,33 @@ import cors, { CorsOptions } from "cors";
 import cookieParser from "cookie-parser";
 import { env } from "./env";
 
-import { login, callback, refreshToken, logout, token, getAccessToken } from "./auth";
+import {
+  login,
+  callback,
+  refreshToken,
+  logout,
+  token,
+  getAccessToken,
+} from "./auth";
 import { spotifySearch, spotifyProfile } from "./spotify";
 import { pixabaySearch } from "./pixabay";
 import { fetchLyrics } from "./lyrics";
 import {
-  transfer, play, pause, nextT, prevT,
-  seek, volume, shuffle, repeat, devices, state
+  transfer,
+  play,
+  pause,
+  nextT,
+  prevT,
+  seek,
+  volume,
+  shuffle,
+  repeat,
+  devices,
+  state,
 } from "./player";
 import imagesRouter from "./images";
 import demoRouter from "./demoImages";
+import { playlistsRouter } from "./playlists";
 
 const app = express();
 
@@ -22,12 +39,12 @@ app.use(express.json());
 // ----- CORS (allowlist + credentials) -----
 const allowed = (process.env.ALLOWED_ORIGINS || "")
   .split(",")
-  .map(s => s.trim())
+  .map((s) => s.trim())
   .filter(Boolean);
 
 const corsOptions: CorsOptions = {
   origin: (origin, cb) => {
-    if (!origin) return cb(null, true);           // allow server-to-server and curl
+    if (!origin) return cb(null, true); // allow server-to-server and curl
     if (allowed.includes(origin)) return cb(null, true);
     return cb(new Error(`CORS blocked for ${origin}`));
   },
@@ -41,6 +58,7 @@ app.use(cookieParser(process.env.SESSION_SECRET));
 // ----- Routers / routes -----
 app.use("/api", imagesRouter);
 app.use("/api/demo", demoRouter);
+app.use("/api/spotify", playlistsRouter);
 
 // Health (match your Render health check path)
 app.get("/api/health", (_req, res) => res.json({ ok: true }));
@@ -50,7 +68,7 @@ app.get("/auth/login", login);
 app.get("/auth/callback", callback);
 app.post("/auth/refresh", refreshToken);
 app.post("/auth/logout", logout);
-app.post("/auth/token", token);  // <-- POST so client can call with credentials
+app.post("/auth/token", token); // <-- POST so client can call with credentials
 
 // --------- Spotify-proxied endpoints (server-side) ---------
 
@@ -79,9 +97,15 @@ app.get("/api/me", async (req, res) => {
 });
 
 // Example: playlists (auto-pagination) using a local helper
-async function sfetchWithAuth(req: express.Request, res: express.Response, url: string) {
+async function sfetchWithAuth(
+  req: express.Request,
+  res: express.Response,
+  url: string
+) {
   const access = await getAccessToken(req, res);
-  const r = await fetch(url, { headers: { Authorization: `Bearer ${access}` } });
+  const r = await fetch(url, {
+    headers: { Authorization: `Bearer ${access}` },
+  });
   if (!r.ok) {
     const text = await r.text();
     throw new Error(`Spotify ${r.status}: ${text}`);
