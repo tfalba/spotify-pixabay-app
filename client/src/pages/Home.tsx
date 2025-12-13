@@ -15,6 +15,7 @@ import type { KeywordPlan } from "@/hooks/useLyricsImages";
 import type { HeroImage, ImageCard } from "@/api/lyricsTypes";
 import type { StyleCategory } from "@/types/types";
 import { SectionsContextProvider } from "@/context/SectionsContext";
+import { PlaylistsProvider } from "@/context/PlaylistsContext";
 import ManagePlaylistsAndSearch from "@/components/ManagePlaylistAndSearch";
 
 type Props = {
@@ -180,7 +181,8 @@ export default function Home({ pixabay, albumCover }: Props) {
   }, [current]);
 
   return (
-    <SectionsContextProvider value={{ focusOnLyricsPanel }}>
+    <PlaylistsProvider>
+      <SectionsContextProvider value={{ focusOnLyricsPanel }}>
       <main
         className={mainClass}
         style={{ gridTemplateColumns: dynamicColumns }}
@@ -252,6 +254,7 @@ export default function Home({ pixabay, albumCover }: Props) {
           );
         })}
       </main>
-    </SectionsContextProvider>
+      </SectionsContextProvider>
+    </PlaylistsProvider>
   );
 }

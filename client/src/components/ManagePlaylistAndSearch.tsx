@@ -7,8 +7,6 @@ import { useCurrentTrack } from "@/context/CurrentTrackContext";
 import { useSectionsContext } from "@/context/SectionsContext";
 import { useSectionClass } from "@/styleHooks/useStyleHooks";
 import ManagePlaylistsPanel from "./ManagePlaylistsPanel";
-import { getAllUserPlaylists, type SpotifyPlaylist } from "@/lib/spotify";
-import { moveTrackOnServer } from "@/lib/spotifyActions";
 
 type ManagePlaylistsAndSearchProps = {
   compactPlaylistGrid?: boolean;
@@ -20,7 +18,7 @@ type DiscoverPanelSnapshot = {
   tracks: Track[];
 };
 
-let lastTrackSource: "search" | "playlists" | null = null;
+let lastTrackSource: "playlists" | "search" | null = null;
 let persistedDiscoverState: DiscoverPanelSnapshot | null = null;
 
 export default function ManagePlaylistsAndSearch({
@@ -36,7 +34,6 @@ export default function ManagePlaylistsAndSearch({
   const [activePanel, setActivePanel] = useState<"search" | "playlists">(
     () => persistedDiscoverState?.activePanel ?? lastTrackSource ?? "playlists"
   );
-  const [playlists, setPlaylists] = useState<SpotifyPlaylist[]>(() => []);
 
   const handleSetTracks = useCallback((nextTracks: Track[]) => {
     setTracks(nextTracks);
@@ -65,14 +62,6 @@ export default function ManagePlaylistsAndSearch({
     [focusOnLyricsPanel, handleQueueChange, setCurrent]
   );
 
-  const onMoveTrack = async (
-    trackId: string,
-    sourcePlaylistId: string,
-    targetPlaylistId: string
-  ) => {
-    await moveTrackOnServer(trackId, sourcePlaylistId, targetPlaylistId);
-  };
-
   useEffect(() => {
     return () => {
       persistedDiscoverState = {
@@ -81,28 +70,6 @@ export default function ManagePlaylistsAndSearch({
       };
     };
   }, [activePanel, tracks]);
-
-  useEffect(() => {
-    let active = true;
-    if (playlists.length) {
-      return () => {
-        active = false;
-      };
-    }
-    (async () => {
-      try {
-        const pls = await getAllUserPlaylists();
-        if (!active) return;
-        setPlaylists(pls);
-      } catch (e: any) {
-        if (!active) return;
-        // absorb error
-      }
-    })();
-    return () => {
-      active = false;
-    };
-  }, [playlists.length]);
 
   const isLight = theme === "light";
   const sectionClass = clsx(
@@ -166,19 +133,17 @@ export default function ManagePlaylistsAndSearch({
 
       <div className="max-h-max min-h-fit flex-1 overflow-y-auto">
         {activePanel === "search" ? (
-          <SpotifySearch onSetTracks={handleSetTracks}
-          tracks={tracks}
-          onTrackSelected={handleSearchTrackSelected}
-          twoColumnOnLarge={soloExpanded}
-          playlists={playlists}
-          onMoveTrack={onMoveTrack}
-        />
+          <SpotifySearch
+            onSetTracks={handleSetTracks}
+            tracks={tracks}
+            onTrackSelected={handleSearchTrackSelected}
+            twoColumnOnLarge={soloExpanded}
+          />
         ) : (
           <ManagePlaylistsPanel
             compactPlaylistGrid={compactPlaylistGrid}
             twoColumnOnLarge={soloExpanded}
             onTrackSelected={handlePlaylistTrackSelected}
-            onMoveTrack={onMoveTrack}
           />
         )}
       </div>

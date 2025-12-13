@@ -5,20 +5,14 @@ import type { Track } from "../types/types";
 import { useSpotifyPlayerContext } from "../context/SpotifyPlayerProvider";
 import { LoginButton } from "./LoginButtons";
 import { useTheme } from "@/context/ThemeContext";
-import type { SpotifyPlaylist } from "@/lib/spotify";
 import TrackList from "./TrackList";
+import { usePlaylists } from "@/context/PlaylistsContext";
 
 type Props = {
   onSetTracks?: (tracks: Track[]) => void;
   tracks: Track[];
   onTrackSelected: (track: Track) => void;
   twoColumnOnLarge?: boolean;
-  playlists: SpotifyPlaylist[];
-  onMoveTrack: (
-    trackId: string,
-    sourcePlaylistId: string,
-    targetPlaylistId: string
-  ) => Promise<void>;
 };
 
 export default function SpotifySearch({
@@ -26,8 +20,6 @@ export default function SpotifySearch({
   tracks,
   onTrackSelected,
   twoColumnOnLarge,
-  playlists,
-  onMoveTrack,
 }: Props) {
   const [q, setQ] = useState("");
   const [loading, setLoading] = useState(false);
@@ -38,6 +30,7 @@ export default function SpotifySearch({
   const API_BASE = import.meta.env.VITE_API_BASE ?? "";
 
   const { isAuthenticated, pause } = useSpotifyPlayerContext();
+  const { clearSelectedPlaylist } = usePlaylists();
   const { theme } = useTheme();
   const isLight = theme === "light";
 
@@ -87,12 +80,15 @@ export default function SpotifySearch({
       hadQueryRef.current = false;
       return;
     }
+    if (!hadQueryRef.current) {
+      clearSelectedPlaylist();
+    }
     hadQueryRef.current = true;
     const id = setTimeout(() => {
       search(trimmed).catch(() => {});
     }, 350);
     return () => clearTimeout(id);
-  }, [q]);
+  }, [q, clearSelectedPlaylist, search, stopPlayback]);
 
   function clearSearch() {
     if (ctrl.current) ctrl.current.abort();
@@ -180,8 +176,6 @@ export default function SpotifySearch({
           tracks={tracks}
           onTrackSelected={onTrackSelected}
           twoColumnOnLarge={twoColumnOnLarge}
-          playlists={playlists}
-          onMoveTrack={onMoveTrack}
         />
       )}
     </section>

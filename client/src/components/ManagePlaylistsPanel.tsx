@@ -1,7 +1,6 @@
 import { useTheme } from "@/context/ThemeContext";
 import {
   getAllPlaylistTracks,
-  getAllUserPlaylists,
   type SpotifyPlaylist,
   type SpotifyTrack,
 } from "@/lib/spotify";
@@ -9,8 +8,8 @@ import clsx from "clsx";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { Track } from "@/types/types";
 import TrackList from "./TrackList";
-import { useSpotifyPlayerContext } from "@/context/SpotifyPlayerProvider";
 import { LoginButton } from "./LoginButtons";
+import { usePlaylists } from "@/context/PlaylistsContext";
 
 function mapSpotifyTrackToTrack(track: SpotifyTrack): Track {
   const albumImages = track.album?.images ?? [];
@@ -36,16 +35,9 @@ type ManagePlaylistsPanelProps = {
   compactPlaylistGrid?: boolean;
   twoColumnOnLarge?: boolean;
   onTrackSelected?: (track: Track, queue: Track[]) => void;
-  onMoveTrack: (
-    trackId: string,
-    playlistId: string,
-    sourcePlaylistId: string
-  ) => Promise<void>;
 };
 
 type PanelSnapshot = {
-  playlists: SpotifyPlaylist[];
-  selectedPlaylistId: string | null;
   tracks: Track[];
   trackCache: Record<string, Track[]>;
 };
@@ -68,22 +60,18 @@ function ManagePlaylistsPanel({
   compactPlaylistGrid = false,
   twoColumnOnLarge = false,
   onTrackSelected,
-  onMoveTrack,
 }: ManagePlaylistsPanelProps) {
   const { theme } = useTheme();
   const isLight = theme === "light";
-  const [playlists, setPlaylists] = useState<SpotifyPlaylist[]>(
-    () => lastPanelState?.playlists ?? []
-  );
-  const [loading, setLoading] = useState(
-    () => !lastPanelState?.playlists?.length
-  );
-    const { isAuthenticated } = useSpotifyPlayerContext();
-  
-  const [error, setError] = useState<string | null>(null);
-  const [selectedId, setSelectedId] = useState<string | null>(
-    () => lastPanelState?.selectedPlaylistId ?? null
-  );
+  const {
+    playlists,
+    loading,
+    error,
+    refresh,
+    isAuthenticated,
+    selectedPlaylistId,
+    setSelectedPlaylistId,
+  } = usePlaylists();
   const [trackCache, setTrackCache] = useState<Record<string, Track[]>>(() =>
     restoreCache(
       lastPanelState?.trackCache as
@@ -96,80 +84,97 @@ function ManagePlaylistsPanel({
   );
   const [tracksLoading, setTracksLoading] = useState(false);
   const [tracksError, setTracksError] = useState<string | null>(null);
-
-  useEffect(() => {
-    let active = true;
-    if (playlists.length || !isAuthenticated) {
-      setLoading(false);
-      return () => {
-        active = false;
-      };
-    }
-    (async () => {
-      try {
-        setLoading(true);
-        const pls = await getAllUserPlaylists();
-        if (!active) return;
-        setPlaylists(pls);
-      } catch (e: any) {
-        if (!active) return;
-        setError(e?.message ?? "Failed to load playlists");
-      } finally {
-        if (active) setLoading(false);
-      }
-    })();
-    return () => {
-      active = false;
-    };
-  }, [playlists.length]);
+  const [localError, setLocalError] = useState<string | null>(null);
 
   const selected = useMemo(() => {
-    if (!selectedId) return null;
-    return playlists.find((p) => p.id === selectedId) ?? null;
-  }, [playlists, selectedId]);
+    if (!selectedPlaylistId) return null;
+    return playlists.find((p) => p.id === selectedPlaylistId) ?? null;
+  }, [playlists, selectedPlaylistId]);
+
+//   useEffect(() => {
+//     if (!playlists.length && selectedPlaylistId) {
+//       setSelectedPlaylistId(null);
+//     }
+//   }, [playlists.length, selectedPlaylistId, setSelectedPlaylistId]);
 
   useEffect(() => {
     return () => {
       lastPanelState = {
-        playlists,
-        selectedPlaylistId: selected ? selected.id : null,
         tracks,
         trackCache,
       };
     };
-  }, [playlists, selected, tracks, trackCache]);
+  }, [tracks, trackCache]);
 
-  const handleSelect = useCallback(
-    async (playlist: SpotifyPlaylist) => {
-      setSelectedId(playlist.id);
-      setTracksError(null);
-      const cached = trackCache[playlist.id];
-      if (cached) {
-        setTracks(cached);
-        setTracksLoading(false);
-        return;
-      }
+  useEffect(() => {
+    let active = true;
+    if (!selectedPlaylistId) {
       setTracks([]);
-      setTracksLoading(true);
+      setTracksError(null);
+      setLocalError(null);
+      setTracksLoading(false);
+      return () => {
+        active = false;
+      };
+    }
+
+    const cached = trackCache[selectedPlaylistId];
+    if (cached) {
+      setTracks(cached);
+      setTracksLoading(false);
+      return () => {
+        active = false;
+      };
+    }
+
+    const playlist = playlists.find((p) => p.id === selectedPlaylistId);
+    if (!playlist) {
+      setSelectedPlaylistId(null);
+      setTracks([]);
+      return () => {
+        active = false;
+      };
+    }
+
+    setTracks([]);
+    setTracksLoading(true);
+    setTracksError(null);
+    setLocalError(null);
+    (async () => {
       try {
         const ts = await getAllPlaylistTracks(playlist.id);
+        if (!active) return;
         const normalized = ts.map(mapSpotifyTrackToTrack);
         setTracks(normalized);
         setTrackCache((prev) => ({ ...prev, [playlist.id]: normalized }));
       } catch (e: any) {
-        setTracksError(e?.message ?? "Failed to load playlist tracks");
+        if (!active) return;
+        const message = e?.message ?? "Failed to load playlist tracks";
+        setTracksError(message);
+        setLocalError(message);
       } finally {
-        setTracksLoading(false);
+        if (active) setTracksLoading(false);
       }
+    })();
+
+    return () => {
+      active = false;
+    };
+  }, [selectedPlaylistId, playlists, trackCache, setSelectedPlaylistId]);
+
+  const handleSelect = useCallback(
+    (playlist: SpotifyPlaylist) => {
+      setSelectedPlaylistId(playlist.id);
     },
-    [trackCache]
+    [setSelectedPlaylistId],
   );
 
   const handleBack = useCallback(() => {
-    setSelectedId(null);
+    setSelectedPlaylistId(null);
     setTracks([]);
     setTracksError(null);
-  }, []);
+    setLocalError(null);
+  }, [setSelectedPlaylistId]);
 
   const handleTrackSelect = useCallback(
     (track: Track) => {
@@ -203,43 +208,41 @@ function ManagePlaylistsPanel({
           </p>
         </div>
         {!isAuthenticated ? (
-                   <LoginButton />
-
+          <LoginButton />
         ) : (
-        <button
-          type="button"
-          className={clsx(
-            "rounded-full px-3 py-1 text-xs uppercase tracking-[0.2em]",
-            isLight ? "bg-slate-900 text-white" : "bg-white/80 text-slate-900"
-          )}
-        >
-          Sync
-        </button>
+          <button
+            type="button"
+            onClick={() => refresh().catch(() => {})}
+            className={clsx(
+              "rounded-full px-3 py-1 text-xs uppercase tracking-[0.2em]",
+              isLight ? "bg-slate-900 text-white" : "bg-white/80 text-slate-900",
+            )}
+          >
+            Sync
+          </button>
         )}
       </div>
 
-    {isAuthenticated && (
+      {isAuthenticated && (
         <div>
-      {error && (
-        <div
-          className={clsx(
-            "rounded-2xl border px-3 py-2 text-xs",
-            isLight
-              ? "border-red-200 bg-red-50 text-red-700"
-              : "border-red-500/30 bg-red-500/10 text-red-200"
+          {(error || localError) && (
+            <div
+              className={clsx(
+                "rounded-2xl border px-3 py-2 text-xs",
+                isLight
+                  ? "border-red-200 bg-red-50 text-red-700"
+                  : "border-red-500/30 bg-red-500/10 text-red-200",
+              )}
+            >
+              {error ?? localError ?? "Please try refreshing the page."}
+            </div>
           )}
-        >
-          {/* {error} */}
-          Please make sure you are logged in to Spotify or try refreshing the
-          page.
-        </div>
-      )}
 
       {loading ? (
         <div className="flex flex-1 items-center justify-center text-sm text-slate-500 dark:text-slate-300">
           Loading playlists…
         </div>
-      ) : playlists.length === 0 ? (
+      ) : playlists.length === 0 && !selected ? (
         <div className="flex flex-1 items-center justify-center text-sm text-slate-500 dark:text-slate-300">
           No playlists found.
         </div>
@@ -294,9 +297,7 @@ function ManagePlaylistsPanel({
               tracks={tracks}
               onTrackSelected={handleTrackSelect}
               twoColumnOnLarge={twoColumnOnLarge}
-              playlists={playlists}
-              onMoveTrack={onMoveTrack}
-              sourcePlaylistId={selected.id}
+              sourcePlaylistId={selected?.id ?? ""}
             />
           )}
         </div>

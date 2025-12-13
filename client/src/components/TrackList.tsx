@@ -3,8 +3,8 @@ import type { Track } from "../types/types";
 import clsx from "clsx";
 import { useTheme } from "@/context/ThemeContext";
 import { useCurrentTrack } from "@/context/CurrentTrackContext";
-import type { SpotifyPlaylist } from "@/lib/spotify";
 import { MoveTrackModal } from "./MoveTrackModal";
+import { usePlaylists } from "@/context/PlaylistsContext";
 
 type CardProps = {
   track: Track;
@@ -71,12 +71,6 @@ type Props = {
   tracks: Track[];
   onTrackSelected?: (track: Track) => void;
   twoColumnOnLarge?: boolean;
-  playlists?: SpotifyPlaylist[];
-  onMoveTrack: (
-    trackId: string,
-    sourcePlaylistId: string,
-    targetPlaylistId: string
-  ) => Promise<void>;
   sourcePlaylistId?: string;
 };
 
@@ -84,13 +78,12 @@ export default function TrackList({
   tracks,
   onTrackSelected,
   twoColumnOnLarge = false,
-  playlists = [],
-  onMoveTrack,
   sourcePlaylistId = "",
 }: Props) {
   const { theme } = useTheme();
   const isLight = theme === "light";
   const { current, setCurrent } = useCurrentTrack();
+  const { playlists, moveTrack } = usePlaylists();
   const selectedTrackId = current?.id ?? null;
 
   const [moveModalOpen, setMoveModalOpen] = useState(false);
@@ -108,7 +101,7 @@ export default function TrackList({
 
   const handlePlaylistClick = async (targetPlaylistId: string) => {
     if (!trackToMove || !targetPlaylistId) return;
-    await onMoveTrack(trackToMove.id, sourcePlaylistId, targetPlaylistId);
+    await moveTrack(trackToMove.id, sourcePlaylistId, targetPlaylistId);
     closeMoveModal();
   };
 
