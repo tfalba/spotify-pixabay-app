@@ -26,6 +26,8 @@ type PlaylistsContextValue = {
   selectedPlaylistId: string | null;
   setSelectedPlaylistId: React.Dispatch<React.SetStateAction<string | null>>;
   clearSelectedPlaylist: () => void;
+  currentPlaylistId: string | null;
+  setCurrentPlaylistId: React.Dispatch<React.SetStateAction<string | null>>;
 };
 
 const PlaylistsContext = createContext<PlaylistsContextValue | undefined>(
@@ -38,6 +40,7 @@ export function PlaylistsProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedPlaylistId, setSelectedPlaylistId] = useState<string | null>(null);
+  const [currentPlaylistId, setCurrentPlaylistId] = useState<string | null>(null);
 
   const refresh = useCallback(async () => {
     if (!isAuthenticated) {
@@ -64,6 +67,7 @@ export function PlaylistsProvider({ children }: { children: ReactNode }) {
       setLoading(false);
       setError(null);
       setSelectedPlaylistId(null);
+      setCurrentPlaylistId(null);
       return;
     }
     if (!playlists.length) {
@@ -99,6 +103,8 @@ export function PlaylistsProvider({ children }: { children: ReactNode }) {
       selectedPlaylistId,
       setSelectedPlaylistId,
       clearSelectedPlaylist,
+      currentPlaylistId,
+      setCurrentPlaylistId,
     }),
     [
       playlists,
@@ -110,6 +116,8 @@ export function PlaylistsProvider({ children }: { children: ReactNode }) {
       selectedPlaylistId,
       setSelectedPlaylistId,
       clearSelectedPlaylist,
+      currentPlaylistId,
+      setCurrentPlaylistId,
     ],
   );
 

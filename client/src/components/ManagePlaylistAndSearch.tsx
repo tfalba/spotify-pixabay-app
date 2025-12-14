@@ -7,6 +7,7 @@ import { useCurrentTrack } from "@/context/CurrentTrackContext";
 import { useSectionsContext } from "@/context/SectionsContext";
 import { useSectionClass } from "@/styleHooks/useStyleHooks";
 import ManagePlaylistsPanel from "./ManagePlaylistsPanel";
+import { usePlaylists } from "@/context/PlaylistsContext";
 
 type ManagePlaylistsAndSearchProps = {
   compactPlaylistGrid?: boolean;
@@ -26,8 +27,14 @@ export default function ManagePlaylistsAndSearch({
   soloExpanded = false,
 }: ManagePlaylistsAndSearchProps) {
   const { theme } = useTheme();
-  const { setCurrent, handleQueueChange } = useCurrentTrack();
+  const { current, setCurrent, handleQueueChange } = useCurrentTrack();
   const { focusOnLyricsPanel } = useSectionsContext();
+  const {
+    selectedPlaylistId,
+    currentPlaylistId,
+    setCurrentPlaylistId,
+    setSelectedPlaylistId,
+  } = usePlaylists();
   const [tracks, setTracks] = useState<Track[]>(
     () => persistedDiscoverState?.tracks ?? []
   );
@@ -46,9 +53,10 @@ export default function ManagePlaylistsAndSearch({
       const queueTracks = tracks.length ? tracks : [track];
       handleQueueChange(queueTracks);
       setCurrent(track);
+      setCurrentPlaylistId(null);
       focusOnLyricsPanel();
     },
-    [focusOnLyricsPanel, handleQueueChange, setCurrent, tracks]
+    [focusOnLyricsPanel, handleQueueChange, setCurrent, tracks, setCurrentPlaylistId],
   );
 
   const handlePlaylistTrackSelected = useCallback(
@@ -57,9 +65,10 @@ export default function ManagePlaylistsAndSearch({
       setActivePanel("playlists");
       handleQueueChange(queue.length ? queue : [track]);
       setCurrent(track);
+      setCurrentPlaylistId(selectedPlaylistId ?? null);
       focusOnLyricsPanel();
     },
-    [focusOnLyricsPanel, handleQueueChange, setCurrent]
+    [focusOnLyricsPanel, handleQueueChange, setCurrent, selectedPlaylistId, setCurrentPlaylistId],
   );
 
   useEffect(() => {
@@ -77,30 +86,53 @@ export default function ManagePlaylistsAndSearch({
     "mx-auto w-full"
   );
 
+  const showCurrentPlaylistButton = Boolean(current && currentPlaylistId);
+
   return (
     <section className={sectionClass}>
-      <div className="flex items-center gap-3 pb-3">
-        <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-card-glow text-2xl text-slate shadow-glow">
-          ♪
-        </span>
-        <div>
-          <h2
-            className={clsx(
-              "text-lg font-semibold tracking-tight",
-              isLight ? "text-slate-900" : "text-slate-50"
-            )}
-          >
-            Discover Tracks
-          </h2>
-          <p
-            className={clsx(
-              "text-sm",
-              isLight ? "text-slate-500" : "text-slate-400"
-            )}
-          >
-            Search Spotify, view playlists, and set the tone.
-          </p>
+      <div className="flex items-center gap-3 pb-3 flex-wrap">
+        <div className="flex items-center gap-3">
+          <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-card-glow text-2xl text-slate shadow-glow">
+            ♪
+          </span>
+          <div>
+            <h2
+              className={clsx(
+                "text-lg font-semibold tracking-tight",
+                isLight ? "text-slate-900" : "text-slate-50"
+              )}
+            >
+              Discover Tracks
+            </h2>
+            <p
+              className={clsx(
+                "text-sm",
+                isLight ? "text-slate-500" : "text-slate-400"
+              )}
+            >
+              Search Spotify, view playlists, and set the tone.
+            </p>
+          </div>
         </div>
+        {showCurrentPlaylistButton && (
+          <button
+            type="button"
+            onClick={() => {
+              if (currentPlaylistId) {
+                setSelectedPlaylistId(currentPlaylistId);
+                setActivePanel("playlists");
+              }
+            }}
+            className={clsx(
+              "ml-auto rounded-full border px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.25em] transition focus-visible:outline-none focus-visible:ring-2",
+              isLight
+                ? "border-teal/40 text-teal-700 hover:bg-teal/10 focus-visible:ring-teal/40"
+                : "border-teal/70 text-teal hover:bg-white/10 focus-visible:ring-teal"
+            )}
+          >
+            Show Current Playlist
+          </button>
+        )}
       </div>
 
       <div className="mt-4 flex justify-end gap-4">
