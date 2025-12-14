@@ -1,5 +1,5 @@
 import clsx from "clsx";
-import type { CSSProperties } from "react";
+import { useEffect, useState, type CSSProperties } from "react";
 import type { HeroImage } from "@/api/lyricsTypes";
 
 export type Img = {
@@ -150,7 +150,19 @@ export function FlipPhotoGrid({
     usable.splice(oddIndex, 0, backImg);
   }
 
-  const heroSlotActive = heroLoading || Boolean(heroImage);
+  const [displayedHeroImage, setDisplayedHeroImage] = useState<HeroImage | null>(
+    heroImage ?? null,
+  );
+
+  useEffect(() => {
+    if (heroImage) {
+      setDisplayedHeroImage(heroImage);
+    } else if (!heroLoading) {
+      setDisplayedHeroImage(null);
+    }
+  }, [heroImage, heroLoading]);
+
+  const heroSlotActive = heroLoading || Boolean(displayedHeroImage);
   const targetColumns = fullScreen
     ? MAX_COLUMN_TARGET_FULLSCREEN
     : MAX_COLUMN_TARGET;
@@ -189,24 +201,29 @@ export function FlipPhotoGrid({
       {heroSlotActive && (
         <div className="col-span-2 row-span-3 overflow-hidden rounded-[28px] shadow-lg md:col-span-2">
           <div className="relative h-full w-full">
-            {heroLoading || !heroImage ? (
-              <div className="flex h-full w-full items-center justify-center">
-                <span className="h-10 w-10 animate-spin rounded-full border-4 border-white/30 border-t-teal-400" />
-              </div>
-            ) : (
+            {displayedHeroImage ? (
               <>
                 <img
-                  src={heroImage.url}
-                  alt={heroImage.alt}
+                  src={displayedHeroImage.url}
+                  alt={displayedHeroImage.alt}
                   className="h-full w-full object-cover"
                   loading="lazy"
                 />
-                {heroImage.attribution && (
+                {displayedHeroImage.attribution && (
                   <div className="pointer-events-none absolute bottom-3 right-3 rounded-full bg-black/60 px-3 py-1 text-[10px] uppercase tracking-[0.2em] text-white/80">
-                    {heroImage.attribution}
+                    {displayedHeroImage.attribution}
+                  </div>
+                )}
+                {heroLoading && (
+                  <div className="absolute inset-0 flex items-center justify-center bg-black/30 backdrop-blur-[1px]">
+                    <span className="h-10 w-10 animate-spin rounded-full border-4 border-white/40 border-t-teal-400" />
                   </div>
                 )}
               </>
+            ) : (
+              <div className="flex h-full w-full items-center justify-center">
+                <span className="h-10 w-10 animate-spin rounded-full border-4 border-white/30 border-t-teal-400" />
+              </div>
             )}
           </div>
         </div>
