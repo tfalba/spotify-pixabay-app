@@ -40,6 +40,7 @@ type ManagePlaylistsPanelProps = {
 type PanelSnapshot = {
   tracks: Track[];
   trackCache: Record<string, Track[]>;
+  trackFilter: string;
 };
 
 const restoreTracks = (raw?: Track[] | SpotifyTrack[]) =>
@@ -82,6 +83,12 @@ function ManagePlaylistsPanel({
   const [tracks, setTracks] = useState<Track[]>(() =>
     restoreTracks(lastPanelState?.tracks)
   );
+  const [filteredTracks, setFilteredTracks] = useState<Track[]>(() =>
+    restoreTracks(lastPanelState?.tracks)
+  );
+  const [trackFilter, setTrackFilter] = useState(
+    lastPanelState?.trackFilter ?? "",
+  );
   const [tracksLoading, setTracksLoading] = useState(false);
   const [tracksError, setTracksError] = useState<string | null>(null);
   const [localError, setLocalError] = useState<string | null>(null);
@@ -97,19 +104,44 @@ function ManagePlaylistsPanel({
 //     }
 //   }, [playlists.length, selectedPlaylistId, setSelectedPlaylistId]);
 
+  const applyFilter = useCallback(
+    (list: Track[], filter: string) => {
+      const value = filter.trim().toLowerCase();
+      if (!value) return list;
+      return list.filter((track) => {
+        const title = track.name?.toLowerCase() ?? "";
+        const artist = Array.isArray(track.artists)
+          ? track.artists.map((a) => a?.name?.toLowerCase() ?? "").join(" ")
+          : (track.artists as unknown as string)?.toLowerCase() ?? "";
+        return title.includes(value) || artist.includes(value);
+      });
+    },
+    [],
+  );
+
+  const handleFilterChange = useCallback(
+    (value: string) => {
+      setTrackFilter(value);
+      setFilteredTracks(applyFilter(tracks, value));
+    },
+    [applyFilter, tracks],
+  );
+
   useEffect(() => {
     return () => {
       lastPanelState = {
         tracks,
         trackCache,
+        trackFilter,
       };
     };
-  }, [tracks, trackCache]);
+  }, [tracks, trackCache, trackFilter]);
 
   useEffect(() => {
     let active = true;
     if (!selectedPlaylistId) {
       setTracks([]);
+      setFilteredTracks([]);
       setTracksError(null);
       setLocalError(null);
       setTracksLoading(false);
@@ -121,6 +153,7 @@ function ManagePlaylistsPanel({
     const cached = trackCache[selectedPlaylistId];
     if (cached) {
       setTracks(cached);
+      setFilteredTracks(applyFilter(cached, trackFilter));
       setTracksLoading(false);
       return () => {
         active = false;
@@ -137,6 +170,7 @@ function ManagePlaylistsPanel({
     }
 
     setTracks([]);
+    setFilteredTracks([]);
     setTracksLoading(true);
     setTracksError(null);
     setLocalError(null);
@@ -146,6 +180,7 @@ function ManagePlaylistsPanel({
         if (!active) return;
         const normalized = ts.map(mapSpotifyTrackToTrack);
         setTracks(normalized);
+        setFilteredTracks(applyFilter(normalized, trackFilter));
         setTrackCache((prev) => ({ ...prev, [playlist.id]: normalized }));
       } catch (e: any) {
         if (!active) return;
@@ -160,18 +195,23 @@ function ManagePlaylistsPanel({
     return () => {
       active = false;
     };
-  }, [selectedPlaylistId, playlists, trackCache, setSelectedPlaylistId]);
+  }, [selectedPlaylistId, playlists, trackCache, trackFilter, applyFilter, setSelectedPlaylistId]);
 
   const handleSelect = useCallback(
     (playlist: SpotifyPlaylist) => {
+      setTrackFilter("");
+      setTracks([]);
+      setFilteredTracks([]);
       setSelectedPlaylistId(playlist.id);
     },
-    [setSelectedPlaylistId],
+    [setSelectedPlaylistId, setFilteredTracks],
   );
 
   const handleBack = useCallback(() => {
     setSelectedPlaylistId(null);
     setTracks([]);
+    setFilteredTracks([]);
+    setTrackFilter("");
     setTracksError(null);
     setLocalError(null);
   }, [setSelectedPlaylistId]);
@@ -248,7 +288,7 @@ function ManagePlaylistsPanel({
         </div>
       ) : selected ? (
         <div className="flex flex-1 min-h-0 flex-col gap-4">
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 flex-wrap">
             <button
               type="button"
               onClick={handleBack}
@@ -273,6 +313,20 @@ function ManagePlaylistsPanel({
                 {selected.tracks?.total ?? 0} tracks
               </div>
             </div>
+            <div className="ml-auto">
+              <input
+                type="text"
+                value={trackFilter}
+                onChange={(e) => handleFilterChange(e.target.value)}
+                placeholder="Filter tracks..."
+                className={clsx(
+                  "w-64 rounded-full border px-3 py-1 text-sm focus-visible:outline-none focus-visible:ring-2",
+                  isLight
+                    ? "border-slate-200 bg-white text-slate-700 focus-visible:ring-teal-400"
+                    : "border-white/20 bg-white/5 text-white focus-visible:ring-teal/70"
+                )}
+              />
+            </div>
           </div>
 
           {tracksError && (
@@ -294,7 +348,7 @@ function ManagePlaylistsPanel({
             </div>
           ) : (
             <TrackList
-              tracks={tracks}
+              tracks={filteredTracks}
               onTrackSelected={handleTrackSelect}
               twoColumnOnLarge={twoColumnOnLarge}
               sourcePlaylistId={selected?.id ?? ""}
