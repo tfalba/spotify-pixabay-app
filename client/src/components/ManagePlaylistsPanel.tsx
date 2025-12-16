@@ -1,8 +1,6 @@
 import { useTheme } from "@/context/ThemeContext";
 import {
-  getAllPlaylistTracks,
   type SpotifyPlaylist,
-  type SpotifyTrack,
 } from "@/lib/spotify";
 import clsx from "clsx";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -11,26 +9,6 @@ import TrackList from "./TrackList";
 import { LoginButton } from "./LoginButtons";
 import { usePlaylists } from "@/context/PlaylistsContext";
 
-function mapSpotifyTrackToTrack(track: SpotifyTrack): Track {
-  const albumImages = track.album?.images ?? [];
-  const fallbackImage =
-    albumImages[0]?.url ??
-    albumImages[albumImages.length - 1]?.url ??
-    track.image ??
-    null;
-
-  return {
-    id: track.id,
-    name: track.name,
-    artists: track.artists ?? [],
-    image: fallbackImage,
-    preview_url: track.preview_url,
-    external_url: track.external_url,
-    uri: track.uri ?? null,
-    album: { images: albumImages },
-  };
-}
-
 type ManagePlaylistsPanelProps = {
   compactPlaylistGrid?: boolean;
   twoColumnOnLarge?: boolean;
@@ -38,21 +16,7 @@ type ManagePlaylistsPanelProps = {
 };
 
 type PanelSnapshot = {
-  tracks: Track[];
-  trackCache: Record<string, Track[]>;
   trackFilter: string;
-};
-
-const restoreTracks = (raw?: Track[] | SpotifyTrack[]) =>
-  (raw ?? []).map((entry) => mapSpotifyTrackToTrack(entry as SpotifyTrack));
-
-const restoreCache = (raw?: Record<string, Track[] | SpotifyTrack[]>) => {
-  if (!raw) return {};
-  const entries = Object.entries(raw).map(([id, cached]) => [
-    id,
-    (cached as SpotifyTrack[]).map(mapSpotifyTrackToTrack),
-  ]);
-  return Object.fromEntries(entries);
 };
 
 let lastPanelState: PanelSnapshot | null = null;
@@ -72,20 +36,11 @@ function ManagePlaylistsPanel({
     isAuthenticated,
     selectedPlaylistId,
     setSelectedPlaylistId,
+    playlistTracksCache,
+    refreshPlaylistTracks,
   } = usePlaylists();
-  const [trackCache, setTrackCache] = useState<Record<string, Track[]>>(() =>
-    restoreCache(
-      lastPanelState?.trackCache as
-        | Record<string, Track[] | SpotifyTrack[]>
-        | undefined
-    )
-  );
-  const [tracks, setTracks] = useState<Track[]>(() =>
-    restoreTracks(lastPanelState?.tracks)
-  );
-  const [filteredTracks, setFilteredTracks] = useState<Track[]>(() =>
-    restoreTracks(lastPanelState?.tracks)
-  );
+  const [tracks, setTracks] = useState<Track[]>([]);
+  const [filteredTracks, setFilteredTracks] = useState<Track[]>([]);
   const [trackFilter, setTrackFilter] = useState(
     lastPanelState?.trackFilter ?? "",
   );
@@ -127,15 +82,15 @@ function ManagePlaylistsPanel({
     [applyFilter, tracks],
   );
 
+  const cachedTracks = selectedPlaylistId ? playlistTracksCache[selectedPlaylistId] : undefined;
+
   useEffect(() => {
     return () => {
       lastPanelState = {
-        tracks,
-        trackCache,
         trackFilter,
       };
     };
-  }, [tracks, trackCache, trackFilter]);
+  }, [trackFilter]);
 
   useEffect(() => {
     let active = true;
@@ -150,20 +105,20 @@ function ManagePlaylistsPanel({
       };
     }
 
-    const cached = trackCache[selectedPlaylistId];
-    if (cached) {
-      setTracks(cached);
-      setFilteredTracks(applyFilter(cached, trackFilter));
-      setTracksLoading(false);
+    const playlist = playlists.find((p) => p.id === selectedPlaylistId);
+    if (!playlist) {
+      setSelectedPlaylistId(null);
+      setTracks([]);
+      setFilteredTracks([]);
       return () => {
         active = false;
       };
     }
 
-    const playlist = playlists.find((p) => p.id === selectedPlaylistId);
-    if (!playlist) {
-      setSelectedPlaylistId(null);
-      setTracks([]);
+    if (cachedTracks) {
+      setTracks(cachedTracks);
+      setFilteredTracks(applyFilter(cachedTracks, trackFilter));
+      setTracksLoading(false);
       return () => {
         active = false;
       };
@@ -174,28 +129,34 @@ function ManagePlaylistsPanel({
     setTracksLoading(true);
     setTracksError(null);
     setLocalError(null);
-    (async () => {
-      try {
-        const ts = await getAllPlaylistTracks(playlist.id);
+    refreshPlaylistTracks(selectedPlaylistId)
+      .then((normalized) => {
         if (!active) return;
-        const normalized = ts.map(mapSpotifyTrackToTrack);
         setTracks(normalized);
         setFilteredTracks(applyFilter(normalized, trackFilter));
-        setTrackCache((prev) => ({ ...prev, [playlist.id]: normalized }));
-      } catch (e: any) {
+      })
+      .catch((e: any) => {
         if (!active) return;
         const message = e?.message ?? "Failed to load playlist tracks";
         setTracksError(message);
         setLocalError(message);
-      } finally {
+      })
+      .finally(() => {
         if (active) setTracksLoading(false);
-      }
-    })();
+      });
 
     return () => {
       active = false;
     };
-  }, [selectedPlaylistId, playlists, trackCache, trackFilter, applyFilter, setSelectedPlaylistId]);
+  }, [
+    selectedPlaylistId,
+    playlists,
+    cachedTracks,
+    trackFilter,
+    applyFilter,
+    refreshPlaylistTracks,
+    setSelectedPlaylistId,
+  ]);
 
   const handleSelect = useCallback(
     (playlist: SpotifyPlaylist) => {
