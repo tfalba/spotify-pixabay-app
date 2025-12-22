@@ -1,3 +1,4 @@
+// useSpotifyWebPlayback.ts
 import { useCallback, useEffect, useRef, useState } from "react";
 
 const API_BASE = import.meta.env.VITE_API_BASE ?? "";
@@ -8,18 +9,94 @@ type PlayerState = Spotify.PlaybackState | null;
 
 export function useSpotifyWebPlayback() {
   const [sdkReady, setSdkReady] = useState(false);
+
+  // Full-playback is OFF by default (Option 1)
+  const [fullPlaybackEnabled, setFullPlaybackEnabled] = useState(false);
+
   const [isConnected, setIsConnected] = useState(false);
   const [deviceId, setDeviceId] = useState<string | null>(null);
   const [playerState, setPlayerState] = useState<PlayerState>(null);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+
+  // Preview playback state (works when not connected / not authenticated)
+  const previewAudioRef = useRef<HTMLAudioElement | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [isPreviewPlaying, setIsPreviewPlaying] = useState(false);
+
   const playerRef = useRef<Spotify.Player | null>(null);
 
-  // 1) Load SDK script once
+  const ensurePreviewAudio = useCallback(() => {
+    if (!previewAudioRef.current) {
+      const a = new Audio();
+      a.preload = "none";
+      a.crossOrigin = "anonymous";
+
+      a.addEventListener("ended", () => setIsPreviewPlaying(false));
+      a.addEventListener("pause", () => setIsPreviewPlaying(false));
+      a.addEventListener("play", () => setIsPreviewPlaying(true));
+
+      previewAudioRef.current = a;
+    }
+    return previewAudioRef.current;
+  }, []);
+
+  const stopPreview = useCallback(() => {
+    const a = previewAudioRef.current;
+    if (!a) return;
+    a.pause();
+    a.currentTime = 0;
+    a.src = "";
+    setIsPreviewPlaying(false);
+    setPreviewUrl(null);
+  }, []);
+
+  const playPreview = useCallback(
+    async (url: string) => {
+      if (!url) return;
+
+      // Avoid overlap: if Spotify SDK is playing, pause it (best effort).
+      try {
+        if (playerRef.current) {
+          await playerRef.current.pause().catch(() => {});
+        }
+      } catch {
+        // ignore
+      }
+
+      const a = ensurePreviewAudio();
+
+      // Toggle if same preview is currently playing
+      if (previewUrl === url && !a.paused) {
+        a.pause();
+        return;
+      }
+
+      // Switch previews
+      a.pause();
+      a.currentTime = 0;
+      a.src = url;
+      setPreviewUrl(url);
+
+      // Must be called during a user gesture (onClick) to satisfy autoplay rules
+      await a.play();
+    },
+    [ensurePreviewAudio, previewUrl]
+  );
+
+  const togglePreview = useCallback(
+    async (url: string | null) => {
+      if (!url) return;
+      const a = ensurePreviewAudio();
+      if (previewUrl === url && !a.paused) a.pause();
+      else await playPreview(url);
+    },
+    [ensurePreviewAudio, playPreview, previewUrl]
+  );
+
+  // 1) Load SDK script once (safe even if we don't connect yet)
   useEffect(() => {
     const src = "https://sdk.scdn.co/spotify-player.js";
-    if (document.querySelector(`script[src="${src}"]`)) {
-      // already loaded or loading
-    } else {
+    if (!document.querySelector(`script[src="${src}"]`)) {
       const s = document.createElement("script");
       s.src = src;
       s.async = true;
@@ -30,14 +107,70 @@ export function useSpotifyWebPlayback() {
     } else {
       window.onSpotifyWebPlaybackSDKReady = () => setSdkReady(true);
     }
+  }, []);
+
+  // Cleanup preview audio on unmount
+  useEffect(() => {
     return () => {
-      // don't remove the script: allows hot reloads without re-downloading
+      const a = previewAudioRef.current;
+      if (a) {
+        a.pause();
+        a.src = "";
+      }
     };
   }, []);
 
-  // 2) Create the player when SDK is ready
+  /**
+   * OPTION 1: Explicitly enable full playback.
+   * - Call this from a user click (best for iOS/Safari)
+   * - We verify auth ONCE; if not logged in, it returns false.
+   * - If logged in, we flip the flag and the SDK will be created/connected.
+   */
+  const enableFullPlayback = useCallback(async (): Promise<boolean> => {
+    try {
+      const res = await apiFetch("/auth/token", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+      });
+      if (!res.ok) {
+        setIsAuthenticated(false);
+        setFullPlaybackEnabled(false);
+        return false;
+      }
+      setIsAuthenticated(true);
+      setFullPlaybackEnabled(true);
+      return true;
+    } catch {
+      setIsAuthenticated(false);
+      setFullPlaybackEnabled(false);
+      return false;
+    }
+  }, []);
+
+  const disableFullPlayback = useCallback(() => {
+    setFullPlaybackEnabled(false);
+    setIsConnected(false);
+    setDeviceId(null);
+    setPlayerState(null);
+
+    // Disconnect SDK if it exists
+    if (playerRef.current) {
+      try {
+        playerRef.current.disconnect();
+      } catch {
+        // ignore
+      }
+      playerRef.current = null;
+    }
+  }, []);
+
+  // 2) Create/connect the player ONLY when:
+  // - SDK script is ready
+  // - full playback has been explicitly enabled
   useEffect(() => {
-    if (!sdkReady || playerRef.current) return;
+    if (!sdkReady) return;
+    if (!fullPlaybackEnabled) return;
+    if (playerRef.current) return;
 
     const player = new window.Spotify.Player({
       name: "Web Player (Dev)",
@@ -56,10 +189,9 @@ export function useSpotifyWebPlayback() {
           setIsAuthenticated(true);
           cb(access_token);
         } catch (err) {
-          console.error("Unable to fetch access token:", err);
+          // Avoid spammy logs; SDK will surface auth_error too
           setIsAuthenticated(false);
-          // Optionally redirect to login if 401
-          // location.href = "/auth/login";
+          console.error("Unable to fetch access token:", err);
         }
       },
     });
@@ -67,17 +199,21 @@ export function useSpotifyWebPlayback() {
     player.addListener("ready", ({ device_id }) => {
       setDeviceId(device_id);
       setIsConnected(true);
-      // Immediately request transfer to this device
+
+      // Stop preview so we don't overlap
+      stopPreview();
+
+      // Immediately request transfer to this device (requires login)
       apiFetch("/api/player/transfer", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ device_id }),
-      });
+      }).catch(() => {});
     });
 
     player.addListener("not_ready", ({ device_id }) => {
-      if (deviceId === device_id) setDeviceId(null);
       setIsConnected(false);
+      setDeviceId((prev) => (prev === device_id ? null : prev));
     });
 
     player.addListener("player_state_changed", (state) => {
@@ -90,6 +226,8 @@ export function useSpotifyWebPlayback() {
     player.addListener("authentication_error", ({ message }) => {
       console.error("auth_error", message);
       setIsAuthenticated(false);
+      // If auth breaks, disable full playback to stop token retries
+      setFullPlaybackEnabled(false);
     });
     player.addListener("account_error", ({ message }) =>
       console.error("account_error", message)
@@ -102,10 +240,14 @@ export function useSpotifyWebPlayback() {
     playerRef.current = player;
 
     return () => {
-      player.disconnect();
+      try {
+        player.disconnect();
+      } catch {
+        // ignore
+      }
       playerRef.current = null;
     };
-  }, [sdkReady]);
+  }, [sdkReady, fullPlaybackEnabled, stopPreview]);
 
   // 3) Convenience actions -> hit your server routes
 
@@ -117,6 +259,9 @@ export function useSpotifyWebPlayback() {
     }) => {
       if (!playerRef.current || !deviceId) return;
 
+      // Stop any preview audio so we don't overlap
+      stopPreview();
+
       // 1) Mobile unlock: MUST be called during a user gesture (wrap this in onClick)
       if (
         "activateElement" in playerRef.current &&
@@ -124,10 +269,7 @@ export function useSpotifyWebPlayback() {
       ) {
         await (playerRef.current as any).activateElement();
       }
-      // iOS sometimes needs a resume() to unlock the AudioContext
-      await playerRef.current.resume().catch(() => {
-        /* ignore if not paused yet */
-      });
+      await playerRef.current.resume().catch(() => {});
 
       // 2) Ensure SDK device is active right now
       await apiFetch("/api/player/transfer", {
@@ -143,7 +285,7 @@ export function useSpotifyWebPlayback() {
         body: JSON.stringify({ ...urisOrContext, device_id: deviceId }),
       });
     },
-    [deviceId]
+    [deviceId, stopPreview]
   );
 
   const resumeOrStart = useCallback(
@@ -152,9 +294,7 @@ export function useSpotifyWebPlayback() {
       context_uri?: string;
       position_ms?: number;
     }) => {
-      // If we have an SDK instance and something was already loaded, try a native resume first
       if (playerRef.current) {
-        // If the SDK thinks we’re paused, resume() won’t restart the context
         try {
           const state = await playerRef.current.getCurrentState();
           const hasSomethingLoaded =
@@ -162,7 +302,8 @@ export function useSpotifyWebPlayback() {
           const isPaused = !!state?.paused;
 
           if (hasSomethingLoaded && isPaused) {
-            // iOS/mobile unlock just in case
+            stopPreview();
+
             if (
               "activateElement" in playerRef.current &&
               typeof (playerRef.current as any).activateElement === "function"
@@ -170,17 +311,15 @@ export function useSpotifyWebPlayback() {
               await (playerRef.current as any).activateElement();
             }
             await playerRef.current.resume();
-            return; // ✅ done — no restart
+            return;
           }
         } catch {
-          // ignore and fall through to a full start
+          // ignore
         }
       }
-
-      // Nothing to resume → do a full start (this transfers + /play on this device)
       await startPlayback(opts);
     },
-    [startPlayback]
+    [startPlayback, stopPreview]
   );
 
   const transferToThisDevice = useCallback(async () => {
@@ -192,48 +331,52 @@ export function useSpotifyWebPlayback() {
     });
   }, [deviceId]);
 
-  const playUris = useCallback(async (uris: string[], position_ms?: number) => {
-    await apiFetch("/api/player/play", {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ uris, position_ms }),
-    });
-  }, []);
+  const playUris = useCallback(
+    async (uris: string[], position_ms?: number) => {
+      stopPreview();
+      await apiFetch("/api/player/play", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ uris, position_ms }),
+      });
+    },
+    [stopPreview]
+  );
 
   const playContext = useCallback(
     async (context_uri: string, position_ms?: number) => {
+      stopPreview();
       await apiFetch("/api/player/play", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ context_uri, position_ms }),
       });
     },
-    []
+    [stopPreview]
   );
 
   const pause = useCallback(async () => {
-    await apiFetch("/api/player/pause", {
-      method: "PUT",
-    });
+    await apiFetch("/api/player/pause", { method: "PUT" });
   }, []);
 
   const resume = useCallback(async () => {
+    stopPreview();
     await apiFetch("/api/player/play", {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({}),
     });
-  }, []);
+  }, [stopPreview]);
 
   const nextTrack = useCallback(async () => {
+    stopPreview();
     await apiFetch("/api/player/next", { method: "POST" });
-  }, []);
+  }, [stopPreview]);
 
   const previousTrack = useCallback(async () => {
-    await apiFetch("/api/player/previous", {
-      method: "POST",
-    });
-  }, []);
+    stopPreview();
+    await apiFetch("/api/player/previous", { method: "POST" });
+  }, [stopPreview]);
 
   const seek = useCallback(async (position_ms: number) => {
     await apiFetch(`/api/player/seek?position_ms=${position_ms}`, {
@@ -259,13 +402,34 @@ export function useSpotifyWebPlayback() {
     });
   }, []);
 
+  const playTrackSmart = useCallback(
+    async (track: { uri?: string | null; preview_url?: string | null }) => {
+      if (isAuthenticated && fullPlaybackEnabled && deviceId && track?.uri) {
+        await resumeOrStart({ uris: [track.uri] });
+        return;
+      }
+      if (track?.preview_url) {
+        await playPreview(track.preview_url);
+        return;
+      }
+    },
+    [deviceId, fullPlaybackEnabled, isAuthenticated, playPreview, resumeOrStart]
+  );
+
   return {
     sdkReady,
+
+    // Full playback gating (Option 1)
+    fullPlaybackEnabled,
+    enableFullPlayback,
+    disableFullPlayback,
+
     isConnected,
     deviceId,
     playerState,
     isAuthenticated,
-    // actions
+
+    // Spotify playback actions (only meaningful when fullPlaybackEnabled)
     startPlayback,
     resumeOrStart,
     transferToThisDevice,
@@ -279,5 +443,15 @@ export function useSpotifyWebPlayback() {
     setVolume,
     toggleShuffle,
     setRepeat,
+
+    // Preview actions (anonymous-safe)
+    playPreview,
+    togglePreview,
+    stopPreview,
+    previewUrl,
+    isPreviewPlaying,
+
+    // Convenience
+    playTrackSmart,
   };
 }

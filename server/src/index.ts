@@ -1,17 +1,10 @@
+// server/src/index.ts
 import express from "express";
-import cors, { CorsOptions } from "cors";
+import cors, { type CorsOptions } from "cors";
 import cookieParser from "cookie-parser";
 import { env } from "./env";
 
-import {
-  login,
-  callback,
-  refreshToken,
-  logout,
-  token,
-  getAccessToken,
-} from "./auth";
-import { spotifyProfile } from "./spotify";
+import { login, callback, refreshToken, logout, token, getAccessToken } from "./auth";
 import { pixabaySearch } from "./pixabay";
 import { fetchLyrics } from "./lyrics";
 import {
@@ -27,11 +20,13 @@ import {
   devices,
   state,
 } from "./player";
+
 import imagesRouter from "./images";
 import demoRouter from "./demoImages";
 import { playlistsRouter } from "./playlists";
-import { getSpotifyToken, spotifySearch } from "./spotifyToken";
 
+// ✅ Single source of truth for Spotify API proxying
+import { getSpotifyToken, spotifySearch, spotifyProfile } from "./spotifyToken";
 
 const app = express();
 
@@ -39,10 +34,7 @@ app.set("trust proxy", 1);
 app.use(express.json());
 
 // ----- CORS (allowlist + credentials) -----
-const allowed = (process.env.ALLOWED_ORIGINS || "")
-  .split(",")
-  .map((s) => s.trim())
-  .filter(Boolean);
+const allowed = (env.ALLOWED_ORIGINS || []).map((s) => s.trim()).filter(Boolean);
 
 const corsOptions: CorsOptions = {
   origin: (origin, cb) => {
@@ -55,7 +47,7 @@ const corsOptions: CorsOptions = {
 app.use(cors(corsOptions));
 
 // ----- Signed cookies -----
-app.use(cookieParser(process.env.SESSION_SECRET));
+app.use(cookieParser(env.SESSION_SECRET));
 
 // ----- Routers / routes -----
 app.use("/api", imagesRouter);
@@ -65,28 +57,20 @@ app.use("/api/spotify", playlistsRouter);
 // Health (match your Render health check path)
 app.get("/api/health", (_req, res) => res.json({ ok: true }));
 
+app.get("/api/auth/status", (req, res) => {
+  res.json({ authenticated: Boolean(req.signedCookies["sp_refresh"]) });
+});
+
 // Auth
 app.get("/auth/login", login);
 app.get("/auth/callback", callback);
 app.post("/auth/refresh", refreshToken);
 app.post("/auth/logout", logout);
-app.post("/auth/token", token); // <-- POST so client can call with credentials
+app.post("/auth/token", token); // client calls with credentials included
 
 // --------- Spotify-proxied endpoints (server-side) ---------
 
-// Search via server (uses cookies → getAccessToken)
-// app.get("/api/search", async (req, res) => {
-//   try {
-//     const q = (req.query.q as string) || "";
-//     const data = await spotifySearch(req, q);
-//     res.json(data);
-//   } catch (e: any) {
-//     const status = typeof e?.status === "number" ? e.status : 401;
-//     res.status(status).json({ error: e?.message ?? "search_failed" });
-//   }
-// });
 // Search via server (anonymous OK)
-
 app.get("/api/search", async (req, res) => {
   try {
     const q = (req.query.q as string) || "";
@@ -98,6 +82,7 @@ app.get("/api/search", async (req, res) => {
   }
 });
 
+// Track lookup (anonymous OK)
 app.get("/api/tracks/:id", async (req, res) => {
   try {
     const access = await getSpotifyToken(req, res, "either");
@@ -113,10 +98,10 @@ app.get("/api/tracks/:id", async (req, res) => {
   }
 });
 
-// Current user profile
+// Current user profile (logged-in only, refresh-aware)
 app.get("/api/me", async (req, res) => {
   try {
-    const profile = await spotifyProfile(req);
+    const profile = await spotifyProfile(req, res);
     if (!profile) return res.status(401).json({ error: "unauthorized" });
     res.json(profile);
   } catch (e: any) {
@@ -125,20 +110,16 @@ app.get("/api/me", async (req, res) => {
   }
 });
 
-// Example: playlists (auto-pagination) using a local helper
-async function sfetchWithAuth(
-  req: express.Request,
-  res: express.Response,
-  url: string
-) {
+// ----- Playlists (logged-in only; refresh-aware via getAccessToken) -----
+async function sfetchWithAuth(req: express.Request, res: express.Response, url: string) {
   const access = await getAccessToken(req, res);
-  const r = await fetch(url, {
-    headers: { Authorization: `Bearer ${access}` },
-  });
+  const r = await fetch(url, { headers: { Authorization: `Bearer ${access}` } });
+
   if (!r.ok) {
     const text = await r.text();
-    throw new Error(`Spotify ${r.status}: ${text}`);
+    throw Object.assign(new Error(`Spotify ${r.status}: ${text}`), { status: r.status });
   }
+
   return r.json();
 }
 
@@ -148,12 +129,13 @@ app.get("/api/me/playlists", async (req, res) => {
     const items: any[] = [];
     while (url) {
       const page: any = await sfetchWithAuth(req, res, url);
-      items.push(...page.items);
+      items.push(...(page.items ?? []));
       url = page.next ?? "";
     }
     res.json({ items });
   } catch (e: any) {
-    res.status(401).json({ error: e?.message ?? "Unauthorized" });
+    const status = typeof e?.status === "number" ? e.status : 401;
+    res.status(status).json({ error: e?.message ?? "Unauthorized" });
   }
 });
 
@@ -163,12 +145,13 @@ app.get("/api/playlists/:id/tracks", async (req, res) => {
     const items: any[] = [];
     while (url) {
       const page: any = await sfetchWithAuth(req, res, url);
-      items.push(...page.items);
+      items.push(...(page.items ?? []));
       url = page.next ?? "";
     }
     res.json({ items });
   } catch (e: any) {
-    res.status(401).json({ error: e?.message ?? "Unauthorized" });
+    const status = typeof e?.status === "number" ? e.status : 401;
+    res.status(status).json({ error: e?.message ?? "Unauthorized" });
   }
 });
 
@@ -187,7 +170,7 @@ app.get("/api/lyrics", async (req, res) => {
   res.json(data);
 });
 
-// Player controls (your existing handlers)
+// Player controls (logged-in only; player.ts should be updated to refresh tokens)
 app.post("/api/player/transfer", transfer);
 app.put("/api/player/play", play);
 app.put("/api/player/pause", pause);
@@ -201,5 +184,5 @@ app.get("/api/player/devices", devices);
 app.get("/api/player/state", state);
 
 // ----- Start -----
-const port = process.env.PORT || 8080;
+const port = Number(env.PORT || 8080);
 app.listen(port, () => console.log(`API on :${port}`));

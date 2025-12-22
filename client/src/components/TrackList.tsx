@@ -1,10 +1,11 @@
-import { useState, type ReactNode } from "react";
+import { useState, type ReactNode, useMemo } from "react";
 import type { Track } from "../types/types";
 import clsx from "clsx";
 import { useTheme } from "@/context/ThemeContext";
 import { useCurrentTrack } from "@/context/CurrentTrackContext";
 import { MoveTrackModal } from "./MoveTrackModal";
 import { usePlaylists } from "@/context/PlaylistsContext";
+import { useSpotifyPlayerContext } from "@/context/SpotifyPlayerProvider";
 
 type CardProps = {
   track: Track;
@@ -31,7 +32,7 @@ function TrackCard({ track, selected = false, isLight, actions }: CardProps) {
         {track.image && (
           <img
             src={track.image}
-            className="h-16 w-16  rounded-xl object-cover shadow-inner"
+            className="h-16 w-16 rounded-xl object-cover shadow-inner"
             alt="album art"
           />
         )}
@@ -57,11 +58,9 @@ function TrackCard({ track, selected = false, isLight, actions }: CardProps) {
                 : (track.artists as unknown as string)}
             </div>
           </div>
-         
         </div>
-         {actions && (
-            <div className="flex flex-1 gap-2 items-end shrink-0">{actions}</div>
-          )}
+
+        {actions && <div className="flex flex-1 gap-2 items-end shrink-0">{actions}</div>}
       </div>
     </div>
   );
@@ -69,22 +68,33 @@ function TrackCard({ track, selected = false, isLight, actions }: CardProps) {
 
 type Props = {
   tracks: Track[];
-  onTrackSelected?: (track: Track) => void;
+
+  /** Optional: used to seed queue behavior (search list vs playlist list) */
+  queue?: Track[];
+
   twoColumnOnLarge?: boolean;
   sourcePlaylistId?: string;
 };
 
 export default function TrackList({
   tracks,
-  onTrackSelected,
+  queue,
   twoColumnOnLarge = false,
   sourcePlaylistId = "",
 }: Props) {
   const { theme } = useTheme();
   const isLight = theme === "light";
-  const { current, setCurrent } = useCurrentTrack();
+
+  const { current, playTrack } = useCurrentTrack();
   const { playlists, moveTrack } = usePlaylists();
+  const { playTrackSmart } = useSpotifyPlayerContext();
+
   const selectedTrackId = current?.id ?? null;
+
+  const effectiveQueue = useMemo(() => {
+    if (queue && queue.length) return queue;
+    return tracks;
+  }, [queue, tracks]);
 
   const [moveModalOpen, setMoveModalOpen] = useState(false);
   const [trackToMove, setTrackToMove] = useState<Track | null>(null);
@@ -115,71 +125,76 @@ export default function TrackList({
       )}
     >
       {tracks.length > 0 && (
-      <div
-        className={clsx(
-          twoColumnOnLarge
-            ? "flex min-w-0 flex-col gap-3 p-3 lg:grid lg:grid-cols-2 lg:gap-4"
-            : "flex min-w-0 flex-col divide-y",
-          !twoColumnOnLarge && (isLight ? "divide-slate-200" : "divide-white/5")
-        )}
-      >
-        {tracks.map((t) => {
-          const isSelected = selectedTrackId === t.id;
-          return (
-            <div
-              key={t.id}
-              className={clsx(
-                "flex w-full min-w-0 flex-col gap-2 rounded-2xl border p-2 transition",
-                isSelected
-                  ? isLight
-                    ? "border-amber/70 bg-white/70 shadow-glow"
-                    : "border-amber/70 bg-white/10 shadow-glow"
-                  : isLight
-                  ? "border-transparent bg-white hover:border-teal-500/30 hover:bg-slate-50"
-                  : "border-transparent bg-white/5 hover:border-teal/40 hover:bg-white/10"
-              )}
-            >
-              <TrackCard
-                track={t}
-                selected={isSelected}
-                isLight={isLight}
-                actions={
-                  <>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        onTrackSelected?.(t);
-                        setCurrent(t);
-                      }}
-                      className={clsx(
-                        "rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide transition",
-                        isLight
-                          ? "bg-teal/20 text-midnight hover:bg-teal/30"
-                          : "bg-teal/70 text-midnight hover:bg-teal"
-                      )}
-                    >
-                      Play
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => openMoveModal(t)}
-                      className={clsx(
-                        "rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide opacity-70",
-                        isLight
-                          ? "border-slate-300 text-slate-500"
-                          : "border-white/30 text-white/70"
-                      )}
-                    >
-                      Move
-                    </button>
-                  </>
-                }
-              />
-            </div>
-          );
-        })}
-      </div>
+        <div
+          className={clsx(
+            twoColumnOnLarge
+              ? "flex min-w-0 flex-col gap-3 p-3 lg:grid lg:grid-cols-2 lg:gap-4"
+              : "flex min-w-0 flex-col divide-y",
+            !twoColumnOnLarge && (isLight ? "divide-slate-200" : "divide-white/5")
+          )}
+        >
+          {tracks.map((t) => {
+            const isSelected = selectedTrackId === t.id;
+
+            return (
+              <div
+                key={t.id}
+                className={clsx(
+                  "flex w-full min-w-0 flex-col gap-2 rounded-2xl border p-2 transition",
+                  isSelected
+                    ? isLight
+                      ? "border-amber/70 bg-white/70 shadow-glow"
+                      : "border-amber/70 bg-white/10 shadow-glow"
+                    : isLight
+                    ? "border-transparent bg-white hover:border-teal-500/30 hover:bg-slate-50"
+                    : "border-transparent bg-white/5 hover:border-teal/40 hover:bg-white/10"
+                )}
+              >
+                <TrackCard
+                  track={t}
+                  selected={isSelected}
+                  isLight={isLight}
+                  actions={
+                    <>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          // ✅ single source of truth:
+                          // set queue + current together, then start playback appropriately
+                          playTrack(t, effectiveQueue);
+                          playTrackSmart(t).catch(() => {});
+                        }}
+                        className={clsx(
+                          "rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide transition",
+                          isLight
+                            ? "bg-teal/20 text-midnight hover:bg-teal/30"
+                            : "bg-teal/70 text-midnight hover:bg-teal"
+                        )}
+                      >
+                        Play
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => openMoveModal(t)}
+                        className={clsx(
+                          "rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide opacity-70",
+                          isLight
+                            ? "border-slate-300 text-slate-500"
+                            : "border-white/30 text-white/70"
+                        )}
+                      >
+                        Move
+                      </button>
+                    </>
+                  }
+                />
+              </div>
+            );
+          })}
+        </div>
       )}
+
       <MoveTrackModal
         isOpen={moveModalOpen}
         track={trackToMove}

@@ -7,6 +7,7 @@ import type { StyleCategory } from "@/types/types";
 import { useCurrentTrack } from "@/context/CurrentTrackContext";
 import HeroBar from "./HeroBar";
 import heroBannerAsset from "@/assets/hero-banner.png";
+import { useSpotifyPlayerContext } from "@/context/SpotifyPlayerProvider";
 
 type SpotifyUser = {
   id: string;
@@ -20,43 +21,49 @@ type Props = {
   onStyleChange: (choice: StyleChoice) => void;
 };
 
+type AuthStatus = { authenticated: boolean };
+
 export default function HeaderBar({ styleChoice, onStyleChange }: Props) {
   const [user, setUser] = useState<SpotifyUser | null>(null);
   const [checkedAuth, setCheckedAuth] = useState(false);
+  const [loggedIn, setLoggedIn] = useState(false);
+
   const { theme, toggleTheme } = useTheme();
   const { handleTrackFinished } = useCurrentTrack();
-  const isLight = theme === "light";
 
-  const API = import.meta.env.VITE_API_BASE;
+  // NOTE: under Option 1, isAuthenticated is “SDK token success”, not “logged in”
+  const { fullPlaybackEnabled, enableFullPlayback } = useSpotifyPlayerContext();
+
+  const isLight = theme === "light";
+  const API = import.meta.env.VITE_API_BASE ?? "";
 
   useEffect(() => {
     let active = true;
 
-    async function getSpotifyToken() {
-      const res = await fetch(`${API}/auth/token`, {
-        method: "POST",
-        credentials: "include", // send signed cookies
-        headers: { "Content-Type": "application/json" },
-      });
-      if (!res.ok) throw new Error("Not authenticated");
-      return res.json(); // { access_token, token_type }
-    }
-
-    async function loadProfile() {
+    async function load() {
       try {
-        const profile = await get<SpotifyUser>(`${API}/api/me`);
-        if (active) {
-          getSpotifyToken(); // warm up token
-          setUser(profile);
+        // 1) auth status (cookie presence) – fast and reliable post-login
+        const status = await get<AuthStatus>(`${API}/api/auth/status`);
+        if (active) setLoggedIn(Boolean(status?.authenticated));
+
+        // 2) profile (only works when logged in)
+        if (status?.authenticated) {
+          const profile = await get<SpotifyUser>(`${API}/api/me`);
+          if (active) setUser(profile);
+        } else {
+          if (active) setUser(null);
         }
       } catch {
-        if (active) setUser(null);
+        if (active) {
+          setLoggedIn(false);
+          setUser(null);
+        }
       } finally {
         if (active) setCheckedAuth(true);
       }
     }
 
-    loadProfile();
+    load();
     return () => {
       active = false;
     };
@@ -88,8 +95,9 @@ export default function HeaderBar({ styleChoice, onStyleChange }: Props) {
             </p>
           </div>
         </div>
+
         <div className="flex items-center gap-4 text-sm">
-          {!checkedAuth ? null : user && displayName ? (
+          {!checkedAuth ? null : loggedIn && displayName ? (
             <>
               <span
                 className={clsx(
@@ -107,11 +115,15 @@ export default function HeaderBar({ styleChoice, onStyleChange }: Props) {
                   {displayName}
                 </span>
               </span>
-
               <LogoutButton />
             </>
           ) : (
             <LoginButton />
+          )}
+
+          {/* Under Option 1: show this when logged in, but full playback not enabled */}
+          {loggedIn && !fullPlaybackEnabled && (
+            <button onClick={enableFullPlayback}>Enable full playback</button>
           )}
         </div>
       </header>

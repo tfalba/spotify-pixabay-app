@@ -16,6 +16,7 @@ import {
 import { moveTrackOnServer } from "@/lib/spotifyActions";
 import { useSpotifyPlayerContext } from "./SpotifyPlayerProvider";
 import type { Track } from "@/types/types";
+import { get } from "@/lib/fetcher";
 
 type PlaylistsContextValue = {
   playlists: SpotifyPlaylist[];
@@ -26,38 +27,87 @@ type PlaylistsContextValue = {
   moveTrack: (
     trackId: string,
     sourcePlaylistId: string,
-    targetPlaylistId: string,
+    targetPlaylistId: string
   ) => Promise<void>;
+
+  /**
+   * Keep both:
+   * - loggedIn: cookie-based auth (true right after OAuth redirect)
+   * - isAuthenticated: SDK token auth (Option 1: only true after "Enable full playback")
+   */
+  loggedIn: boolean;
   isAuthenticated: boolean;
+
   selectedPlaylistId: string | null;
   setSelectedPlaylistId: React.Dispatch<React.SetStateAction<string | null>>;
   clearSelectedPlaylist: () => void;
+
   currentPlaylistId: string | null;
   setCurrentPlaylistId: React.Dispatch<React.SetStateAction<string | null>>;
+
   playlistTracksCache: Record<string, Track[]>;
   refreshPlaylistTracks: (playlistId: string) => Promise<Track[]>;
 };
 
+type AuthStatus = { authenticated: boolean };
+
 const PlaylistsContext = createContext<PlaylistsContextValue | undefined>(
-  undefined,
+  undefined
 );
 
 export function PlaylistsProvider({ children }: { children: ReactNode }) {
-  const { isAuthenticated } = useSpotifyPlayerContext();
+  const { isAuthenticated } = useSpotifyPlayerContext(); // SDK auth (not login)
+  const [loggedIn, setLoggedIn] = useState(false); // cookie login
+
   const [playlists, setPlaylists] = useState<SpotifyPlaylist[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [selectedPlaylistId, setSelectedPlaylistId] = useState<string | null>(null);
-  const [currentPlaylistId, setCurrentPlaylistId] = useState<string | null>(null);
-  const [playlistTracksCache, setPlaylistTracksCache] = useState<Record<string, Track[]>>({});
+  const [selectedPlaylistId, setSelectedPlaylistId] = useState<string | null>(
+    null
+  );
+  const [currentPlaylistId, setCurrentPlaylistId] = useState<string | null>(
+    null
+  );
+  const [playlistTracksCache, setPlaylistTracksCache] = useState<
+    Record<string, Track[]>
+  >({});
+
+  const API = import.meta.env.VITE_API_BASE ?? "";
+
+  // ✅ cookie login status (no token refresh)
+  useEffect(() => {
+    let active = true;
+
+    async function loadStatus() {
+      try {
+        const status = await get<AuthStatus>(`${API}/api/auth/status`);
+        if (active) setLoggedIn(Boolean(status?.authenticated));
+      } catch {
+        if (active) setLoggedIn(false);
+      }
+    }
+
+    loadStatus();
+    return () => {
+      active = false;
+    };
+  }, [API]);
+
+  const clearAll = useCallback(() => {
+    setPlaylists([]);
+    setLoading(false);
+    setError(null);
+    setSelectedPlaylistId(null);
+    setCurrentPlaylistId(null);
+    setPlaylistTracksCache({});
+  }, []);
 
   const refresh = useCallback(async () => {
-    if (!isAuthenticated) {
-      setPlaylists([]);
-      setError(null);
-      setLoading(false);
+    if (!loggedIn) {
+      clearAll();
       return;
     }
+
     setLoading(true);
     try {
       const pls = await getAllUserPlaylists();
@@ -68,26 +118,27 @@ export function PlaylistsProvider({ children }: { children: ReactNode }) {
     } finally {
       setLoading(false);
     }
-  }, [isAuthenticated]);
+  }, [loggedIn, clearAll]);
 
+  // Load playlists when logged in
   useEffect(() => {
-    if (!isAuthenticated) {
-      setPlaylists([]);
-      setLoading(false);
-      setError(null);
-      setSelectedPlaylistId(null);
-      setCurrentPlaylistId(null);
+    if (!loggedIn) {
+      clearAll();
       return;
     }
+
+    // If we just logged in and have no playlists yet, fetch
     if (!playlists.length) {
       refresh().catch(() => {});
     }
-  }, [isAuthenticated, playlists.length, refresh]);
+  }, [loggedIn, playlists.length, refresh, clearAll]);
 
   const refreshPlaylistTracks = useCallback(
     async (playlistId: string) => {
-      if (!playlistId) return [];
+      if (!loggedIn || !playlistId) return [];
+
       const tracks = await getAllPlaylistTracks(playlistId);
+
       const normalized = tracks.map((track: SpotifyTrack) => {
         const albumImages = track.album?.images ?? [];
         const fallbackImage =
@@ -107,26 +158,35 @@ export function PlaylistsProvider({ children }: { children: ReactNode }) {
           album: { images: albumImages },
         } as Track;
       });
+
       setPlaylistTracksCache((prev) => ({ ...prev, [playlistId]: normalized }));
       return normalized;
     },
-    [],
+    [loggedIn]
   );
 
   const moveTrack = useCallback(
     async (
       trackId: string,
       sourcePlaylistId: string,
-      targetPlaylistId: string,
+      targetPlaylistId: string
     ) => {
+      if (!loggedIn) return;
+
       await moveTrackOnServer(trackId, sourcePlaylistId, targetPlaylistId);
+
       await Promise.all([
-        sourcePlaylistId ? refreshPlaylistTracks(sourcePlaylistId).catch(() => null) : null,
-        targetPlaylistId ? refreshPlaylistTracks(targetPlaylistId).catch(() => null) : null,
+        sourcePlaylistId
+          ? refreshPlaylistTracks(sourcePlaylistId).catch(() => null)
+          : null,
+        targetPlaylistId
+          ? refreshPlaylistTracks(targetPlaylistId).catch(() => null)
+          : null,
       ]);
+
       await refresh();
     },
-    [refresh, refreshPlaylistTracks],
+    [loggedIn, refresh, refreshPlaylistTracks]
   );
 
   const clearSelectedPlaylist = useCallback(() => {
@@ -141,12 +201,16 @@ export function PlaylistsProvider({ children }: { children: ReactNode }) {
       refresh,
       setPlaylists,
       moveTrack,
-      isAuthenticated,
+
+      loggedIn,
+      isAuthenticated, // still exposed if you want to show SDK state in UI
+
       selectedPlaylistId,
       setSelectedPlaylistId,
       clearSelectedPlaylist,
       currentPlaylistId,
       setCurrentPlaylistId,
+
       playlistTracksCache,
       refreshPlaylistTracks,
     }),
@@ -156,6 +220,7 @@ export function PlaylistsProvider({ children }: { children: ReactNode }) {
       error,
       refresh,
       moveTrack,
+      loggedIn,
       isAuthenticated,
       selectedPlaylistId,
       setSelectedPlaylistId,
@@ -164,7 +229,7 @@ export function PlaylistsProvider({ children }: { children: ReactNode }) {
       setCurrentPlaylistId,
       playlistTracksCache,
       refreshPlaylistTracks,
-    ],
+    ]
   );
 
   return (

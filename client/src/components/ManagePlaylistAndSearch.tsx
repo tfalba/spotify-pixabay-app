@@ -4,7 +4,6 @@ import { useCallback, useEffect, useState } from "react";
 import clsx from "clsx";
 import { useTheme } from "@/context/ThemeContext";
 import { useCurrentTrack } from "@/context/CurrentTrackContext";
-import { useSectionsContext } from "@/context/SectionsContext";
 import { useSectionClass } from "@/styleHooks/useStyleHooks";
 import ManagePlaylistsPanel from "./ManagePlaylistsPanel";
 import { usePlaylists } from "@/context/PlaylistsContext";
@@ -27,12 +26,9 @@ export default function ManagePlaylistsAndSearch({
   soloExpanded = false,
 }: ManagePlaylistsAndSearchProps) {
   const { theme } = useTheme();
-  const { current, setCurrent, handleQueueChange } = useCurrentTrack();
-  const { focusOnLyricsPanel } = useSectionsContext();
+  const { current } = useCurrentTrack();
   const {
-    selectedPlaylistId,
     currentPlaylistId,
-    setCurrentPlaylistId,
     setSelectedPlaylistId,
   } = usePlaylists();
   const [tracks, setTracks] = useState<Track[]>(
@@ -46,30 +42,6 @@ export default function ManagePlaylistsAndSearch({
     setTracks(nextTracks);
   }, []);
 
-  const handleSearchTrackSelected = useCallback(
-    (track: Track) => {
-      lastTrackSource = "search";
-      setActivePanel("search");
-      const queueTracks = tracks.length ? tracks : [track];
-      handleQueueChange(queueTracks);
-      setCurrent(track);
-      setCurrentPlaylistId(null);
-      focusOnLyricsPanel();
-    },
-    [focusOnLyricsPanel, handleQueueChange, setCurrent, tracks, setCurrentPlaylistId],
-  );
-
-  const handlePlaylistTrackSelected = useCallback(
-    (track: Track, queue: Track[]) => {
-      lastTrackSource = "playlists";
-      setActivePanel("playlists");
-      handleQueueChange(queue.length ? queue : [track]);
-      setCurrent(track);
-      setCurrentPlaylistId(selectedPlaylistId ?? null);
-      focusOnLyricsPanel();
-    },
-    [focusOnLyricsPanel, handleQueueChange, setCurrent, selectedPlaylistId, setCurrentPlaylistId],
-  );
 
   useEffect(() => {
     return () => {
@@ -81,10 +53,7 @@ export default function ManagePlaylistsAndSearch({
   }, [activePanel, tracks]);
 
   const isLight = theme === "light";
-  const sectionClass = clsx(
-    useSectionClass(isLight, 1),
-    "mx-auto w-full"
-  );
+  const sectionClass = clsx(useSectionClass(isLight, 1), "mx-auto w-full");
 
   const showCurrentPlaylistButton = Boolean(current && currentPlaylistId);
 
@@ -138,8 +107,7 @@ export default function ManagePlaylistsAndSearch({
       <div className="mt-4 flex justify-end gap-4">
         {[
           { key: "playlists" as const, label: "Playlists" },
-                    { key: "search" as const, label: "Search" },
-
+          { key: "search" as const, label: "Search" },
         ].map((tab) => (
           <button
             key={tab.key}
@@ -168,14 +136,12 @@ export default function ManagePlaylistsAndSearch({
           <SpotifySearch
             onSetTracks={handleSetTracks}
             tracks={tracks}
-            onTrackSelected={handleSearchTrackSelected}
             twoColumnOnLarge={soloExpanded}
           />
         ) : (
           <ManagePlaylistsPanel
             compactPlaylistGrid={compactPlaylistGrid}
             twoColumnOnLarge={soloExpanded}
-            onTrackSelected={handlePlaylistTrackSelected}
           />
         )}
       </div>

@@ -47,7 +47,7 @@ export default function HeroBar({
         <div className="absolute right-0 -bottom-24 h-48 w-48 rounded-full bg-lilac/40 blur-3xl" />
       </div>
 
-      <div className="absolute inset-x-0 bottom-10 flex justify-end px-4">
+      <div className="absolute inset-x-0 top-20 flex justify-end px-4">
         <motion.div
           initial={{ y: 40, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}

@@ -7,13 +7,15 @@ import { useTheme } from "@/context/ThemeContext";
 import TrackList from "./TrackList";
 import { usePlaylists } from "@/context/PlaylistsContext";
 import { searchTracks } from "../lib/spotify";
+import { get } from "../lib/fetcher";
 
 type Props = {
   onSetTracks?: (tracks: Track[]) => void;
   tracks: Track[];
-  onTrackSelected: (track: Track) => void;
   twoColumnOnLarge?: boolean;
 };
+
+type AuthStatus = { authenticated: boolean };
 
 function toTrack(t: any): Track {
   return {
@@ -21,10 +23,7 @@ function toTrack(t: any): Track {
     name: t.name,
     artists: (t.artists || []).map((a: any) => ({ name: a.name })),
     image:
-      t.image ??
-      t.album?.images?.[1]?.url ??
-      t.album?.images?.[0]?.url ??
-      null,
+      t.image ?? t.album?.images?.[1]?.url ?? t.album?.images?.[0]?.url ?? null,
     preview_url: t.preview_url ?? null,
     external_url: t.external_url ?? t.external_urls?.spotify ?? "",
     uri: t.uri ?? null,
@@ -34,20 +33,46 @@ function toTrack(t: any): Track {
 export default function SpotifySearch({
   onSetTracks,
   tracks,
-  onTrackSelected,
   twoColumnOnLarge,
 }: Props) {
   const [q, setQ] = useState("");
   const [loading, setLoading] = useState(false);
 
+  // ✅ cookie-based login state (updates immediately after OAuth redirect)
+  const [loggedIn, setLoggedIn] = useState(false);
+
   const ctrlRef = useRef<AbortController | null>(null);
   const inputRef = useRef<HTMLInputElement | null>(null);
   const hadQueryRef = useRef(false);
 
-  const { isAuthenticated, pause } = useSpotifyPlayerContext();
+  // NOTE: isAuthenticated = “full playback token success” under Option 1.
+  const { fullPlaybackEnabled, enableFullPlayback, pause } =
+    useSpotifyPlayerContext();
+
   const { clearSelectedPlaylist } = usePlaylists();
   const { theme } = useTheme();
   const isLight = theme === "light";
+
+  const API = import.meta.env.VITE_API_BASE ?? "";
+
+  // ✅ Check login cookie state (no token refresh)
+  useEffect(() => {
+    let active = true;
+
+    async function loadStatus() {
+      try {
+        const status = await get<AuthStatus>(`${API}/api/auth/status`);
+        if (active) setLoggedIn(Boolean(status?.authenticated));
+      } catch {
+        if (active) setLoggedIn(false);
+      }
+    }
+
+    loadStatus();
+    return () => {
+      active = false;
+    };
+  }, [API]);
 
   const stopPlayback = useCallback(() => {
     pause().catch(() => {});
@@ -59,25 +84,17 @@ export default function SpotifySearch({
       if (!trimmed) return;
 
       // Abort any in-flight request
-      if (ctrlRef.current) {
-        ctrlRef.current.abort();
-      }
+      if (ctrlRef.current) ctrlRef.current.abort();
       const ac = new AbortController();
       ctrlRef.current = ac;
 
       setLoading(true);
       try {
-        const results = await searchTracks(trimmed, {
-          signal: ac.signal,
-        });
-
+        const results = await searchTracks(trimmed, { signal: ac.signal });
         const out: Track[] = results.map(toTrack);
         onSetTracks?.(out);
       } catch (e: any) {
-        // Ignore abort errors
-        if (e?.name !== "AbortError") {
-          onSetTracks?.([]);
-        }
+        if (e?.name !== "AbortError") onSetTracks?.([]);
       } finally {
         setLoading(false);
       }
@@ -99,9 +116,7 @@ export default function SpotifySearch({
       return;
     }
 
-    if (!hadQueryRef.current) {
-      clearSelectedPlaylist();
-    }
+    if (!hadQueryRef.current) clearSelectedPlaylist();
     hadQueryRef.current = true;
 
     const id = window.setTimeout(() => {
@@ -138,7 +153,7 @@ export default function SpotifySearch({
           Search
         </h2>
 
-        {/* Search bar always visible (Option A) */}
+        {/* Search bar always visible */}
         <div className="w-full max-w-xl space-y-2">
           <div className="flex items-center gap-2 rounded-2xl shadow-glow">
             <input
@@ -171,8 +186,8 @@ export default function SpotifySearch({
             )}
           </div>
 
-          {/* Login CTA */}
-          {!isAuthenticated && (
+          {/* ✅ Login CTA based on cookie login, not SDK auth */}
+          {!loggedIn ? (
             <div
               className={clsx(
                 "flex items-center justify-end gap-2 text-xs",
@@ -182,7 +197,11 @@ export default function SpotifySearch({
               <span>Log in for full playback access</span>
               <LoginButton />
             </div>
-          )}
+          ) : !fullPlaybackEnabled ? (
+            <div className="flex items-center justify-end">
+              <button onClick={enableFullPlayback}>Enable full playback</button>
+            </div>
+          ) : null}
         </div>
       </div>
 
@@ -204,7 +223,6 @@ export default function SpotifySearch({
       ) : (
         <TrackList
           tracks={tracks}
-          onTrackSelected={onTrackSelected}
           twoColumnOnLarge={twoColumnOnLarge}
         />
       )}

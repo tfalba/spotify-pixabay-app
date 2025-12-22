@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import clsx from "clsx";
 import HeaderBar from "./components/HeaderBar";
 import Home from "./pages/Home";
@@ -6,32 +6,49 @@ import { get } from "./lib/fetcher";
 import { useLyricsImages } from "./hooks/useLyricsImages";
 import { SpotifyPlayerProvider } from "./context/SpotifyPlayerProvider";
 import { ThemeProvider, useTheme } from "./context/ThemeContext";
-import { CurrentTrackProvider, useCurrentTrack } from "./context/CurrentTrackContext";
+import {
+  CurrentTrackProvider,
+  useCurrentTrack,
+} from "./context/CurrentTrackContext";
 import type { StyleCategory } from "./types/types";
 import { STYLE_CATEGORIES } from "./types/types";
 
 function AppContent() {
   const { current, albumCover } = useCurrentTrack();
-  const API = import.meta.env.VITE_API_BASE || "http://127.0.0.1:5174";
-  const [styleChoice, setStyleChoice] = useState<StyleCategory | "surprise">("surprise");
+
+  // ✅ memoize to avoid changing string identity in deps
+  const API = useMemo(
+    () => import.meta.env.VITE_API_BASE || "http://127.0.0.1:5174",
+    []
+  );
+
+  const [styleChoice, setStyleChoice] = useState<StyleCategory | "surprise">(
+    "surprise"
+  );
   const [currentLyrics, setCurrentLyrics] = useState<string | null>(null);
   const [currentCacheKey, setCurrentCacheKey] = useState<string | null>(null);
   const [hasInitialHero, setHasInitialHero] = useState(false);
-  const styleChoiceRef = useRef<StyleCategory | "surprise">(styleChoice);
+
+  // refs used to avoid dependency-triggered reruns
+  const styleChoiceRef = useRef<StyleCategory | "surprise">("surprise");
   const hasInitialHeroRef = useRef(false);
+
+  // ✅ stable helpers
   const pickRandomStyle = useCallback(
     () => STYLE_CATEGORIES[Math.floor(Math.random() * STYLE_CATEGORIES.length)],
-    [],
+    []
   );
+
   const resolveStyle = useCallback(
     (choice: StyleCategory | "surprise"): StyleCategory =>
       choice === "surprise" ? pickRandomStyle() : choice,
-    [pickRandomStyle],
+    [pickRandomStyle]
   );
-  const styleCacheKey = useCallback(
+
+  const makeCacheKey = useCallback(
     (baseKey: string | null, style: StyleCategory) =>
       baseKey ? `${baseKey}::${style}` : undefined,
-    [],
+    []
   );
 
   const {
@@ -49,12 +66,26 @@ function AppContent() {
     error,
   } = useLyricsImages();
 
+  // keep refs synced (no heavy rerenders)
   useEffect(() => {
     styleChoiceRef.current = styleChoice;
   }, [styleChoice]);
 
   useEffect(() => {
-    if (!current?.artists?.length || !current?.name) {
+    hasInitialHeroRef.current = hasInitialHero;
+  }, [hasInitialHero]);
+
+  // ✅ request id guard to prevent async overlap/stale updates
+  const requestIdRef = useRef(0);
+
+  // 1) When current track changes, fetch lyrics + images once
+  useEffect(() => {
+    const artist = current?.artists?.[0]?.name ?? "";
+    const title = current?.name ?? "";
+
+    // No track selected: reset + ensure demo
+    if (!artist || !title) {
+      requestIdRef.current += 1; // invalidate any in-flight work
       setImages(null);
       setKeywords(null);
       setHeroImage(null);
@@ -64,27 +95,32 @@ function AppContent() {
       void ensureDemoImages();
       return;
     }
+
+    const myRequestId = ++requestIdRef.current;
+
+    // reset for new track
     setImages(null);
     setKeywords(null);
     setHeroImage(null);
     setCurrentLyrics(null);
-    setCurrentCacheKey(null);
     setHasInitialHero(false);
-    const cacheKey =
-      current.uri ||
-      (current.artists[0]?.name && current.name
-        ? `${current.artists[0]?.name}::${current.name}`
-        : current.id);
-    setCurrentCacheKey(cacheKey);
+
+    const baseKey =
+      current?.uri ||
+      (artist && title ? `${artist}::${title}` : current?.id ?? "");
+    setCurrentCacheKey(baseKey);
 
     const styleForRequest = resolveStyle(styleChoiceRef.current);
 
     get<{ lyrics: string; source: string }>(
       `${API}/api/lyrics?artist=${encodeURIComponent(
-        current.artists[0]?.name || ""
-      )}&title=${encodeURIComponent(current.name)}`
+        artist
+      )}&title=${encodeURIComponent(title)}`
     )
-      .then((d) => {
+      .then(async (d) => {
+        // stale request? bail
+        if (requestIdRef.current !== myRequestId) return;
+
         if (!d?.lyrics) {
           setImages(null);
           setKeywords(null);
@@ -92,44 +128,78 @@ function AppContent() {
           setCurrentLyrics(null);
           return;
         }
+
         setCurrentLyrics(d.lyrics);
-        const requestCacheKey = styleCacheKey(cacheKey, styleForRequest);
-        void fetchImages(d.lyrics, {
-          cacheKey: requestCacheKey,
-          songTitle: current.name,
-          songArtist: current.artists[0]?.name,
-          allowDemoFallback: false,
-          styleCategory: styleForRequest,
-        }).then(
-          () => setHasInitialHero(true),
-          () => {},
-        );
+
+        const requestCacheKey = makeCacheKey(baseKey, styleForRequest);
+
+        try {
+          await fetchImages(d.lyrics, {
+            cacheKey: requestCacheKey,
+            songTitle: title,
+            songArtist: artist,
+            allowDemoFallback: false,
+            styleCategory: styleForRequest,
+          });
+
+          if (requestIdRef.current !== myRequestId) return;
+          setHasInitialHero(true);
+        } catch {
+          // ignore
+        }
       })
       .catch(() => {
+        if (requestIdRef.current !== myRequestId) return;
         setImages(null);
         setKeywords(null);
         setHeroImage(null);
         setCurrentLyrics(null);
       });
-  }, [current, API, ensureDemoImages, fetchImages, setImages, setKeywords, setHeroImage, resolveStyle, styleCacheKey]);
 
-  useEffect(() => {
-    hasInitialHeroRef.current = hasInitialHero;
-  }, [hasInitialHero]);
+    // Only depend on track identity + the specific helpers you truly need
+  }, [
+    current?.uri,
+    current?.id,
+    current?.name,
+    current?.artists,
+    API,
+    ensureDemoImages,
+    fetchImages,
+    resolveStyle,
+    makeCacheKey,
+    setImages,
+    setKeywords,
+    setHeroImage,
+  ]);
 
+  // 2) When style changes AFTER initial hero exists, refresh hero only
   useEffect(() => {
-    if (!current?.artists?.length || !current?.name) return;
+    const artist = current?.artists?.[0]?.name ?? "";
+    const title = current?.name ?? "";
+    if (!artist || !title) return;
     if (!currentLyrics) return;
     if (!hasInitialHeroRef.current) return;
+    if (!currentCacheKey) return;
+
     const concreteStyle = resolveStyle(styleChoice);
-    const heroCacheKey = styleCacheKey(currentCacheKey, concreteStyle);
+    const heroCacheKey = makeCacheKey(currentCacheKey, concreteStyle);
+
     void refreshHeroImage(currentLyrics, {
       cacheKey: heroCacheKey,
-      songTitle: current.name,
-      songArtist: current.artists[0]?.name,
+      songTitle: title,
+      songArtist: artist,
       styleCategory: concreteStyle,
     });
-  }, [styleChoice, current, currentLyrics, currentCacheKey, refreshHeroImage, resolveStyle, styleCacheKey]);
+  }, [
+    styleChoice,
+    currentLyrics,
+    currentCacheKey,
+    current?.name,
+    current?.artists?.[0],
+    refreshHeroImage,
+    resolveStyle,
+    makeCacheKey,
+  ]);
 
   const pixabayProps = {
     images,
@@ -143,33 +213,36 @@ function AppContent() {
   };
 
   const { theme } = useTheme();
+
   const pageBg = clsx(
     "min-h-screen w-full transition-colors duration-300",
-    theme === "light" ? "bg-slate-50 text-slate-900" : "bg-portfolio-gradient text-slate-100",
+    theme === "light"
+      ? "bg-slate-50 text-slate-900"
+      : "bg-portfolio-gradient text-slate-100"
   );
   const shell = clsx(
     "mx-auto flex min-h-screen w-full max-w-[1700px] flex-col md:px-6 md:pb-12 pt-3 md:pt-4 lg:px-10 transition-colors duration-300",
-    theme === "light" ? "text-slate-900" : "text-slate-100",
+    theme === "light" ? "text-slate-900" : "text-slate-100"
   );
 
   return (
-    <SpotifyPlayerProvider>
-      <div className={pageBg}>
-        <div className={shell}>
-          <HeaderBar styleChoice={styleChoice} onStyleChange={setStyleChoice} />
-          <Home pixabay={pixabayProps} albumCover={albumCover} />
-        </div>
+    <div className={pageBg}>
+      <div className={shell}>
+        <HeaderBar styleChoice={styleChoice} onStyleChange={setStyleChoice} />
+        <Home pixabay={pixabayProps} albumCover={albumCover} />
       </div>
-    </SpotifyPlayerProvider>
+    </div>
   );
 }
 
 export default function App() {
   return (
     <ThemeProvider>
-      <CurrentTrackProvider>
-        <AppContent />
-      </CurrentTrackProvider>
+      <SpotifyPlayerProvider>
+        <CurrentTrackProvider>
+          <AppContent />
+        </CurrentTrackProvider>
+      </SpotifyPlayerProvider>
     </ThemeProvider>
   );
 }

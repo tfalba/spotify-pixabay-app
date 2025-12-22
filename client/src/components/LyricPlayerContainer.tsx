@@ -132,10 +132,6 @@ export default function LyricPlayerContainer() {
           </div>
         </div>
       </div>
-      {/* <LyricsPane
-        artist={current?.artists[0]?.name || ""}
-        title={current?.name || ""}
-      /> */}
     </aside>
   );
 }
