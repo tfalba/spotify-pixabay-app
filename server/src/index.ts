@@ -11,7 +11,7 @@ import {
   token,
   getAccessToken,
 } from "./auth";
-import { spotifySearch, spotifyProfile } from "./spotify";
+import { spotifyProfile } from "./spotify";
 import { pixabaySearch } from "./pixabay";
 import { fetchLyrics } from "./lyrics";
 import {
@@ -30,6 +30,8 @@ import {
 import imagesRouter from "./images";
 import demoRouter from "./demoImages";
 import { playlistsRouter } from "./playlists";
+import { getSpotifyToken, spotifySearch } from "./spotifyToken";
+
 
 const app = express();
 
@@ -73,14 +75,41 @@ app.post("/auth/token", token); // <-- POST so client can call with credentials
 // --------- Spotify-proxied endpoints (server-side) ---------
 
 // Search via server (uses cookies → getAccessToken)
+// app.get("/api/search", async (req, res) => {
+//   try {
+//     const q = (req.query.q as string) || "";
+//     const data = await spotifySearch(req, q);
+//     res.json(data);
+//   } catch (e: any) {
+//     const status = typeof e?.status === "number" ? e.status : 401;
+//     res.status(status).json({ error: e?.message ?? "search_failed" });
+//   }
+// });
+// Search via server (anonymous OK)
+
 app.get("/api/search", async (req, res) => {
   try {
     const q = (req.query.q as string) || "";
-    const data = await spotifySearch(req, q);
+    const data = await spotifySearch(req, res, q);
     res.json(data);
   } catch (e: any) {
-    const status = typeof e?.status === "number" ? e.status : 401;
+    const status = typeof e?.status === "number" ? e.status : 500;
     res.status(status).json({ error: e?.message ?? "search_failed" });
+  }
+});
+
+app.get("/api/tracks/:id", async (req, res) => {
+  try {
+    const access = await getSpotifyToken(req, res, "either");
+
+    const r = await fetch(`https://api.spotify.com/v1/tracks/${req.params.id}`, {
+      headers: { Authorization: `Bearer ${access}` },
+    });
+
+    const text = await r.text();
+    return res.status(r.status).send(text || r.statusText);
+  } catch (e: any) {
+    res.status(500).json({ error: e?.message ?? "track_failed" });
   }
 });
 

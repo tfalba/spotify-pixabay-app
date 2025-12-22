@@ -1,12 +1,12 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import clsx from "clsx";
-import { get } from "../lib/fetcher";
 import type { Track } from "../types/types";
 import { useSpotifyPlayerContext } from "../context/SpotifyPlayerProvider";
 import { LoginButton } from "./LoginButtons";
 import { useTheme } from "@/context/ThemeContext";
 import TrackList from "./TrackList";
 import { usePlaylists } from "@/context/PlaylistsContext";
+import { searchTracks } from "../lib/spotify";
 
 type Props = {
   onSetTracks?: (tracks: Track[]) => void;
@@ -14,6 +14,22 @@ type Props = {
   onTrackSelected: (track: Track) => void;
   twoColumnOnLarge?: boolean;
 };
+
+function toTrack(t: any): Track {
+  return {
+    id: t.id,
+    name: t.name,
+    artists: (t.artists || []).map((a: any) => ({ name: a.name })),
+    image:
+      t.image ??
+      t.album?.images?.[1]?.url ??
+      t.album?.images?.[0]?.url ??
+      null,
+    preview_url: t.preview_url ?? null,
+    external_url: t.external_url ?? t.external_urls?.spotify ?? "",
+    uri: t.uri ?? null,
+  };
+}
 
 export default function SpotifySearch({
   onSetTracks,
@@ -23,11 +39,10 @@ export default function SpotifySearch({
 }: Props) {
   const [q, setQ] = useState("");
   const [loading, setLoading] = useState(false);
-  const ctrl = useRef<AbortController | null>(null);
+
+  const ctrlRef = useRef<AbortController | null>(null);
   const inputRef = useRef<HTMLInputElement | null>(null);
   const hadQueryRef = useRef(false);
-
-  const API_BASE = import.meta.env.VITE_API_BASE ?? "";
 
   const { isAuthenticated, pause } = useSpotifyPlayerContext();
   const { clearSelectedPlaylist } = usePlaylists();
@@ -40,58 +55,64 @@ export default function SpotifySearch({
 
   const search = useCallback(
     async (term: string) => {
-      if (ctrl.current) ctrl.current.abort();
+      const trimmed = term.trim();
+      if (!trimmed) return;
+
+      // Abort any in-flight request
+      if (ctrlRef.current) {
+        ctrlRef.current.abort();
+      }
       const ac = new AbortController();
-      ctrl.current = ac;
+      ctrlRef.current = ac;
+
       setLoading(true);
       try {
-        const data = await get<any>(
-          `${API_BASE}/api/search?q=${encodeURIComponent(term)}`
-        );
-        const items = (data?.tracks?.items || []) as any[];
-        const out: Track[] = items.map((it) => ({
-          id: it.id,
-          name: it.name,
-          artists: (it.artists || []).map((a: any) => ({ name: a.name })),
-          image:
-            it.album?.images?.[1]?.url || it.album?.images?.[0]?.url || null,
-          preview_url: it.preview_url || null,
-          external_url: it.external_urls?.spotify,
-          uri: it.uri ?? null,
-        }));
+        const results = await searchTracks(trimmed, {
+          signal: ac.signal,
+        });
+
+        const out: Track[] = results.map(toTrack);
         onSetTracks?.(out);
+      } catch (e: any) {
+        // Ignore abort errors
+        if (e?.name !== "AbortError") {
+          onSetTracks?.([]);
+        }
       } finally {
         setLoading(false);
       }
     },
-    [API_BASE]
+    [onSetTracks]
   );
 
   useEffect(() => {
     const trimmed = q.trim();
     const hasQuery = trimmed.length > 0;
+
     if (!hasQuery) {
-      if (ctrl.current) ctrl.current.abort();
+      if (ctrlRef.current) ctrlRef.current.abort();
       onSetTracks?.([]);
       setLoading(false);
-      if (hadQueryRef.current) {
-        stopPlayback();
-      }
+
+      if (hadQueryRef.current) stopPlayback();
       hadQueryRef.current = false;
       return;
     }
+
     if (!hadQueryRef.current) {
       clearSelectedPlaylist();
     }
     hadQueryRef.current = true;
-    const id = setTimeout(() => {
+
+    const id = window.setTimeout(() => {
       search(trimmed).catch(() => {});
     }, 350);
-    return () => clearTimeout(id);
-  }, [q, clearSelectedPlaylist, search, stopPlayback]);
+
+    return () => window.clearTimeout(id);
+  }, [q, clearSelectedPlaylist, search, stopPlayback, onSetTracks]);
 
   function clearSearch() {
-    if (ctrl.current) ctrl.current.abort();
+    if (ctrlRef.current) ctrlRef.current.abort();
     setLoading(false);
     setQ("");
     onSetTracks?.([]);
@@ -104,13 +125,10 @@ export default function SpotifySearch({
     <section
       className={clsx(
         "flex h-full min-h-0 flex-col gap-4 rounded-b-3xl p-6",
-        isLight
-          ? " bg-white/80 text-slate-700"
-          : " bg-white/5 text-white"
+        isLight ? "bg-white/80 text-slate-700" : "bg-white/5 text-white"
       )}
     >
-      {" "}
-      <div className="flex items-center justify-between mb-4 gap-3 flex-wrap md:flex-nowrap">
+      <div className="mb-4 flex items-center justify-between gap-3 flex-wrap md:flex-nowrap">
         <h2
           className={clsx(
             "text-sm font-semibold uppercase tracking-[0.2em]",
@@ -119,15 +137,15 @@ export default function SpotifySearch({
         >
           Search
         </h2>
-    
-      <div className="space-y-4 p-1 text-right w-full">
-        {isAuthenticated ? (
+
+        {/* Search bar always visible (Option A) */}
+        <div className="w-full max-w-xl space-y-2">
           <div className="flex items-center gap-2 rounded-2xl shadow-glow">
             <input
               ref={inputRef}
               value={q}
               onChange={(e) => setQ(e.target.value)}
-              placeholder="Search Spotify tracks..."
+              placeholder="Search Spotify tracks…"
               className={clsx(
                 "w-full rounded-xl border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent/40",
                 isLight
@@ -135,12 +153,13 @@ export default function SpotifySearch({
                   : "border-white/20 bg-gradient-to-br from-sapphire/90 via-sapphire to-sapphire/70 text-amber-100 placeholder:text-white/50"
               )}
             />
+
             {q && (
               <button
                 type="button"
                 onClick={clearSearch}
                 className={clsx(
-                  "group inline-flex w-9 h-9 items-center justify-center rounded-full border border-transparent shadow-[0_12px_25px_-18px_rgba(251,191,36,0.9)] transition duration-200 hover:-translate-y-0.5 hover:shadow-[0_18px_35px_-16px_rgba(124,92,252,0.55)] focus:outline-none focus:ring-2 focus:ring-amber/50",
+                  "group inline-flex h-9 w-9 items-center justify-center rounded-full border border-transparent shadow-[0_12px_25px_-18px_rgba(251,191,36,0.9)] transition duration-200 hover:-translate-y-0.5 hover:shadow-[0_18px_35px_-16px_rgba(124,92,252,0.55)] focus:outline-none focus:ring-2 focus:ring-amber/50",
                   isLight ? "bg-teal/20 text-slate-900" : "text-teal"
                 )}
                 aria-label="Clear search"
@@ -151,11 +170,22 @@ export default function SpotifySearch({
               </button>
             )}
           </div>
-        ) : (
-          <LoginButton />
-        )}
-      </div>
+
+          {/* Login CTA */}
+          {!isAuthenticated && (
+            <div
+              className={clsx(
+                "flex items-center justify-end gap-2 text-xs",
+                isLight ? "text-slate-600" : "text-white/70"
+              )}
+            >
+              <span>Log in for full playback access</span>
+              <LoginButton />
+            </div>
+          )}
         </div>
+      </div>
+
       {loading ? (
         <div
           className={clsx(

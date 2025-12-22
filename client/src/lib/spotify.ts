@@ -24,8 +24,11 @@ export type SpotifyPlaylist = {
 const API_BASE = import.meta.env.VITE_API_BASE ?? "";
 
 
-async function api<T>(path: string): Promise<T> {
-  const r = await fetch(`${API_BASE}${path}`, { credentials: "include" }); // include cookies
+async function api<T>(path: string, init?: RequestInit): Promise<T> {
+  const r = await fetch(`${API_BASE}${path}`, {
+    credentials: "include",
+    ...(init ?? {}),
+  });
   if (!r.ok) throw new Error(await r.text());
   return r.json();
 }
@@ -65,4 +68,33 @@ export async function getAllPlaylistTracks(playlistId: string): Promise<SpotifyT
     });
   }
   return tracks;
+}
+
+export async function searchTracks(
+  q: string,
+  init?: RequestInit
+) {
+  const trimmed = q.trim();
+  if (!trimmed) return [];
+
+  const data = await api<{ tracks: { items: SpotifyTrack[] } }>(
+    `/api/search?q=${encodeURIComponent(trimmed)}`,
+    init
+  );
+
+  // normalize shape like you do elsewhere
+  const items = data.tracks?.items ?? [];
+  return items.map((t: any) => ({
+    id: t.id,
+    name: t.name,
+    preview_url: t.preview_url ?? null,
+    external_url: t.external_urls?.spotify ?? "",
+    image: t.album?.images?.[0]?.url ?? null,
+    uri: t.uri,
+    artists: (t.artists ?? []).map((a: any) => ({ name: a.name })),
+    album: {
+      name: t.album?.name ?? "",
+      images: t.album?.images ?? [],
+    },
+  })) as SpotifyTrack[];
 }
