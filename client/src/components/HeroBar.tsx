@@ -28,6 +28,8 @@ export default function HeroBar({
   const { theme } = useTheme();
   const isLight = theme === "light";
   const [activeTab, setActiveTab] = useState<"song" | "style">("song");
+  const [panelOpen, setPanelOpen] = useState(false);
+  const panelLabel = activeTab === "song" ? "Now Playing" : "Art Style";
 
   return (
     <section
@@ -48,91 +50,116 @@ export default function HeroBar({
       </div>
 
       <div className="absolute inset-x-0 top-20 flex justify-end px-4">
-        <motion.div
-          initial={{ y: 40, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ type: "spring", stiffness: 170, damping: 18 }}
-          className={clsx(
-            "w-full max-w-xl rounded-3xl border px-5 py-5 shadow-[0_35px_65px_rgba(15,23,42,0.45)] backdrop-blur-xl",
-            isLight ? "bg-white/85 border-white/60" : "bg-slate-950/80 border-white/20",
-          )}
+        <div
+          className="w-full max-w-xl transition-transform duration-300"
+          style={{
+            transform: panelOpen
+              ? "translateX(0)"
+              : "translateX(calc(100% - 3rem))",
+          }}
         >
-          <div className="flex gap-3 pb-4">
-            {[
-              { key: "song" as const, label: "Song → Visual" },
-              { key: "style" as const, label: "Art Style" },
-            ].map((tab) => (
-              <button
-                key={tab.key}
-                type="button"
-                onClick={() => setActiveTab(tab.key)}
-                className={clsx(
-                  "flex-1 rounded-t-xl px-4 py-2 text-xs font-semibold uppercase tracking-[0.35em] transition",
-                  activeTab === tab.key
-                    ? isLight
-                      ? "bg-teal/50 text-midnight"
-                      : "bg-teal text-midnight"
-                    : isLight
-                      ? "bg-white/70 text-slate-500"
-                      : "bg-white/10 text-white/60",
-                )}
-              >
-                {tab.label}
-              </button>
-            ))}
-          </div>
-
-          {activeTab === "song" ? (
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.25em] text-slate-400">
-                Song → Visual
-              </p>
-              {/* <p
-                className={clsx(
-                  "mt-2 text-base md:text-lg font-semibold",
-                  isLight ? "text-slate-900" : "text-white",
-                )}
-              >
-                Turn any track into cinematic mood art.
-              </p> */}
-              {onTrackFinished && (
-                <div className="mt-4">
-                  <NowPlayingPanel onTrackFinished={onTrackFinished} />
-                </div>
+          <motion.div
+            initial={{ y: 40, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ type: "spring", stiffness: 170, damping: 18 }}
+            className={clsx(
+              "relative rounded-3xl border px-5 py-5 pl-16 shadow-[0_35px_65px_rgba(15,23,42,0.45)] backdrop-blur-xl",
+              isLight ? "bg-white/85 border-white/60" : "bg-slate-950/80 border-white/20",
+            )}
+          >
+            <button
+              type="button"
+              onClick={() => setPanelOpen((open) => !open)}
+              aria-expanded={panelOpen}
+              className={clsx(
+                "absolute left-0 top-0 flex h-full w-12 items-center justify-center rounded-l-3xl border-r text-[11px] font-semibold uppercase tracking-[0.35em] transition-colors",
+                isLight
+                  ? "border-white/50 bg-white/80 text-slate-500 hover:text-slate-700"
+                  : "border-white/10 bg-slate-900/60 text-white/60 hover:text-white",
               )}
-            </div>
-          ) : (
-            <div className="space-y-4">
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.25em] text-slate-400">
-                  Art Style
-                </p>
-                <p className="mt-2 text-sm text-slate-400">
-                  Swap styles anytime—your next PNG will take on a whole new mood.
-                </p>
-              </div>
-              <div className="flex flex-col gap-3 md:flex-row justify-end items-end">
+            >
+              <span style={{ writingMode: "vertical-rl", textOrientation: "mixed" }}>
+                {panelLabel}
+              </span>
+            </button>
+
+            <div className="flex gap-3 pb-4">
+              {[
+                { key: "song" as const, label: "Song → Visual" },
+                { key: "style" as const, label: "Art Style" },
+              ].map((tab) => (
                 <button
+                  key={tab.key}
                   type="button"
-                  onClick={onToggleTheme}
+                  onClick={() => setActiveTab(tab.key)}
                   className={clsx(
-                    "inline-flex items-center justify-center gap-2 rounded-full border px-4 py-2 text-xs font-semibold uppercase tracking-wide transition-colors",
-                    isLight
-                      ? "border-slate-300 bg-white text-slate-700 hover:bg-slate-100"
-                      : "border-white/30 bg-white/10 text-white hover:bg-white/20",
+                    "flex-1 rounded-t-xl px-4 py-2 text-xs font-semibold uppercase tracking-[0.35em] transition",
+                    activeTab === tab.key
+                      ? isLight
+                        ? "bg-teal/50 text-midnight"
+                        : "bg-teal text-midnight"
+                      : isLight
+                        ? "bg-white/70 text-slate-500"
+                        : "bg-white/10 text-white/60",
                   )}
                 >
-                  {isLight ? "Dark Mode" : "Light Mode"}
+                  {tab.label}
                 </button>
-                <ArtStyleDropdown
-                  resolvedStyleName={resolvedStyleName}
-                  styleChoice={styleChoice}
-                  onStyleChange={onStyleChange}
-                />
-              </div>
+              ))}
             </div>
-          )}
-        </motion.div>
+
+            {activeTab === "song" ? (
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.25em] text-slate-400">
+                  Song → Visual
+                </p>
+                {/* <p
+                  className={clsx(
+                    "mt-2 text-base md:text-lg font-semibold",
+                    isLight ? "text-slate-900" : "text-white",
+                  )}
+                >
+                  Turn any track into cinematic mood art.
+                </p> */}
+                {onTrackFinished && (
+                  <div className="mt-4">
+                    <NowPlayingPanel onTrackFinished={onTrackFinished} />
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-[0.25em] text-slate-400">
+                    Art Style
+                  </p>
+                  <p className="mt-2 text-sm text-slate-400">
+                    Swap styles anytime—your next PNG will take on a whole new mood.
+                  </p>
+                </div>
+                <div className="flex flex-col gap-3 md:flex-row justify-end items-end">
+                  <button
+                    type="button"
+                    onClick={onToggleTheme}
+                    className={clsx(
+                      "inline-flex items-center justify-center gap-2 rounded-full border px-4 py-2 text-xs font-semibold uppercase tracking-wide transition-colors",
+                      isLight
+                        ? "border-slate-300 bg-white text-slate-700 hover:bg-slate-100"
+                        : "border-white/30 bg-white/10 text-white hover:bg-white/20",
+                    )}
+                  >
+                    {isLight ? "Dark Mode" : "Light Mode"}
+                  </button>
+                  <ArtStyleDropdown
+                    resolvedStyleName={resolvedStyleName}
+                    styleChoice={styleChoice}
+                    onStyleChange={onStyleChange}
+                  />
+                </div>
+              </div>
+            )}
+          </motion.div>
+        </div>
       </div>
     </section>
   );

@@ -108,7 +108,9 @@ export default function SpotifySearch({
 
     if (!hasQuery) {
       if (ctrlRef.current) ctrlRef.current.abort();
-      onSetTracks?.([]);
+      if (hadQueryRef.current) {
+        onSetTracks?.([]);
+      }
       setLoading(false);
 
       if (hadQueryRef.current) stopPlayback();
