@@ -12,6 +12,10 @@ import { get } from "../lib/fetcher";
 type Props = {
   onSetTracks?: (tracks: Track[]) => void;
   tracks: Track[];
+  query: string;
+  onQueryChange: (value: string) => void;
+  lastSearchedQuery: string;
+  onLastSearchedQueryChange: (value: string) => void;
   twoColumnOnLarge?: boolean;
 };
 
@@ -33,9 +37,12 @@ function toTrack(t: any): Track {
 export default function SpotifySearch({
   onSetTracks,
   tracks,
+  query,
+  onQueryChange,
+  lastSearchedQuery,
+  onLastSearchedQueryChange,
   twoColumnOnLarge,
 }: Props) {
-  const [q, setQ] = useState("");
   const [loading, setLoading] = useState(false);
 
   // ✅ cookie-based login state (updates immediately after OAuth redirect)
@@ -44,7 +51,6 @@ export default function SpotifySearch({
   const ctrlRef = useRef<AbortController | null>(null);
   const inputRef = useRef<HTMLInputElement | null>(null);
   const hadQueryRef = useRef(false);
-
   // NOTE: isAuthenticated = “full playback token success” under Option 1.
   const { fullPlaybackEnabled, enableFullPlayback, pause } =
     useSpotifyPlayerContext();
@@ -82,6 +88,7 @@ export default function SpotifySearch({
     async (term: string) => {
       const trimmed = term.trim();
       if (!trimmed) return;
+      if (lastSearchedQuery === trimmed && tracks.length > 0) return;
 
       // Abort any in-flight request
       if (ctrlRef.current) ctrlRef.current.abort();
@@ -92,6 +99,7 @@ export default function SpotifySearch({
       try {
         const results = await searchTracks(trimmed, { signal: ac.signal });
         const out: Track[] = results.map(toTrack);
+        onLastSearchedQueryChange(trimmed);
         onSetTracks?.(out);
       } catch (e: any) {
         if (e?.name !== "AbortError") onSetTracks?.([]);
@@ -99,11 +107,11 @@ export default function SpotifySearch({
         setLoading(false);
       }
     },
-    [onSetTracks]
+    [onSetTracks, tracks.length, lastSearchedQuery, onLastSearchedQueryChange]
   );
 
   useEffect(() => {
-    const trimmed = q.trim();
+    const trimmed = query.trim();
     const hasQuery = trimmed.length > 0;
 
     if (!hasQuery) {
@@ -121,19 +129,29 @@ export default function SpotifySearch({
     if (!hadQueryRef.current) clearSelectedPlaylist();
     hadQueryRef.current = true;
 
+    if (lastSearchedQuery === trimmed && tracks.length > 0) return;
     const id = window.setTimeout(() => {
       search(trimmed).catch(() => {});
     }, 350);
 
     return () => window.clearTimeout(id);
-  }, [q, clearSelectedPlaylist, search, stopPlayback, onSetTracks]);
+  }, [
+    query,
+    clearSelectedPlaylist,
+    search,
+    stopPlayback,
+    onSetTracks,
+    tracks.length,
+    lastSearchedQuery,
+  ]);
 
   function clearSearch() {
     if (ctrlRef.current) ctrlRef.current.abort();
     setLoading(false);
-    setQ("");
+    onQueryChange("");
     onSetTracks?.([]);
     hadQueryRef.current = false;
+    onLastSearchedQueryChange("");
     stopPlayback();
     inputRef.current?.focus();
   }
@@ -160,8 +178,8 @@ export default function SpotifySearch({
           <div className="flex items-center gap-2 rounded-2xl shadow-glow">
             <input
               ref={inputRef}
-              value={q}
-              onChange={(e) => setQ(e.target.value)}
+              value={query}
+              onChange={(e) => onQueryChange(e.target.value)}
               placeholder="Search Spotify tracks…"
               className={clsx(
                 "w-full rounded-xl border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent/40",
@@ -171,7 +189,7 @@ export default function SpotifySearch({
               )}
             />
 
-            {q && (
+            {query && (
               <button
                 type="button"
                 onClick={clearSearch}

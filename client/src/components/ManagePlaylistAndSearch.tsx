@@ -16,6 +16,8 @@ type ManagePlaylistsAndSearchProps = {
 type DiscoverPanelSnapshot = {
   activePanel: "search" | "playlists";
   tracks: Track[];
+  query: string;
+  lastSearchedQuery: string;
 };
 
 let lastTrackSource: "playlists" | "search" | null = null;
@@ -34,6 +36,12 @@ export default function ManagePlaylistsAndSearch({
   const [tracks, setTracks] = useState<Track[]>(
     () => persistedDiscoverState?.tracks ?? []
   );
+  const [query, setQuery] = useState(
+    () => persistedDiscoverState?.query ?? ""
+  );
+  const [lastSearchedQuery, setLastSearchedQuery] = useState(
+    () => persistedDiscoverState?.lastSearchedQuery ?? ""
+  );
   const [activePanel, setActivePanel] = useState<"search" | "playlists">(
     () => persistedDiscoverState?.activePanel ?? lastTrackSource ?? "playlists"
   );
@@ -48,9 +56,11 @@ export default function ManagePlaylistsAndSearch({
       persistedDiscoverState = {
         activePanel,
         tracks,
+        query,
+        lastSearchedQuery,
       };
     };
-  }, [activePanel, tracks]);
+  }, [activePanel, tracks, query, lastSearchedQuery]);
 
   const isLight = theme === "light";
   const sectionClass = clsx(useSectionClass(isLight, 1), "mx-auto w-full");
@@ -131,11 +141,15 @@ export default function ManagePlaylistsAndSearch({
         ))}
       </div>
 
-      <div className="max-h-max min-h-fit flex-1 overflow-y-auto">
+      <div className="max-h-max min-h-fit flex-1 overflow-visible">
         {activePanel === "search" ? (
           <SpotifySearch
             onSetTracks={handleSetTracks}
             tracks={tracks}
+            query={query}
+            onQueryChange={setQuery}
+            lastSearchedQuery={lastSearchedQuery}
+            onLastSearchedQueryChange={setLastSearchedQuery}
             twoColumnOnLarge={soloExpanded}
           />
         ) : (

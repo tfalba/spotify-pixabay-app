@@ -363,12 +363,15 @@ export function useSpotifyWebPlayback() {
 
   const resume = useCallback(async () => {
     stopPreview();
+    const currentUri = playerState?.track_window?.current_track?.uri ?? null;
     await apiFetch("/api/player/play", {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({}),
+      body: JSON.stringify(
+        currentUri ? { uris: [currentUri], position_ms: 0 } : { position_ms: 0 }
+      ),
     });
-  }, [stopPreview]);
+  }, [playerState?.track_window?.current_track?.uri, stopPreview]);
 
   const nextTrack = useCallback(async () => {
     stopPreview();
@@ -417,7 +420,7 @@ const playTrackSmart = useCallback(
   }) => {
     // 1) Full playback if authenticated + device
     if (isAuthenticated && deviceId && track?.uri) {
-      await resumeOrStart({ uris: [track.uri] });
+      await startPlayback({ uris: [track.uri] });
       return;
     }
 
@@ -428,11 +431,14 @@ const playTrackSmart = useCallback(
     }
 
     // 3) iTunes fallback (best-effort)
-    const key = track?.id || `${track?.artists?.[0]?.name ?? ""}::${track?.name ?? ""}`;
+    const artist = track?.artists?.[0]?.name?.trim() ?? "";
+    const title = track?.name?.trim() ?? "";
+    const key =
+      track?.id ||
+      track?.uri ||
+      (artist && title ? `${artist}::${title}` : null);
     if (key) {
       if (!(key in itunesCacheRef.current)) {
-        const artist = track?.artists?.[0]?.name ?? "";
-        const title = track?.name ?? "";
         itunesCacheRef.current[key] = await getItunesPreview(artist, title);
       }
       const itunesPreview = itunesCacheRef.current[key];
@@ -447,7 +453,7 @@ const playTrackSmart = useCallback(
       window.open(track.external_url, "_blank", "noopener,noreferrer");
     }
   },
-  [deviceId, isAuthenticated, playPreview, resumeOrStart]
+  [deviceId, isAuthenticated, playPreview, startPlayback]
 );
 
   return {
