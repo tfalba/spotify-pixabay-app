@@ -86,7 +86,7 @@ export default function TrackList({
   const isLight = theme === "light";
 
   const { current, playTrack } = useCurrentTrack();
-  const { playlists, moveTrack } = usePlaylists();
+  const { playlists, moveTrack, loggedIn } = usePlaylists();
   const { playTrackSmart } = useSpotifyPlayerContext();
 
   const selectedTrackId = current?.id ?? null;
@@ -155,12 +155,43 @@ export default function TrackList({
                   selected={isSelected}
                   isLight={isLight}
                   actions={
-                    <>
+                    loggedIn ? (
+                      <>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            // ✅ single source of truth:
+                            // set queue + current together, then start playback appropriately
+                            playTrack(t, effectiveQueue);
+                            playTrackSmart(t).catch(() => {});
+                          }}
+                          className={clsx(
+                            "rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide transition",
+                            isLight
+                              ? "bg-teal/20 text-midnight hover:bg-teal/30"
+                              : "bg-teal/70 text-midnight hover:bg-teal"
+                          )}
+                        >
+                          Play
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => openMoveModal(t)}
+                          className={clsx(
+                            "rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide opacity-70",
+                            isLight
+                              ? "border-slate-300 text-slate-500"
+                              : "border-white/30 text-white/70"
+                          )}
+                        >
+                          Move
+                        </button>
+                      </>
+                    ) : (
                       <button
                         type="button"
                         onClick={() => {
-                          // ✅ single source of truth:
-                          // set queue + current together, then start playback appropriately
                           playTrack(t, effectiveQueue);
                           playTrackSmart(t).catch(() => {});
                         }}
@@ -171,22 +202,9 @@ export default function TrackList({
                             : "bg-teal/70 text-midnight hover:bg-teal"
                         )}
                       >
-                        Play
+                        Preview
                       </button>
-
-                      <button
-                        type="button"
-                        onClick={() => openMoveModal(t)}
-                        className={clsx(
-                          "rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide opacity-70",
-                          isLight
-                            ? "border-slate-300 text-slate-500"
-                            : "border-white/30 text-white/70"
-                        )}
-                      >
-                        Move
-                      </button>
-                    </>
+                    )
                   }
                 />
               </div>

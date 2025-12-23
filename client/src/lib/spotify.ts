@@ -98,3 +98,23 @@ export async function searchTracks(
     },
   })) as SpotifyTrack[];
 }
+
+
+export async function getItunesPreview(
+  artist: string,
+  title: string,
+  init?: RequestInit
+): Promise<string | null> {
+  const params = new URLSearchParams({
+    artist,
+    title,
+  });
+
+  const r = await fetch(`${API_BASE}/api/itunes/preview?${params.toString()}`, {
+    credentials: "include",
+    ...init,
+  });
+  if (!r.ok) return null;
+  const json = await r.json();
+  return json?.preview_url ?? null;
+}

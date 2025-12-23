@@ -3,6 +3,7 @@ import express from "express";
 import cors, { type CorsOptions } from "cors";
 import cookieParser from "cookie-parser";
 import { env } from "./env";
+import { itunesPreviewLookup } from "./itunes";
 
 import { login, callback, refreshToken, logout, token, getAccessToken } from "./auth";
 import { pixabaySearch } from "./pixabay";
@@ -168,6 +169,18 @@ app.get("/api/lyrics", async (req, res) => {
   const title = (req.query.title as string) || "";
   const data = await fetchLyrics(artist, title);
   res.json(data);
+});
+
+// iTunes preview fallback (no auth)
+app.get("/api/itunes/preview", async (req, res) => {
+  try {
+    const artist = (req.query.artist as string) || "";
+    const title = (req.query.title as string) || "";
+    const result = await itunesPreviewLookup({ artist, title, country: "US" });
+    res.json(result); // { preview_url: string | null }
+  } catch (e: any) {
+    res.status(500).json({ preview_url: null, error: e?.message ?? "itunes_failed" });
+  }
 });
 
 // Player controls (logged-in only; player.ts should be updated to refresh tokens)

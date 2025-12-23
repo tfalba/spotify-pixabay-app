@@ -1,5 +1,7 @@
 // useSpotifyWebPlayback.ts
 import { useCallback, useEffect, useRef, useState } from "react";
+import { getItunesPreview } from "@/lib/spotify"; // or "@/lib/itunes"
+
 
 const API_BASE = import.meta.env.VITE_API_BASE ?? "";
 const apiFetch = (path: string, init?: RequestInit) =>
@@ -402,19 +404,51 @@ export function useSpotifyWebPlayback() {
     });
   }, []);
 
-  const playTrackSmart = useCallback(
-    async (track: { uri?: string | null; preview_url?: string | null }) => {
-      if (isAuthenticated && fullPlaybackEnabled && deviceId && track?.uri) {
-        await resumeOrStart({ uris: [track.uri] });
+  const itunesCacheRef = useRef<Record<string, string | null>>({});
+
+const playTrackSmart = useCallback(
+  async (track: {
+    id?: string;
+    uri?: string | null;
+    preview_url?: string | null;
+    external_url?: string | null;
+    artists?: { name: string }[];
+    name?: string;
+  }) => {
+    // 1) Full playback if authenticated + device
+    if (isAuthenticated && deviceId && track?.uri) {
+      await resumeOrStart({ uris: [track.uri] });
+      return;
+    }
+
+    // 2) Spotify preview if available
+    if (track?.preview_url) {
+      await playPreview(track.preview_url);
+      return;
+    }
+
+    // 3) iTunes fallback (best-effort)
+    const key = track?.id || `${track?.artists?.[0]?.name ?? ""}::${track?.name ?? ""}`;
+    if (key) {
+      if (!(key in itunesCacheRef.current)) {
+        const artist = track?.artists?.[0]?.name ?? "";
+        const title = track?.name ?? "";
+        itunesCacheRef.current[key] = await getItunesPreview(artist, title);
+      }
+      const itunesPreview = itunesCacheRef.current[key];
+      if (itunesPreview) {
+        await playPreview(itunesPreview);
         return;
       }
-      if (track?.preview_url) {
-        await playPreview(track.preview_url);
-        return;
-      }
-    },
-    [deviceId, fullPlaybackEnabled, isAuthenticated, playPreview, resumeOrStart]
-  );
+    }
+
+    // 4) last fallback: open Spotify
+    if (track?.external_url) {
+      window.open(track.external_url, "_blank", "noopener,noreferrer");
+    }
+  },
+  [deviceId, isAuthenticated, playPreview, resumeOrStart]
+);
 
   return {
     sdkReady,
