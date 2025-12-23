@@ -185,7 +185,10 @@ export default function Home({ pixabay, albumCover }: Props) {
       <SectionsContextProvider value={{ focusOnLyricsPanel }}>
       <main
         className={mainClass}
-        style={{ gridTemplateColumns: dynamicColumns }}
+        style={{
+          gridTemplateColumns: dynamicColumns,
+          transition: "grid-template-columns 300ms cubic-bezier(0.4, 0, 0.2, 1)",
+        }}
       >
         {sectionMeta.map((section) => {
           const isCollapsed = collapsed[section.id];

@@ -227,7 +227,7 @@ function ManagePlaylistsPanel({
   return (
     <section
       className={clsx(
-        "flex h-full min-h-0 flex-col gap-4 rounded-b-3xl p-6",
+        "flex h-full min-h-0 flex-col gap-4 rounded-b-3xl p-2 pt-6",
         isLight ? "bg-white/80 text-slate-700" : " bg-white/5 text-white"
       )}
     >

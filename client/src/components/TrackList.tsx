@@ -118,7 +118,7 @@ export default function TrackList({
   return (
     <div
       className={clsx(
-        "flex-[2] mt-6 min-w-0 overflow-hidden overflow-y-auto rounded-2xl shadow-inner",
+        "flex-[2] mt-2 min-w-0 overflow-hidden overflow-y-auto rounded-2xl shadow-inner",
         isLight
           ? "border border-slate-200 bg-white"
           : "bg-gradient-to-br from-teal/10 via-aurora/25 to-teal/20"

@@ -56,7 +56,8 @@ const PlaylistsContext = createContext<PlaylistsContextValue | undefined>(
 );
 
 export function PlaylistsProvider({ children }: { children: ReactNode }) {
-  const { isAuthenticated } = useSpotifyPlayerContext(); // SDK auth (not login)
+  const { isAuthenticated, enableFullPlayback, fullPlaybackEnabled } =
+    useSpotifyPlayerContext(); // SDK auth (not login)
   const [loggedIn, setLoggedIn] = useState(false); // cookie login
 
   const [playlists, setPlaylists] = useState<SpotifyPlaylist[]>([]);
@@ -92,6 +93,11 @@ export function PlaylistsProvider({ children }: { children: ReactNode }) {
       active = false;
     };
   }, [API]);
+
+  useEffect(() => {
+    if (!loggedIn || fullPlaybackEnabled) return;
+    enableFullPlayback().catch(() => {});
+  }, [loggedIn, fullPlaybackEnabled, enableFullPlayback]);
 
   const clearAll = useCallback(() => {
     setPlaylists([]);

@@ -141,11 +141,11 @@ export default function SpotifySearch({
   return (
     <section
       className={clsx(
-        "flex h-full min-h-0 flex-col gap-4 rounded-b-3xl p-6",
+        "flex h-full min-h-0 flex-col gap-4 rounded-b-3xl p-2 pt-6",
         isLight ? "bg-white/80 text-slate-700" : "bg-white/5 text-white"
       )}
     >
-      <div className="mb-4 flex items-center justify-between gap-3 flex-wrap md:flex-nowrap">
+      <div className="mb-1 flex items-center justify-start gap-3 flex-wrap md:flex-nowrap">
         <h2
           className={clsx(
             "text-sm font-semibold uppercase tracking-[0.2em]",
@@ -156,7 +156,7 @@ export default function SpotifySearch({
         </h2>
 
         {/* Search bar always visible */}
-        <div className="w-full max-w-xl space-y-2">
+        <div className="w-full max-w-lg space-y-2">
           <div className="flex items-center gap-2 rounded-2xl shadow-glow">
             <input
               ref={inputRef}
