@@ -1,4 +1,4 @@
-import { useState, type ReactNode, useMemo } from "react";
+import { useState, type ReactNode } from "react";
 import type { Track } from "../types/types";
 import clsx from "clsx";
 import { useTheme } from "@/context/ThemeContext";
@@ -60,7 +60,9 @@ function TrackCard({ track, selected = false, isLight, actions }: CardProps) {
           </div>
         </div>
 
-        {actions && <div className="flex flex-1 gap-2 items-end shrink-0">{actions}</div>}
+        {actions && (
+          <div className="flex flex-1 gap-2 items-end shrink-0">{actions}</div>
+        )}
       </div>
     </div>
   );
@@ -85,16 +87,11 @@ export default function TrackList({
   const { theme } = useTheme();
   const isLight = theme === "light";
 
-  const { current, playTrack } = useCurrentTrack();
+  const { current, setCurrent, selectTrack, handleQueueChange } = useCurrentTrack();
+  const { playTrackSmart, playPreview } = useSpotifyPlayerContext();
   const { playlists, moveTrack, loggedIn } = usePlaylists();
-  const { playTrackSmart } = useSpotifyPlayerContext();
 
   const selectedTrackId = current?.id ?? null;
-
-  const effectiveQueue = useMemo(() => {
-    if (queue && queue.length) return queue;
-    return tracks;
-  }, [queue, tracks]);
 
   const [moveModalOpen, setMoveModalOpen] = useState(false);
   const [trackToMove, setTrackToMove] = useState<Track | null>(null);
@@ -130,7 +127,8 @@ export default function TrackList({
             twoColumnOnLarge
               ? "flex min-w-0 flex-col gap-3 p-3 lg:grid lg:grid-cols-2 lg:gap-4"
               : "flex min-w-0 flex-col divide-y",
-            !twoColumnOnLarge && (isLight ? "divide-slate-200" : "divide-white/5")
+            !twoColumnOnLarge &&
+              (isLight ? "divide-slate-200" : "divide-white/5")
           )}
         >
           {tracks.map((t) => {
@@ -160,17 +158,22 @@ export default function TrackList({
                         <button
                           type="button"
                           onClick={() => {
-                            // ✅ single source of truth:
-                            // set queue + current together, then start playback appropriately
-                            playTrack(t, effectiveQueue);
-                            playTrackSmart(t).catch(() => {});
+                            // 1) set queue first (so Next works)
+                            const q = queue?.length ? queue : tracks; // pick whatever queue you intend
+                            
+                            handleQueueChange(q);
+
+                                selectTrack(t, q);
+
+                            // 2) set current
+                            setCurrent(t);
+
+                            // 3) start playback (full if logged in/device; else preview)
+                            playTrackSmart({
+                              uri: t.uri ?? null,
+                              preview_url: t.preview_url ?? null,
+                            }).catch(() => {});
                           }}
-                          className={clsx(
-                            "rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide transition",
-                            isLight
-                              ? "bg-teal/20 text-midnight hover:bg-teal/30"
-                              : "bg-teal/70 text-midnight hover:bg-teal"
-                          )}
                         >
                           Play
                         </button>
@@ -192,8 +195,16 @@ export default function TrackList({
                       <button
                         type="button"
                         onClick={() => {
-                          playTrack(t, effectiveQueue);
-                          playTrackSmart(t).catch(() => {});
+                          // Optional: set queue for UI consistency
+                          handleQueueChange([t]);
+
+                          // Set current so lyrics / mood board update
+                          setCurrent(t);
+
+                          // Play preview (must be inside user gesture)
+                          if (t.preview_url) {
+                            playPreview(t.preview_url).catch(() => {});
+                          }
                         }}
                         className={clsx(
                           "rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide transition",

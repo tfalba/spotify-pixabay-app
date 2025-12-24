@@ -14,7 +14,7 @@ import { useCurrentTrack } from "@/context/CurrentTrackContext";
 import type { KeywordPlan } from "@/hooks/useLyricsImages";
 import type { HeroImage, ImageCard } from "@/api/lyricsTypes";
 import type { StyleCategory } from "@/types/types";
-import { SectionsContextProvider } from "@/context/SectionsContext";
+import { SectionsProvider } from "@/context/SectionsContext";
 import { PlaylistsProvider } from "@/context/PlaylistsContext";
 import ManagePlaylistsAndSearch from "@/components/ManagePlaylistAndSearch";
 
@@ -59,8 +59,8 @@ export default function Home({ pixabay, albumCover }: Props) {
 
   const allPanelsExpanded =
     !collapsed.manage && !collapsed.lyrics && !collapsed.pixabay;
-  const manageSoloExpanded =
-    !collapsed.manage && collapsed.lyrics && collapsed.pixabay;
+  // const manageSoloExpanded =
+  //   !collapsed.manage && collapsed.lyrics && collapsed.pixabay;
 
   const sectionMeta = useMemo<SectionConfig[]>(
     () => [
@@ -71,7 +71,7 @@ export default function Home({ pixabay, albumCover }: Props) {
         render: () => (
           <ManagePlaylistsAndSearch
             compactPlaylistGrid={allPanelsExpanded}
-            soloExpanded={manageSoloExpanded}
+            // soloExpanded={manageSoloExpanded}
           />
         ),
         maxWidth: 1050,
@@ -123,7 +123,7 @@ export default function Home({ pixabay, albumCover }: Props) {
       pixabay.onStyleChange,
       pixabay.styleChoice,
       allPanelsExpanded,
-      manageSoloExpanded,
+      // manageSoloExpanded,
     ]
   );
 
@@ -138,14 +138,14 @@ export default function Home({ pixabay, albumCover }: Props) {
     }));
   }, []);
 
-  const focusOnLyricsPanel = useCallback(() => {
-    setCollapsed((prev) => ({
-      ...prev,
-      manage: false,
-      lyrics: false,
-      pixabay: false,
-    }));
-  }, []);
+  // const focusOnLyricsPanel = useCallback(() => {
+  //   setCollapsed((prev) => ({
+  //     ...prev,
+  //     manage: false,
+  //     lyrics: false,
+  //     pixabay: false,
+  //   }));
+  // }, []);
   const mainClass = clsx(
     "relative md:mt-4 flex flex-1 flex-col gap-6 rounded-[32px] border md:p-2 ring-1 before:pointer-events-none before:absolute before:inset-0 before:rounded-[32px] before:opacity-80 before:blur before:content-[''] lg:grid",
     isLightTheme
@@ -182,7 +182,7 @@ export default function Home({ pixabay, albumCover }: Props) {
 
   return (
     <PlaylistsProvider>
-      <SectionsContextProvider value={{ focusOnLyricsPanel }}>
+      <SectionsProvider>
       <main
         className={mainClass}
         style={{
@@ -257,7 +257,7 @@ export default function Home({ pixabay, albumCover }: Props) {
           );
         })}
       </main>
-      </SectionsContextProvider>
+      </SectionsProvider>
     </PlaylistsProvider>
   );
 }

@@ -1,161 +1,109 @@
-import SpotifySearch from "./SpotifySearch";
-import type { Track } from "@/types/types";
-import { useCallback, useEffect, useState } from "react";
+// client/src/components/ManagePlaylistAndSearch.tsx
+
+import { useMemo, useState } from "react";
 import clsx from "clsx";
-import { useTheme } from "@/context/ThemeContext";
-import { useCurrentTrack } from "@/context/CurrentTrackContext";
-import { useSectionClass } from "@/styleHooks/useStyleHooks";
+
+import SpotifySearch from "./SpotifySearch";
 import ManagePlaylistsPanel from "./ManagePlaylistsPanel";
-import { usePlaylists } from "@/context/PlaylistsContext";
 
-type ManagePlaylistsAndSearchProps = {
+import type { Track } from "@/types/types";
+import { useTheme } from "@/context/ThemeContext";
+import { useSectionsContext } from "@/context/SectionsContext";
+
+type Props = {
+  twoColumnOnLarge?: boolean;
   compactPlaylistGrid?: boolean;
-  soloExpanded?: boolean;
 };
 
-type DiscoverPanelSnapshot = {
-  activePanel: "search" | "playlists";
-  tracks: Track[];
-  query: string;
-  lastSearchedQuery: string;
-};
-
-let lastTrackSource: "playlists" | "search" | null = null;
-let persistedDiscoverState: DiscoverPanelSnapshot | null = null;
-
-export default function ManagePlaylistsAndSearch({
+export default function ManagePlaylistAndSearch({
+  twoColumnOnLarge = false,
   compactPlaylistGrid = false,
-  soloExpanded = false,
-}: ManagePlaylistsAndSearchProps) {
+}: Props) {
   const { theme } = useTheme();
-  const { current } = useCurrentTrack();
-  const {
-    currentPlaylistId,
-    setSelectedPlaylistId,
-  } = usePlaylists();
-  const [tracks, setTracks] = useState<Track[]>(
-    () => persistedDiscoverState?.tracks ?? []
-  );
-  const [query, setQuery] = useState(
-    () => persistedDiscoverState?.query ?? ""
-  );
-  const [lastSearchedQuery, setLastSearchedQuery] = useState(
-    () => persistedDiscoverState?.lastSearchedQuery ?? ""
-  );
-  const [activePanel, setActivePanel] = useState<"search" | "playlists">(
-    () => persistedDiscoverState?.activePanel ?? lastTrackSource ?? "playlists"
-  );
-
-  const handleSetTracks = useCallback((nextTracks: Track[]) => {
-    setTracks(nextTracks);
-  }, []);
-
-
-  useEffect(() => {
-    return () => {
-      persistedDiscoverState = {
-        activePanel,
-        tracks,
-        query,
-        lastSearchedQuery,
-      };
-    };
-  }, [activePanel, tracks, query, lastSearchedQuery]);
-
   const isLight = theme === "light";
-  const sectionClass = clsx(useSectionClass(isLight, 1), "mx-auto w-full");
 
-  const showCurrentPlaylistButton = Boolean(current && currentPlaylistId);
+  const { showCurrentPlaylist, setShowCurrentPlaylist } =
+    useSectionsContext();
+
+  // Local state for SEARCH results only (playlists manage their own track list)
+  const [searchTracks, setSearchTracks] = useState<Track[]>([]);
+
+  const activeMode = useMemo(
+    () => (showCurrentPlaylist ? "playlists" : "search"),
+    [showCurrentPlaylist]
+  );
 
   return (
-    <section className={sectionClass}>
-      <div className="flex items-center gap-3 pb-3 flex-wrap">
-        <div className="flex items-center gap-3">
-          <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-card-glow text-2xl text-slate shadow-glow">
-            ♪
-          </span>
-          <div>
-            <h2
-              className={clsx(
-                "text-lg font-semibold tracking-tight",
-                isLight ? "text-slate-900" : "text-slate-50"
-              )}
-            >
-              Discover Tracks
-            </h2>
-            <p
-              className={clsx(
-                "text-sm",
-                isLight ? "text-slate-500" : "text-slate-400"
-              )}
-            >
-              Search Spotify, view playlists, and set the tone.
-            </p>
-          </div>
-        </div>
-        {showCurrentPlaylistButton && (
+    <section
+      className={clsx(
+        "flex h-full min-h-0 flex-col gap-4 rounded-3xl border p-3 shadow-xl",
+        isLight
+          ? "border-slate-200 bg-white/70"
+          : "border-white/10 bg-black/20"
+      )}
+    >
+      {/* Top toggle */}
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-2">
           <button
             type="button"
-            onClick={() => {
-              if (currentPlaylistId) {
-                setSelectedPlaylistId(currentPlaylistId);
-                setActivePanel("playlists");
-              }
-            }}
+            onClick={() => setShowCurrentPlaylist(false)}
             className={clsx(
-              "ml-auto rounded-full border px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.25em] transition focus-visible:outline-none focus-visible:ring-2",
-              isLight
-                ? "border-teal/40 text-teal-700 hover:bg-teal/10 focus-visible:ring-teal/40"
-                : "border-teal/70 text-teal hover:bg-white/10 focus-visible:ring-teal"
-            )}
-          >
-            Show Current Playlist
-          </button>
-        )}
-      </div>
-
-      <div className="mt-4 flex justify-end gap-4">
-        {[
-          { key: "playlists" as const, label: "Playlists" },
-          { key: "search" as const, label: "Search" },
-        ].map((tab) => (
-          <button
-            key={tab.key}
-            type="button"
-            onClick={() => {
-              setActivePanel(tab.key);
-            }}
-            className={clsx(
-              "flex-1 rounded-t-xl px-4 py-2 transition  text-xs font-semibold uppercase tracking-[0.35em] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber",
-              activePanel === tab.key
+              "rounded-full px-3 py-1 text-xs uppercase tracking-[0.2em] transition",
+              activeMode === "search"
                 ? isLight
-                  ? "bg-teal/40 text-midnight"
-                  : "bg-teal text-midnight"
+                  ? "bg-slate-900 text-white"
+                  : "bg-white/90 text-slate-900"
                 : isLight
-                ? "bg-teal/5 text-slate-600 hover:text-slate-900"
-                : "bg-white/10 text-white/60 hover:text-white"
+                ? "bg-white text-slate-700 border border-slate-200"
+                : "bg-white/5 text-white border border-white/10"
             )}
           >
-            {tab.label}
+            Search
           </button>
-        ))}
+
+          <button
+            type="button"
+            onClick={() => setShowCurrentPlaylist(true)}
+            className={clsx(
+              "rounded-full px-3 py-1 text-xs uppercase tracking-[0.2em] transition",
+              activeMode === "playlists"
+                ? isLight
+                  ? "bg-slate-900 text-white"
+                  : "bg-white/90 text-slate-900"
+                : isLight
+                ? "bg-white text-slate-700 border border-slate-200"
+                : "bg-white/5 text-white border border-white/10"
+            )}
+          >
+            Playlists
+          </button>
+        </div>
+
+        <div
+          className={clsx(
+            "text-xs",
+            isLight ? "text-slate-500" : "text-white/60"
+          )}
+        >
+          {activeMode === "search"
+            ? "Search tracks and play previews (or full playback if enabled)."
+            : "Browse your Spotify playlists (login required)."}
+        </div>
       </div>
 
-      <div className="max-h-max min-h-fit flex-1 overflow-visible">
-        {activePanel === "search" ? (
-          <SpotifySearch
-            onSetTracks={handleSetTracks}
-            tracks={tracks}
-            query={query}
-            onQueryChange={setQuery}
-            lastSearchedQuery={lastSearchedQuery}
-            onLastSearchedQueryChange={setLastSearchedQuery}
-            twoColumnOnLarge={soloExpanded}
+      {/* Body */}
+      <div className="min-h-0 flex-1">
+        {showCurrentPlaylist ? (
+          <ManagePlaylistsPanel
+            twoColumnOnLarge={twoColumnOnLarge}
+            compactPlaylistGrid={compactPlaylistGrid}
           />
         ) : (
-          <ManagePlaylistsPanel
-            compactPlaylistGrid={compactPlaylistGrid}
-            twoColumnOnLarge={soloExpanded}
+          <SpotifySearch
+            tracks={searchTracks}
+            onSetTracks={setSearchTracks}
+            twoColumnOnLarge={twoColumnOnLarge}
           />
         )}
       </div>

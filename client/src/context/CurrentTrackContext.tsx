@@ -1,3 +1,4 @@
+// client/src/context/CurrentTrackContext.tsx
 import {
   createContext,
   useCallback,
@@ -8,26 +9,27 @@ import {
 } from "react";
 import type { Track } from "@/types/types";
 
-type CurrentTrackContextValue = {
+export type CurrentTrackContextValue = {
   current: Track | null;
   albumCover: string | null;
 
+  /** Set the current track directly (does not change queue) */
+  setCurrent: (track: Track | null) => void;
+  selectTrack: (track: Track, queue?: Track[]) => void;
+
+
+  /** The active queue for next/prev behaviors */
   queue: Track[];
 
-  /** Set current only (rarely what you want) */
-  setCurrent: (track: Track | null) => void;
-
-  /** Replace queue, keep current if it still exists in the new queue */
-  setQueue: (tracks: Track[]) => void;
-
   /**
-   * ✅ Single “source of truth” action:
-   * - sets queue (optional)
-   * - sets current
-   * - guarantees current is in queue (if queue provided)
+   * Replace the queue (and ensure current is valid).
+   * - If queue is empty → clears current.
+   * - If current exists in new queue → keep it.
+   * - Else → sets current to first track by default.
    */
-  playTrack: (track: Track, queue?: Track[]) => void;
+  handleQueueChange: (tracks: Track[]) => void;
 
+  /** Advance to the next track in queue (if any) */
   handleTrackFinished: () => void;
 };
 
@@ -36,52 +38,45 @@ const CurrentTrackContext = createContext<CurrentTrackContextValue | undefined>(
 );
 
 export function CurrentTrackProvider({ children }: { children: ReactNode }) {
-  const [current, _setCurrent] = useState<Track | null>(null);
-  const [queue, _setQueue] = useState<Track[]>([]);
+  const [current, setCurrent] = useState<Track | null>(null);
+  const [queue, setQueue] = useState<Track[]>([]);
+
   const albumCover = current?.image ?? null;
 
-  const setCurrent = useCallback((track: Track | null) => {
-    _setCurrent(track);
-  }, []);
-
-  const setQueue = useCallback(
+  const handleQueueChange = useCallback(
     (tracks: Track[]) => {
-      _setQueue(tracks);
+      const nextQueue = Array.isArray(tracks) ? tracks : [];
+      setQueue(nextQueue);
 
-      if (!tracks.length) {
-        _setCurrent(null);
+      if (!nextQueue.length) {
+        setCurrent(null);
         return;
       }
 
-      if (current && tracks.some((t) => t.id === current.id)) {
-        // keep current
+      // Keep current if still in the new queue
+      if (current && nextQueue.some((t) => t.id === current.id)) {
         return;
       }
 
-      // if current isn't in the new queue, clear it
-      _setCurrent(null);
+      // Otherwise default to the first track (most predictable UX)
+      setCurrent(nextQueue[0]);
     },
     [current]
   );
 
-  const playTrack = useCallback((track: Track, nextQueue?: Track[]) => {
-    if (nextQueue && nextQueue.length) {
-      // ensure the chosen track exists in the queue (defensive)
-      const exists = nextQueue.some((t) => t.id === track.id);
-      const normalizedQueue = exists ? nextQueue : [track, ...nextQueue];
-      _setQueue(normalizedQueue);
-    } else if (!queue.length) {
-      // if no queue provided and queue is empty, seed it with this track
-      _setQueue([track]);
-    }
-    _setCurrent(track);
-  }, [queue.length]);
+  const selectTrack = useCallback(
+  (track: Track, nextQueue?: Track[]) => {
+    if (nextQueue) setQueue(nextQueue);
+    setCurrent(track);
+  },
+  []
+);
 
   const handleTrackFinished = useCallback(() => {
     if (!queue.length || !current) return;
     const idx = queue.findIndex((t) => t.id === current.id);
     if (idx >= 0 && idx + 1 < queue.length) {
-      _setCurrent(queue[idx + 1]);
+      setCurrent(queue[idx + 1]);
     }
   }, [queue, current]);
 
@@ -89,13 +84,13 @@ export function CurrentTrackProvider({ children }: { children: ReactNode }) {
     () => ({
       current,
       albumCover,
-      queue,
       setCurrent,
-      setQueue,
-      playTrack,
+      queue,
+      handleQueueChange,
       handleTrackFinished,
+      selectTrack,
     }),
-    [current, albumCover, queue, setCurrent, setQueue, playTrack, handleTrackFinished]
+    [current, albumCover, queue, handleQueueChange, handleTrackFinished, selectTrack]
   );
 
   return (
@@ -107,6 +102,8 @@ export function CurrentTrackProvider({ children }: { children: ReactNode }) {
 
 export function useCurrentTrack() {
   const ctx = useContext(CurrentTrackContext);
-  if (!ctx) throw new Error("useCurrentTrack must be used within CurrentTrackProvider");
+  if (!ctx) {
+    throw new Error("useCurrentTrack must be used within CurrentTrackProvider");
+  }
   return ctx;
 }

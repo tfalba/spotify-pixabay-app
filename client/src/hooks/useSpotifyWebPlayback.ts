@@ -2,6 +2,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { getItunesPreview } from "@/lib/spotify"; // or "@/lib/itunes"
 
+type AuthStatus = { authenticated: boolean };
 
 const API_BASE = import.meta.env.VITE_API_BASE ?? "";
 const apiFetch = (path: string, init?: RequestInit) =>
@@ -19,6 +20,9 @@ export function useSpotifyWebPlayback() {
   const [deviceId, setDeviceId] = useState<string | null>(null);
   const [playerState, setPlayerState] = useState<PlayerState>(null);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+  // ✅ cookie-based login status (separate from SDK token success)
+  const [loggedIn, setLoggedIn] = useState(false);
+  const [authChecked, setAuthChecked] = useState(false);
 
   // Preview playback state (works when not connected / not authenticated)
   const previewAudioRef = useRef<HTMLAudioElement | null>(null);
@@ -26,6 +30,26 @@ export function useSpotifyWebPlayback() {
   const [isPreviewPlaying, setIsPreviewPlaying] = useState(false);
 
   const playerRef = useRef<Spotify.Player | null>(null);
+
+  const refreshAuthStatus = useCallback(async () => {
+    try {
+      const r = await apiFetch("/api/auth/status", { method: "GET" });
+      if (!r.ok) {
+        setLoggedIn(false);
+        setAuthChecked(true);
+        return false;
+      }
+      const json = (await r.json()) as AuthStatus;
+      const ok = Boolean(json?.authenticated);
+      setLoggedIn(ok);
+      setAuthChecked(true);
+      return ok;
+    } catch {
+      setLoggedIn(false);
+      setAuthChecked(true);
+      return false;
+    }
+  }, []);
 
   const ensurePreviewAudio = useCallback(() => {
     if (!previewAudioRef.current) {
@@ -94,6 +118,22 @@ export function useSpotifyWebPlayback() {
     },
     [ensurePreviewAudio, playPreview, previewUrl]
   );
+
+  useEffect(() => {
+    // initial check
+    refreshAuthStatus().catch(() => {});
+  }, [refreshAuthStatus]);
+
+  useEffect(() => {
+    // helpful after redirect login or tab switching
+    const onVis = () => {
+      if (document.visibilityState === "visible") {
+        refreshAuthStatus().catch(() => {});
+      }
+    };
+    document.addEventListener("visibilitychange", onVis);
+    return () => document.removeEventListener("visibilitychange", onVis);
+  }, [refreshAuthStatus]);
 
   // 1) Load SDK script once (safe even if we don't connect yet)
   useEffect(() => {
@@ -409,52 +449,52 @@ export function useSpotifyWebPlayback() {
 
   const itunesCacheRef = useRef<Record<string, string | null>>({});
 
-const playTrackSmart = useCallback(
-  async (track: {
-    id?: string;
-    uri?: string | null;
-    preview_url?: string | null;
-    external_url?: string | null;
-    artists?: { name: string }[];
-    name?: string;
-  }) => {
-    // 1) Full playback if authenticated + device
-    if (isAuthenticated && deviceId && track?.uri) {
-      await startPlayback({ uris: [track.uri] });
-      return;
-    }
-
-    // 2) Spotify preview if available
-    if (track?.preview_url) {
-      await playPreview(track.preview_url);
-      return;
-    }
-
-    // 3) iTunes fallback (best-effort)
-    const artist = track?.artists?.[0]?.name?.trim() ?? "";
-    const title = track?.name?.trim() ?? "";
-    const key =
-      track?.id ||
-      track?.uri ||
-      (artist && title ? `${artist}::${title}` : null);
-    if (key) {
-      if (!(key in itunesCacheRef.current)) {
-        itunesCacheRef.current[key] = await getItunesPreview(artist, title);
-      }
-      const itunesPreview = itunesCacheRef.current[key];
-      if (itunesPreview) {
-        await playPreview(itunesPreview);
+  const playTrackSmart = useCallback(
+    async (track: {
+      id?: string;
+      uri?: string | null;
+      preview_url?: string | null;
+      external_url?: string | null;
+      artists?: { name: string }[];
+      name?: string;
+    }) => {
+      // 1) Full playback if authenticated + device
+      if (isAuthenticated && deviceId && track?.uri) {
+        await startPlayback({ uris: [track.uri] });
         return;
       }
-    }
 
-    // 4) last fallback: open Spotify
-    if (track?.external_url) {
-      window.open(track.external_url, "_blank", "noopener,noreferrer");
-    }
-  },
-  [deviceId, isAuthenticated, playPreview, startPlayback]
-);
+      // 2) Spotify preview if available
+      if (track?.preview_url) {
+        await playPreview(track.preview_url);
+        return;
+      }
+
+      // 3) iTunes fallback (best-effort)
+      const artist = track?.artists?.[0]?.name?.trim() ?? "";
+      const title = track?.name?.trim() ?? "";
+      const key =
+        track?.id ||
+        track?.uri ||
+        (artist && title ? `${artist}::${title}` : null);
+      if (key) {
+        if (!(key in itunesCacheRef.current)) {
+          itunesCacheRef.current[key] = await getItunesPreview(artist, title);
+        }
+        const itunesPreview = itunesCacheRef.current[key];
+        if (itunesPreview) {
+          await playPreview(itunesPreview);
+          return;
+        }
+      }
+
+      // 4) last fallback: open Spotify
+      if (track?.external_url) {
+        window.open(track.external_url, "_blank", "noopener,noreferrer");
+      }
+    },
+    [deviceId, isAuthenticated, playPreview, startPlayback]
+  );
 
   return {
     sdkReady,
@@ -467,7 +507,6 @@ const playTrackSmart = useCallback(
     isConnected,
     deviceId,
     playerState,
-    isAuthenticated,
 
     // Spotify playback actions (only meaningful when fullPlaybackEnabled)
     startPlayback,
@@ -490,6 +529,11 @@ const playTrackSmart = useCallback(
     stopPreview,
     previewUrl,
     isPreviewPlaying,
+
+    isAuthenticated, // ✅ “SDK token success”
+    loggedIn, // ✅ “cookie login status”
+    authChecked,
+    refreshAuthStatus,
 
     // Convenience
     playTrackSmart,
