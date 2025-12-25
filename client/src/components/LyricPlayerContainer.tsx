@@ -22,7 +22,6 @@ export default function LyricPlayerContainer() {
   const isLight = theme === "light";
   const containerClass = clsx(
     useSectionClass(isLight, 2),
-    "mx-auto w-full max-w-[700px]",
   );
 
   useEffect(() => {

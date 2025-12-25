@@ -61,7 +61,7 @@ function TrackCard({ track, selected = false, isLight, actions }: CardProps) {
         </div>
 
         {actions && (
-          <div className="flex flex-1 gap-2 items-end shrink-0">{actions}</div>
+          <div className="flex flex-1 justify-center gap-2 items-end shrink-0">{actions}</div>
         )}
       </div>
     </div>

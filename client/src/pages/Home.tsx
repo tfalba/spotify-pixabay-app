@@ -81,7 +81,7 @@ export default function Home({ pixabay, albumCover }: Props) {
         title: "Lyrics",
         ratio: 27,
         render: () => <LyricPlayerContainer />,
-        maxWidth: 700,
+        maxWidth: 950,
       },
       {
         id: "pixabay" as const,

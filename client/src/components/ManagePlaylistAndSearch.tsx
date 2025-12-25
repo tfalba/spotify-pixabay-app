@@ -373,8 +373,8 @@ export default function ManagePlaylistAndSearch({
         {activeMode === "search" ? (
           <section
             className={clsx(
-              "flex h-full min-h-0 flex-col gap-4 rounded-b-3xl p-6",
-              isLight ? "bg-white/80 text-slate-700" : "bg-white/5 text-white"
+              "flex h-full min-h-0 flex-col gap-4 rounded-b-3xl p-2 bg-transparent",
+              isLight ? " text-slate-700" : " text-white"
             )}
           >
             <div className="mb-4 flex flex-col md:flex-row items-start md:items-center justify-between gap-3 flex-wrap">
@@ -387,7 +387,7 @@ export default function ManagePlaylistAndSearch({
                 Search
               </h2>
 
-              <div className="flex-1 space-y-2 flex flex-col md:flex-row gap-4 justify-between">
+              <div className="flex-wrap space-y-2 flex flex-col md:flex-row w-full gap-4 justify-between">
                 <div className="flex items-center gap-2 rounded-2xl shadow-glow">
                   <input
                     ref={inputRef}
@@ -395,7 +395,7 @@ export default function ManagePlaylistAndSearch({
                     onChange={(e) => setSearchQuery(e.target.value)}
                     placeholder="Search Spotify tracks…"
                     className={clsx(
-                      "w-full min-w[15rem] max-w-lg rounded-xl border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent/40",
+                      "w-full min-w-[15rem] max-w-lg rounded-xl border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent/40",
                       isLight
                         ? "border-slate-200 bg-white text-slate-900 placeholder:text-slate-400"
                         : "border-white/20 bg-gradient-to-br from-sapphire/90 via-sapphire to-sapphire/70 text-amber-100 placeholder:text-white/50"
@@ -476,7 +476,7 @@ export default function ManagePlaylistAndSearch({
           <section
             className={clsx(
               "flex h-full min-h-0 flex-col gap-4 rounded-b-3xl p-2 pt-6",
-              isLight ? "bg-white/80 text-slate-700" : " bg-white/5 text-white"
+              isLight ? "bg-white/80 text-slate-700" : " bg-teal/5 text-white"
             )}
           >
             <div className="flex items-center justify-between flex-wrap gap-3">
@@ -625,8 +625,8 @@ export default function ManagePlaylistAndSearch({
                 ) : (
                   <div
                     className={clsx(
-                      "grid flex-1 grid-cols-1 gap-4 overflow-y-auto pr-1 md:grid-cols-2",
-                      compactPlaylistGrid ? "xl:grid-cols-2" : "xl:grid-cols-3"
+                      "grid flex-1 grid-cols-1 gap-4 overflow-y-auto pr-1",
+                      compactPlaylistGrid ? "xl:grid-cols-2" : "lg:grid-cols-2 xl:grid-cols-3"
                     )}
                   >
                     {playlists.map((playlist) => {
