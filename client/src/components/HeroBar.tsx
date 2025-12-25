@@ -33,7 +33,7 @@ export default function HeroBar({
 
   return (
     <section
-      className="relative mb-4 min-h-[calc(max(40vh,320px))] overflow-hidden bg-contain bg-center px-4 py-6"
+      className="relative mb-4 min-h-[340px] overflow-hidden bg-contain bg-center px-4 py-6"
       style={{ backgroundImage: heroBanner ? `url(${heroBanner})` : undefined }}
     >
       <div

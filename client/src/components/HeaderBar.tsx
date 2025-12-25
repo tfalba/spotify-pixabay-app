@@ -150,7 +150,7 @@ export default function HeaderBar({ styleChoice, onStyleChange }: Props) {
             : "bg-teal/5 text-white border-teal/70"
         )}
       >
-        <div className="flex flex-col gap-1">
+        <div className="flex-1 flex flex-col gap-1">
           <div className="flex-1">
             <p
               className={clsx(

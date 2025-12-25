@@ -241,7 +241,7 @@ export default function Home({ pixabay, albumCover }: Props) {
                     type="button"
                     onClick={() => toggleSection(section.id)}
                     className={clsx(
-                      "absolute right-4 top-4 z-10 flex h-9 w-9 items-center justify-center rounded-full border text-lg font-semibold focus-visible:outline-none focus-visible:ring-2",
+                      "absolute right-4 top-2 z-10 flex h-9 w-9 items-center justify-center rounded-full border text-lg font-semibold focus-visible:outline-none focus-visible:ring-2",
                       isLightTheme
                         ? "border-slate-200 bg-white/80 text-slate-600 hover:bg-white focus-visible:ring-slate-400"
                         : "border-white/30 bg-black/40 text-white hover:bg-black/60 focus-visible:ring-white"
