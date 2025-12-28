@@ -16,6 +16,7 @@ import {
   type SpotifyPlaylist,
   type SpotifyTrack,
 } from "@/lib/spotify";
+import { useSectionClass } from "@/styleHooks/useStyleHooks";
 
 type Props = {
   twoColumnOnLarge?: boolean;
@@ -70,6 +71,8 @@ export default function ManagePlaylistAndSearch({
     () => (showCurrentPlaylist ? "playlists" : "search"),
     [showCurrentPlaylist]
   );
+
+  const sectionClass = useSectionClass(isLight, 1);
 
   const [searchTracksState, setSearchTracksState] = useState<Track[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
@@ -227,6 +230,7 @@ export default function ManagePlaylistAndSearch({
     }
 
     if (!selectedPlaylistId) {
+      console.log('hitting no selected playlist', searchQuery.trim());
       setTracks([]);
       setFilteredTracks([]);
       setTracksError(null);
@@ -314,7 +318,7 @@ export default function ManagePlaylistAndSearch({
   return (
     <section
       className={clsx(
-        "flex h-full min-h-0 flex-col gap-4 rounded-3xl border p-3 shadow-xl",
+        sectionClass, "flex h-full min-h-0 flex-col gap-4 rounded-3xl border p-3 shadow-xl",
         isLight
           ? "border-slate-200 bg-white/70"
           : "border-white/10 bg-black/20"

@@ -43,31 +43,10 @@ export default function LyricsPane({
   const { theme } = useTheme();
   const isLight = theme === "light";
 
-  // if (!artist || !title) {
-  //   return (
-  //     <div
-  //       className={clsx(
-  //         "text-sm",
-  //         isLight ? "text-slate-600" : "text-slate-400"
-  //       )}
-  //     >
-  //         <h2
-  //       className={clsx(
-  //         "text-lg font-semibold tracking-tight mb-1",
-  //         isLight ? "text-slate-900" : "text-slate-50"
-  //       )}
-  //     >
-  //       Lyrics
-  //     </h2>
-  //       <p>Select a track to view lyrics and image prompts will appear here.</p>
-  //     </div>
-  //   );
-  // }
-
   return (
     <div
       className={clsx(
-        "flex flex-1 min-h-0 flex-col overflow-hidden rounded-2xl p-5 shadow-[0_20px_60px_rgba(124,92,252,0.35)] transition-colors duration-300",
+        "flex flex-1 min-h-0 flex-col overflow-hidden rounded-2xl p-5 shadow-[0_20px_60px_rgba(124,92,252,0.35)]",
         isLight ? "border border-slate-200 bg-white" : "bg-slate"
       )}
     >

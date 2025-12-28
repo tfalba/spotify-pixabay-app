@@ -51,13 +51,13 @@ export default function PixabayGrid({
 
   const sectionClass = useSectionClass(isLight, 3);
   const infoPanelClass = clsx(
-    "rounded-2xl border p-3 text-xs shadow-inner transition-colors duration-300",
+    "rounded-2xl border p-3 text-xs shadow-inner",
     isLight
       ? "border-slate-200 bg-slate-50 text-slate-600"
       : "border-white/10 bg-black/20 text-slate-300"
   );
   const keywordPill = clsx(
-    "rounded-full border px-3 py-1 text-[11px] uppercase tracking-wide transition-colors duration-300",
+    "rounded-full border px-3 py-1 text-[11px] uppercase tracking-wide",
     isLight
       ? "border-slate-200 bg-white text-slate-600"
       : "border-white/20 bg-white/10 text-slate-200"

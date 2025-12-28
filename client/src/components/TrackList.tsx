@@ -9,61 +9,44 @@ import { useSpotifyPlayerContext } from "@/context/SpotifyPlayerProvider";
 
 type CardProps = {
   track: Track;
-  selected?: boolean;
   isLight: boolean;
   actions?: ReactNode;
 };
 
-function TrackCard({ track, selected = false, isLight, actions }: CardProps) {
-  const containerClasses = clsx(
-    "flex w-full min-w-0 items-center gap-4 rounded-2xl border p-1 pr-2 transition",
-    selected
-      ? isLight
-        ? "border-teal/70 border-4 bg-sapphire/10 shadow-glow"
-        : "border-teal/70 border-4 bg-sapphire/70 shadow-glow"
-      : isLight
-      ? "border-slate-200 bg-white hover:border-teal-500/40 hover:bg-slate-50"
-      : "border-white/10 bg-sapphire/60 hover:border-teal/60 hover:bg-sapphire/70 hover:shadow-glow"
-  );
-
+function TrackCard({ track, isLight, actions }: CardProps) {
+  const containerClasses = "flex w-full min-w-0 items-center gap-4";
   return (
-    <div className="space-y-2 min-w-0">
-      <div className={containerClasses}>
-        {track.image && (
-          <img
-            src={track.image}
-            className="h-16 w-16 rounded-xl object-cover shadow-inner"
-            alt="album art"
-          />
-        )}
-        <div className="flex-[3] min-w-0 gap-3">
-          <div className="min-w-0">
-            <div
-              className={clsx(
-                "truncate text-sm font-semibold",
-                isLight ? "text-slate-900" : "text-white"
-              )}
-            >
-              {track.name}
-            </div>
-
-            <div
-              className={clsx(
-                "truncate text-xs",
-                isLight ? "text-slate-600" : "text-slate-300"
-              )}
-            >
-              {Array.isArray(track.artists)
-                ? track.artists[0]?.name ?? ""
-                : (track.artists as unknown as string)}
-            </div>
-          </div>
+    <div className={containerClasses}>
+      {track.image && (
+        <img
+          src={track.image}
+          className="h-16 w-16 rounded-xl object-cover shadow-inner"
+          alt="album art"
+        />
+      )}
+      <div className="min-w-0 flex-1">
+        <div
+          className={clsx(
+            "truncate text-sm font-semibold",
+            isLight ? "text-slate-900" : "text-white"
+          )}
+        >
+          {track.name}
         </div>
 
-        {actions && (
-          <div className="flex flex-1 justify-center gap-2 items-end shrink-0">{actions}</div>
-        )}
+        <div
+          className={clsx(
+            "truncate text-xs",
+            isLight ? "text-slate-600" : "text-slate-300"
+          )}
+        >
+          {Array.isArray(track.artists)
+            ? track.artists[0]?.name ?? ""
+            : (track.artists as unknown as string)}
+        </div>
       </div>
+
+      {actions && <div className="flex items-end gap-2 shrink-0">{actions}</div>}
     </div>
   );
 }
@@ -87,7 +70,8 @@ export default function TrackList({
   const { theme } = useTheme();
   const isLight = theme === "light";
 
-  const { current, setCurrent, selectTrack, handleQueueChange } = useCurrentTrack();
+  const { current, setCurrent, selectTrack, handleQueueChange } =
+    useCurrentTrack();
   const { playTrackSmart, playPreview } = useSpotifyPlayerContext();
   const { playlists, moveTrack, loggedIn } = usePlaylists();
 
@@ -118,7 +102,7 @@ export default function TrackList({
         "flex-[2] mt-2 min-w-0 overflow-hidden overflow-y-auto rounded-2xl shadow-inner",
         isLight
           ? "border border-slate-200 bg-white"
-          : "bg-gradient-to-br from-teal/10 via-aurora/25 to-teal/20"
+          : "bg-gradient-to-br from-black/5 via-aurora/15 to-teal/10"
       )}
     >
       {tracks.length > 0 && (
@@ -126,9 +110,9 @@ export default function TrackList({
           className={clsx(
             twoColumnOnLarge
               ? "flex min-w-0 flex-col gap-3 p-3 lg:grid lg:grid-cols-2 lg:gap-4"
-              : "flex min-w-0 flex-col divide-y",
-            !twoColumnOnLarge &&
-              (isLight ? "divide-slate-200" : "divide-white/5")
+              : "flex min-w-0 flex-col gap-3",
+            // !twoColumnOnLarge &&
+            //   (isLight ? "divide-slate-200" : "divide-white/5")
           )}
         >
           {tracks.map((t) => {
@@ -142,7 +126,7 @@ export default function TrackList({
                   isSelected
                     ? isLight
                       ? "border-amber/70 bg-white/70 shadow-glow"
-                      : "border-amber/70 bg-white/10 shadow-glow"
+                      : "border-amber/90 bg-white/1 shadow-glow"
                     : isLight
                     ? "border-transparent bg-white hover:border-teal-500/30 hover:bg-slate-50"
                     : "border-transparent bg-white/5 hover:border-teal/40 hover:bg-white/10"
@@ -150,7 +134,6 @@ export default function TrackList({
               >
                 <TrackCard
                   track={t}
-                  selected={isSelected}
                   isLight={isLight}
                   actions={
                     loggedIn ? (
@@ -158,17 +141,10 @@ export default function TrackList({
                         <button
                           type="button"
                           onClick={() => {
-                            // 1) set queue first (so Next works)
-                            const q = queue?.length ? queue : tracks; // pick whatever queue you intend
-                            
+                            const q = queue?.length ? queue : tracks;
                             handleQueueChange(q);
-
-                                selectTrack(t, q);
-
-                            // 2) set current
+                            selectTrack(t, q);
                             setCurrent(t);
-
-                            // 3) start playback (full if logged in/device; else preview)
                             playTrackSmart({
                               uri: t.uri ?? null,
                               preview_url: t.preview_url ?? null,
@@ -195,13 +171,8 @@ export default function TrackList({
                       <button
                         type="button"
                         onClick={() => {
-                          // Optional: set queue for UI consistency
                           handleQueueChange([t]);
-
-                          // Set current so lyrics / mood board update
                           setCurrent(t);
-
-                          // Play preview (must be inside user gesture)
                           if (t.preview_url) {
                             playPreview(t.preview_url).catch(() => {});
                           }

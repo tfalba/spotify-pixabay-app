@@ -59,7 +59,7 @@ export default function LyricPlayerContainer() {
   }, [current, API]);
 
   const nowPlayingClass = clsx(
-    "rounded-2xl p-2 shadow-glow my-2 transition-colors duration-300",
+    "rounded-2xl p-2 shadow-glow my-2",
     isLight ? "bg-slate-100" : "bg-sapphire/80"
   );
   const trackTitleClass = isLight ? "text-slate-900" : "text-white";
@@ -110,7 +110,7 @@ export default function LyricPlayerContainer() {
             isLight ? "text-slate-700" : "text-slate-200"
           )}
         >
-          <div className="whitespace-pre-wrap text-sm leading-relaxed">
+          <div className="whitespace-pre-wrap text-sm leading-relaxed px-8 lg:px-0">
             {text || (
               <span
                 className={clsx(isLight ? "text-slate-500" : "text-slate-500")}

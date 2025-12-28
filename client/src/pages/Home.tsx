@@ -131,11 +131,27 @@ export default function Home({ pixabay, albumCover }: Props) {
     .map((section) => (collapsed[section.id] ? "56px" : `${section.ratio}fr`))
     .join(" ");
 
-  const toggleSection = useCallback((id: keyof typeof collapsed) => {
-    setCollapsed((prev) => ({
-      ...prev,
-      [id]: !prev[id],
-    }));
+  type SectionId = SectionConfig["id"];
+
+  const expandButtonRefs = useRef<Record<SectionId, HTMLButtonElement | null>>({
+    manage: null,
+    lyrics: null,
+    pixabay: null,
+  });
+
+  const toggleSection = useCallback((id: SectionId) => {
+    setCollapsed((prev) => {
+      const willCollapse = !prev[id];
+      if (willCollapse) {
+        window.setTimeout(() => {
+          expandButtonRefs.current[id]?.focus();
+        }, 0);
+      }
+      return {
+        ...prev,
+        [id]: !prev[id],
+      };
+    });
   }, []);
 
   // const focusOnLyricsPanel = useCallback(() => {
@@ -199,14 +215,17 @@ export default function Home({ pixabay, albumCover }: Props) {
             <div
               key={section.id}
               className={clsx(
-                "relative min-w-0 lg:min-h-[calc(80vh-4rem)] transition-all duration-300",
+                "relative min-w-0 lg:min-h-[calc(80vh-4rem)]",
                 isCollapsed ? "flex items-start justify-center" : "block"
               )}
             >
-              {isCollapsed ? (
+              {isCollapsed && (
                 <button
                   type="button"
                   onClick={() => toggleSection(section.id)}
+                  ref={(node) => {
+                    expandButtonRefs.current[section.id] = node;
+                  }}
                   className={clsx(
                     "mt-2 flex lg:flex-col w-full lg:w-auto items-center gap-2 rounded-2xl border px-4 lg:px-2 py-1 lg:py-3 text-xs font-semibold uppercase tracking-[0.2em] focus-visible:outline-none focus-visible:ring-2",
                     isLightTheme
@@ -229,30 +248,34 @@ export default function Home({ pixabay, albumCover }: Props) {
                     <span className="lg:hidden">{section.title}</span>
                   </span>
                 </button>
-              ) : (
-                <div
-                  className={clsx(
-                    "relative flex h-full w-full min-w-0",
-                    section.maxWidth ? "justify-center" : "justify-start",
-                  )}
-                  style={wrapperStyle}
-                >
-                  <button
-                    type="button"
-                    onClick={() => toggleSection(section.id)}
-                    className={clsx(
-                      "absolute right-4 top-2 z-10 flex h-9 w-9 items-center justify-center rounded-full border text-lg font-semibold focus-visible:outline-none focus-visible:ring-2",
-                      isLightTheme
-                        ? "border-slate-200 bg-white/80 text-slate-600 hover:bg-white focus-visible:ring-slate-400"
-                        : "border-white/30 bg-black/40 text-white hover:bg-black/60 focus-visible:ring-white"
-                    )}
-                    aria-label={`Collapse ${section.title}`}
-                  >
-                    −
-                  </button>
-                  <div className="h-full w-full">{section.render()}</div>
-                </div>
               )}
+              <div
+                className={clsx(
+                  "relative flex h-full w-full min-w-0",
+                  section.maxWidth ? "justify-center" : "justify-start",
+                  "transform-gpu transition-transform duration-300",
+                  isCollapsed
+                    ? "pointer-events-none opacity-0 translate-y-3"
+                    : "translate-y-0"
+                )}
+                style={wrapperStyle}
+                inert={isCollapsed || undefined}
+              >
+                <button
+                  type="button"
+                  onClick={() => toggleSection(section.id)}
+                  className={clsx(
+                    "absolute right-4 top-2 z-10 flex h-9 w-9 items-center justify-center rounded-full border text-lg font-semibold focus-visible:outline-none focus-visible:ring-2",
+                    isLightTheme
+                      ? "border-slate-200 bg-white/80 text-slate-600 hover:bg-white focus-visible:ring-slate-400"
+                      : "border-white/30 bg-black/40 text-white hover:bg-black/60 focus-visible:ring-white"
+                  )}
+                  aria-label={`Collapse ${section.title}`}
+                >
+                  −
+                </button>
+                <div className="h-full w-full">{section.render()}</div>
+              </div>
             </div>
           );
         })}
