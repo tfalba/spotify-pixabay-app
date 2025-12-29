@@ -45,12 +45,10 @@ export default function Home({ pixabay, albumCover }: Props) {
   const isLightTheme = theme === "light";
   const { current, handleQueueChange } = useCurrentTrack();
   const [collapsed, setCollapsed] = useState<{
-    tracks: boolean;
     lyrics: boolean;
     pixabay: boolean;
     manage: boolean;
   }>({
-    tracks: false,
     lyrics: false,
     pixabay: false,
     manage: true,
@@ -154,14 +152,6 @@ export default function Home({ pixabay, albumCover }: Props) {
     });
   }, []);
 
-  // const focusOnLyricsPanel = useCallback(() => {
-  //   setCollapsed((prev) => ({
-  //     ...prev,
-  //     manage: false,
-  //     lyrics: false,
-  //     pixabay: false,
-  //   }));
-  // }, []);
   const mainClass = clsx(
     "relative md:mt-4 flex flex-1 flex-col gap-6 rounded-[32px] border md:p-2 ring-1 before:pointer-events-none before:absolute before:inset-0 before:rounded-[32px] before:opacity-80 before:blur before:content-[''] lg:grid",
     isLightTheme
@@ -176,7 +166,6 @@ export default function Home({ pixabay, albumCover }: Props) {
           previousCollapsedRef.current = prev;
         }
         if (
-          prev.tracks === true &&
           prev.lyrics === true &&
           prev.pixabay === true &&
           prev.manage === false
@@ -184,7 +173,6 @@ export default function Home({ pixabay, albumCover }: Props) {
           return prev;
         }
         return {
-          tracks: true,
           lyrics: true,
           pixabay: true,
           manage: false,
@@ -216,7 +204,7 @@ export default function Home({ pixabay, albumCover }: Props) {
               key={section.id}
               className={clsx(
                 "relative min-w-0 lg:min-h-[calc(80vh-4rem)]",
-                isCollapsed ? "flex items-start justify-center" : "block"
+                isCollapsed ? "flex items-start justify-start" : "block"
               )}
             >
               {isCollapsed && (
@@ -227,7 +215,7 @@ export default function Home({ pixabay, albumCover }: Props) {
                     expandButtonRefs.current[section.id] = node;
                   }}
                   className={clsx(
-                    "mt-2 flex lg:flex-col w-full lg:w-auto items-center gap-2 rounded-2xl border px-4 lg:px-2 py-1 lg:py-3 text-xs font-semibold uppercase tracking-[0.2em] focus-visible:outline-none focus-visible:ring-2",
+                    "mt-2 mx-2 flex lg:flex-col w-fit lg:w-auto items-center gap-2 rounded-2xl border px-4 lg:px-2 py-1 lg:py-3 text-xs font-semibold uppercase tracking-[0.2em] focus-visible:outline-none focus-visible:ring-2",
                     isLightTheme
                       ? "border-slate-200 bg-white/80 text-slate-600 focus-visible:ring-slate-400"
                       : "border-white/30 bg-teal/5 text-white focus-visible:ring-white"
@@ -255,8 +243,8 @@ export default function Home({ pixabay, albumCover }: Props) {
                   section.maxWidth ? "justify-center" : "justify-start",
                   "transform-gpu transition-transform duration-300",
                   isCollapsed
-                    ? "pointer-events-none opacity-0 translate-y-3"
-                    : "translate-y-0"
+                    ? "pointer-events-none opacity-0 translate-y-3 hidden"
+                    : "translate-y-0 flex"
                 )}
                 style={wrapperStyle}
                 inert={isCollapsed || undefined}
@@ -274,7 +262,7 @@ export default function Home({ pixabay, albumCover }: Props) {
                 >
                   −
                 </button>
-                <div className="h-full w-full">{section.render()}</div>
+                <div className={clsx("h-full w-full", isCollapsed ? "hidden" : "block")}>{section.render()}</div>
               </div>
             </div>
           );

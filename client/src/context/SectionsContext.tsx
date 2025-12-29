@@ -14,7 +14,6 @@ type SectionsState = {
 type SectionsActions = {
   setShowCurrentPlaylist: (value: boolean) => void;
   toggleShowCurrentPlaylist: () => void;
-  focusOnLyricsPanel: () => void;
 };
 
 export type SectionsContextValue = SectionsState & SectionsActions;
@@ -35,26 +34,18 @@ export function SectionsProvider({ children }: { children: ReactNode }) {
     setShowCurrentPlaylistState((v) => !v);
   }, []);
 
-  /**
-   * Keep this as a no-op hook point for now, or wire it to scroll / focus logic.
-   * Your ManagePlaylistAndSearch expects it to exist.
-   */
-  const focusOnLyricsPanel = useCallback(() => {
-    // e.g. document.getElementById("lyrics-panel")?.scrollIntoView({ behavior: "smooth" });
-  }, []);
+
 
   const value = useMemo<SectionsContextValue>(
     () => ({
       showCurrentPlaylist,
       setShowCurrentPlaylist,
       toggleShowCurrentPlaylist,
-      focusOnLyricsPanel,
     }),
     [
       showCurrentPlaylist,
       setShowCurrentPlaylist,
       toggleShowCurrentPlaylist,
-      focusOnLyricsPanel,
     ]
   );
 

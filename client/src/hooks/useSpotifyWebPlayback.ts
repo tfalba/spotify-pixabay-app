@@ -30,6 +30,13 @@ export function useSpotifyWebPlayback() {
   const [isPreviewPlaying, setIsPreviewPlaying] = useState(false);
 
   const playerRef = useRef<Spotify.Player | null>(null);
+  const deviceIdRef = useRef<string | null>(null);
+  const authRef = useRef({
+    isAuthenticated: false,
+    fullPlaybackEnabled: false,
+    loggedIn: false,
+  });
+  const pendingDeviceResolvers = useRef<Array<(id: string) => void>>([]);
 
   const refreshAuthStatus = useCallback(async () => {
     try {
@@ -123,6 +130,21 @@ export function useSpotifyWebPlayback() {
     // initial check
     refreshAuthStatus().catch(() => {});
   }, [refreshAuthStatus]);
+
+  useEffect(() => {
+    deviceIdRef.current = deviceId;
+    if (!deviceId) return;
+    pendingDeviceResolvers.current.forEach((resolve) => resolve(deviceId));
+    pendingDeviceResolvers.current = [];
+  }, [deviceId]);
+
+  useEffect(() => {
+    authRef.current = {
+      isAuthenticated,
+      fullPlaybackEnabled,
+      loggedIn,
+    };
+  }, [isAuthenticated, fullPlaybackEnabled, loggedIn]);
 
   useEffect(() => {
     // helpful after redirect login or tab switching
@@ -299,7 +321,8 @@ export function useSpotifyWebPlayback() {
       context_uri?: string;
       position_ms?: number;
     }) => {
-      if (!playerRef.current || !deviceId) return;
+      const activeDeviceId = deviceIdRef.current;
+      if (!playerRef.current || !activeDeviceId) return;
 
       // Stop any preview audio so we don't overlap
       stopPreview();
@@ -311,23 +334,28 @@ export function useSpotifyWebPlayback() {
       ) {
         await (playerRef.current as any).activateElement();
       }
-      await playerRef.current.resume().catch(() => {});
 
       // 2) Ensure SDK device is active right now
-      await apiFetch("/api/player/transfer", {
+      const transferRes = await apiFetch("/api/player/transfer", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ device_id: deviceId }),
+        body: JSON.stringify({ device_id: activeDeviceId, play: true }),
       });
+      if (!transferRes.ok) {
+        throw new Error(`transfer_failed:${transferRes.status}`);
+      }
 
       // 3) Play on THIS device explicitly
-      await apiFetch("/api/player/play", {
+      const playRes = await apiFetch("/api/player/play", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...urisOrContext, device_id: deviceId }),
+        body: JSON.stringify({ ...urisOrContext, device_id: activeDeviceId }),
       });
+      if (!playRes.ok) {
+        throw new Error(`play_failed:${playRes.status}`);
+      }
     },
-    [deviceId, stopPreview]
+    [stopPreview]
   );
 
   const resumeOrStart = useCallback(
@@ -448,6 +476,22 @@ export function useSpotifyWebPlayback() {
   }, []);
 
   const itunesCacheRef = useRef<Record<string, string | null>>({});
+  const waitForDeviceReady = useCallback((timeoutMs = 1200) => {
+    if (deviceIdRef.current) return Promise.resolve(deviceIdRef.current);
+    return new Promise<string | null>((resolve) => {
+      const resolver = (id: string) => {
+        window.clearTimeout(timer);
+        resolve(id);
+      };
+      const timer = window.setTimeout(() => {
+        pendingDeviceResolvers.current = pendingDeviceResolvers.current.filter(
+          (fn) => fn !== resolver
+        );
+        resolve(null);
+      }, timeoutMs);
+      pendingDeviceResolvers.current.push(resolver);
+    });
+  }, []);
 
   const playTrackSmart = useCallback(
     async (track: {
@@ -458,10 +502,26 @@ export function useSpotifyWebPlayback() {
       artists?: { name: string }[];
       name?: string;
     }) => {
+      const shouldPreferFullPlayback =
+        !!track?.uri &&
+        (authRef.current.fullPlaybackEnabled || authRef.current.loggedIn);
+
+      if (shouldPreferFullPlayback && !deviceIdRef.current) {
+        await waitForDeviceReady();
+      }
+
       // 1) Full playback if authenticated + device
-      if (isAuthenticated && deviceId && track?.uri) {
-        await startPlayback({ uris: [track.uri] });
-        return;
+      if (
+        authRef.current.isAuthenticated &&
+        deviceIdRef.current &&
+        track?.uri
+      ) {
+        try {
+          await startPlayback({ uris: [track.uri] });
+          return;
+        } catch {
+          // fall through to preview fallback
+        }
       }
 
       // 2) Spotify preview if available
@@ -493,7 +553,7 @@ export function useSpotifyWebPlayback() {
         window.open(track.external_url, "_blank", "noopener,noreferrer");
       }
     },
-    [deviceId, isAuthenticated, playPreview, startPlayback]
+    [playPreview, startPlayback, waitForDeviceReady]
   );
 
   return {

@@ -3,6 +3,7 @@ import {
   createContext,
   useCallback,
   useContext,
+  useEffect,
   useMemo,
   useState,
   type ReactNode,
@@ -42,6 +43,11 @@ export function CurrentTrackProvider({ children }: { children: ReactNode }) {
   const [queue, setQueue] = useState<Track[]>([]);
 
   const albumCover = current?.image ?? null;
+
+  useEffect(() => {
+    setCurrent(null);
+    setQueue([]);
+  }, []);
 
   const handleQueueChange = useCallback(
     (tracks: Track[]) => {
