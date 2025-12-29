@@ -31,13 +31,13 @@ async function passthrough(res: ExpressResponse, r: FetchResponse) {
 export async function transfer(req: Request, res: ExpressResponse) {
   try {
     const token = await access(req, res);
-    const { device_id } = req.body || {};
+    const { device_id, play } = req.body || {};
     if (!device_id) return res.status(400).send("device_id is required");
 
     const r = await fetch("https://api.spotify.com/v1/me/player", {
       method: "PUT",
       headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
-      body: JSON.stringify({ device_ids: [device_id], play: false }),
+      body: JSON.stringify({ device_ids: [device_id], play: Boolean(play) }),
     });
 
     return passthrough(res, r);

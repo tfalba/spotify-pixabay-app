@@ -1,5 +1,6 @@
 import clsx from "clsx";
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { FlipPhotoGrid, type Img } from "./FlipPhotoGrid";
 import centerLogo from "../assets/center-logo.svg";
 import { useTheme } from "@/context/ThemeContext";
@@ -81,6 +82,83 @@ export default function PixabayGrid({
       document.body.style.overflow = previousOverflow;
     };
   }, [isFullscreen]);
+
+  const fullscreenModal = isFullscreen ? (
+    <div className={fullScreenClass}>
+      <div className="flex flex-wrap items-center justify-between gap-4 p-4">
+        <div className="min-w-0 flex-[1.5]">
+          {(trackTitle || trackArtist) && (
+            <div>
+              <p
+                className={clsx(
+                  "text-xs uppercase tracking-[0.28em]",
+                  isLight ? "text-slate-500" : "text-slate-400"
+                )}
+              >
+                Currently Playing
+              </p>
+              <h3
+                className={clsx(
+                  "truncate text-2xl font-semibold",
+                  isLight ? "text-slate-900" : "text-slate-50"
+                )}
+              >
+                {trackTitle ?? "Unknown Title"}
+              </h3>
+              {trackArtist && (
+                <p
+                  className={clsx(
+                    "truncate text-sm",
+                    isLight ? "text-slate-600" : "text-slate-300"
+                  )}
+                >
+                  {trackArtist}
+                </p>
+              )}
+            </div>
+          )}
+        </div>
+        <div className="flex gap-2 flex-wrap flex-1 justify-end">
+          <ArtStyleDropdown
+            resolvedStyleName={resolvedStyleName}
+            styleChoice={styleChoice}
+            onStyleChange={onStyleChange}
+          />
+          <button
+            type="button"
+            onClick={() => setIsFullscreen(false)}
+            className={fullScreenClose}
+          >
+            Close
+          </button>
+        </div>
+      </div>
+      <div className="mx-auto flex w-full max-w-6xl flex-1 overflow-y-auto p-4 justify-center">
+        {imageList.length >= 2 ? (
+          <FlipPhotoGrid
+            images={imageList}
+            gridClassName="w-full grid grid-cols-3 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-3"
+            fullScreen={true}
+            albumCover={albumCoverForGrid}
+            heroImage={heroImage}
+            heroLoading={heroLoading}
+          />
+        ) : (
+          <div>
+            {albumCover && hasSelection && showAlbumCoverOnly && (
+              <div className="m-auto flex items-center justify-center place-items-center">
+                <img
+                  src={albumCover}
+                  alt="Album cover"
+                  className="h-80 w-auto rounded-lg shadow-glow"
+                />
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+  ) : null;
 
   return (
     <>
@@ -186,83 +264,10 @@ export default function PixabayGrid({
         </div>
       </section>
 
-      {isFullscreen && (
-        <div className={fullScreenClass}>
-          <div className="flex flex-wrap items-center justify-between gap-4 p-4">
-            <div className="min-w-0 flex-[1.5]">
-              {(trackTitle || trackArtist) && (
-                <div>
-                  <p
-                    className={clsx(
-                      "text-xs uppercase tracking-[0.28em]",
-                      isLight ? "text-slate-500" : "text-slate-400"
-                    )}
-                  >
-                    Currently Playing
-                  </p>
-                  <h3
-                    className={clsx(
-                      "truncate text-2xl font-semibold",
-                      isLight ? "text-slate-900" : "text-slate-50"
-                    )}
-                  >
-                    {trackTitle ?? "Unknown Title"}
-                  </h3>
-                  {trackArtist && (
-                    <p
-                      className={clsx(
-                        "truncate text-sm",
-                        isLight ? "text-slate-600" : "text-slate-300"
-                      )}
-                    >
-                      {trackArtist}
-                    </p>
-                  )}
-                </div>
-              )}
-            </div>
-            <div className="flex gap-2 flex-wrap flex-1 justify-end">
-              <ArtStyleDropdown
-                resolvedStyleName={resolvedStyleName}
-                styleChoice={styleChoice}
-                onStyleChange={onStyleChange}
-              />
-             
-              <button
-              type="button"
-              onClick={() => setIsFullscreen(false)}
-              className={fullScreenClose}
-            >
-              Close
-            </button>
-            </div>
-          </div>
-          <div className="mx-auto flex w-full max-w-6xl flex-1 overflow-y-auto p-4 justify-center">
-            {imageList.length >= 2 ? (
-              <FlipPhotoGrid
-                images={imageList}
-                gridClassName="w-full grid grid-cols-3 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-3"
-                fullScreen={true}
-                albumCover={albumCoverForGrid}
-                heroImage={heroImage}
-                heroLoading={heroLoading}
-              />
-            ) : (
-              <div>
-                {albumCover && hasSelection && showAlbumCoverOnly && (
-                  <div className="m-auto flex items-center justify-center place-items-center">
-                    <img
-                      src={albumCover}
-                      alt="Album cover"
-                      className="h-80 w-auto rounded-lg shadow-glow"
-                    />
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-        </div>
-      )}
+      {fullscreenModal &&
+        (typeof document === "undefined"
+          ? fullscreenModal
+          : createPortal(fullscreenModal, document.body))}
     </>
   );
 }
