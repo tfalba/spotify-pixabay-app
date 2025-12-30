@@ -27,8 +27,11 @@ export default function HeroBar({
   const panelLabel = activeTab === "song" ? "Now Playing" : "Art Style";
 
   return (
-    <section
-      className="relative mt-2 min-h-[220px] overflow-hidden rounded-[32px] border border-black/90 bg-contain bg-center px-4 py-6 shadow-[0_20px_50px_rgba(124,92,252,0.25)]"
+    <motion.section
+      initial={{ height: "600px" }}
+      animate={{ height: "220px", minHeight: "220px" }}
+      transition={{ duration: 1.1, ease: "easeOut" }}
+      className="relative min-h[220px] h-[220px] overflow-hidden rounded-[32px] border border-black/90 bg-contain bg-center px-4 py-6 shadow-[0_20px_50px_rgba(124,92,252,0.25)]"
       style={{ backgroundImage: heroBanner ? `url(${heroBanner})` : undefined }}
     >
       <div
@@ -43,7 +46,7 @@ export default function HeroBar({
         <div className="absolute right-0 -bottom-24 h-56 w-56 rounded-full bg-amber-300/10 blur-3xl" />
       </div>
 
-      <div className="absolute inset-x-0 flex justify-end px-4">
+      <div className="absolute inset-x-0 flex justify-end">
         <div
           className="w-full max-w-xl transition-transform duration-300"
           style={{
@@ -129,6 +132,6 @@ export default function HeroBar({
           </motion.div>
         </div>
       </div>
-    </section>
+    </motion.section>
   );
 }
