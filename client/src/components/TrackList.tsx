@@ -156,16 +156,16 @@ export default function TrackList({
   return (
     <div
       className={clsx(
-        "flex-[2] mt-2 min-w-0 rounded-2xl border border-white/10 bg-[#0a0f16] shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]"
+        "flex-[2] mt-2 min-w-0 rounded-2xl border border-white/10 bg-[#0a0f16] shadow-[inset_0_1px_0_rgba(63,81,181,0.55)]"
       )}
       ref={listRef}
     >
       {tracks.length > 0 && (
         <div
           className={clsx(
-            "p-4",
+            "px-0 md:px-4 py-4",
             twoColumnOnLarge
-              ? "flex min-w-0 flex-col gap-3 p-3 lg:grid xl:grid-cols-2 lg:gap-4"
+              ? "flex min-w-0 flex-col gap-3 lg:grid xl:grid-cols-2 lg:gap-4"
               : "flex min-w-0 flex-col gap-3"
           )}
           style={
@@ -189,7 +189,7 @@ export default function TrackList({
                 <div
                   key={t.id}
                   className={clsx(
-                    "flex w-full min-w-0 flex-col gap-2 rounded-2xl border p-2 px-4 transition shadow-[0_14px_30px_rgba(2,6,23,0.35)]",
+                    "flex w-full min-w-0 flex-col gap-2 rounded-2xl border p-2 px-4 transition shadow-[0_14px_30px_rgba(63,81,181,0.40)]",
                     isSelected
                       ? "border-amber-300/70 bg-amber-400/10"
                       : "border-transparent bg-white/5 hover:border-emerald-300/40 hover:bg-white/10"

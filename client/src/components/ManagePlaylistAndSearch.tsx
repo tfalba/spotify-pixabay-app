@@ -412,18 +412,18 @@ export default function ManagePlaylistAndSearch({
           ))}
         </div>
 
-        <div className="text-xs mr-10 text-white/60">
+        <div className="text-xs mr-10 pl-4 text-white/60">
           {activeMode === "search"
             ? "Search tracks and play previews (or full playback if enabled)."
             : "Browse your Spotify playlists (login required)."}
         </div>
       </div>
 
-      <div className="min-h-0 overflow-y-auto mr-4">
+      <div className="min-h-0 overflow-y-auto">
         {activeMode === "search" ? (
           <section
             className={clsx(
-              "flex h-fit min-h-0 flex-col rounded-[24px] border border-white/10 bg-white/5 p-3 text-white shadow-glow"
+              "flex h-fit min-h-0 flex-col rounded-[24px] border border-white/10 bg-white/5 p-1 lg:p-3 text-white shadow-glow"
             )}
           >
             <div className="mb-1 flex flex-col md:flex-row items-start md:items-center justify-between gap-3 flex-wrap">
@@ -538,9 +538,6 @@ export default function ManagePlaylistAndSearch({
                     </button>
                   )}
                 </div>
-                <p className="text-sm text-slate-400 pt-2">
-                  View your Spotify playlists like folders.
-                </p>
               </div>
 
               {!loggedIn ? (
@@ -666,7 +663,7 @@ export default function ManagePlaylistAndSearch({
                           type="button"
                           onClick={() => handleSelect(playlist)}
                           className={clsx(
-                            "flex flex-col gap-3 rounded-2xl border border-white/10 bg-black/30 p-4 text-left shadow-lg transition hover:border-emerald-300/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-200/50"
+                            "flex flex-col gap-3 rounded-2xl border border-white/10 bg-black/30 p-4 text-left shadow-[0_14px_30px_rgba(88,92,107,0.55)] transition hover:border-emerald-300/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-200/50"
                           )}
                         >
                           <div className="flex items-center gap-3">
