@@ -1,7 +1,6 @@
 // server/src/playlists.ts
 import express, { Request, Response } from "express";
-import fetch from "node-fetch"; // or remove this if you're on Node 18+ and using global fetch
-import { getAccessToken } from "./auth";
+import { spotifyUserFetch } from "./lib/spotifyUser";
 
 export const playlistsRouter = express.Router();
 
@@ -23,17 +22,6 @@ playlistsRouter.post(
       return;
     }
 
-    // 🔑 MUST await this – it returns a Promise<string>
-    const accessToken = await getAccessToken(req, res);
-
-    if (!accessToken) {
-      res.status(401).json({
-        success: false,
-        message: "Unauthorized — no Spotify access token.",
-      });
-      return;
-    }
-
     const trackUri = `spotify:track:${trackId}`;
 
     try {
@@ -41,12 +29,13 @@ playlistsRouter.post(
       // 1️⃣ REMOVE FROM SOURCE (if provided)
       //
       if (sourcePlaylistId) {
-        const removeResp = await fetch(
+        const removeResp = await spotifyUserFetch(
+          req,
+          res,
           `https://api.spotify.com/v1/playlists/${sourcePlaylistId}/tracks`,
           {
             method: "DELETE",
             headers: {
-              Authorization: `Bearer ${accessToken}`,
               "Content-Type": "application/json",
             },
             body: JSON.stringify({
@@ -76,12 +65,13 @@ playlistsRouter.post(
       //
       // 2️⃣ ADD TO TARGET
       //
-      const addResp = await fetch(
+      const addResp = await spotifyUserFetch(
+        req,
+        res,
         `https://api.spotify.com/v1/playlists/${targetPlaylistId}/tracks`,
         {
           method: "POST",
           headers: {
-            Authorization: `Bearer ${accessToken}`,
             "Content-Type": "application/json",
           },
           body: JSON.stringify({

@@ -5,7 +5,7 @@ import cookieParser from "cookie-parser";
 import { env } from "./env";
 import { itunesPreviewLookup } from "./itunes";
 
-import { login, callback, refreshToken, logout, token, getAccessToken } from "./auth";
+import { login, callback, refreshToken, logout, token } from "./auth";
 import { pixabaySearch } from "./pixabay";
 import { fetchLyrics } from "./lyrics";
 import {
@@ -18,13 +18,12 @@ import {
   volume,
   shuffle,
   repeat,
-  devices,
-  state,
 } from "./player";
 
 import imagesRouter from "./images";
 import demoRouter from "./demoImages";
 import { playlistsRouter } from "./playlists";
+import { spotifyUserJson } from "./lib/spotifyUser";
 
 // ✅ Single source of truth for Spotify API proxying
 import { getSpotifyToken, spotifySearch, spotifyProfile } from "./spotifyToken";
@@ -111,25 +110,12 @@ app.get("/api/me", async (req, res) => {
   }
 });
 
-// ----- Playlists (logged-in only; refresh-aware via getAccessToken) -----
-async function sfetchWithAuth(req: express.Request, res: express.Response, url: string) {
-  const access = await getAccessToken(req, res);
-  const r = await fetch(url, { headers: { Authorization: `Bearer ${access}` } });
-
-  if (!r.ok) {
-    const text = await r.text();
-    throw Object.assign(new Error(`Spotify ${r.status}: ${text}`), { status: r.status });
-  }
-
-  return r.json();
-}
-
 app.get("/api/me/playlists", async (req, res) => {
   try {
     let url = "https://api.spotify.com/v1/me/playlists?limit=50";
     const items: any[] = [];
     while (url) {
-      const page: any = await sfetchWithAuth(req, res, url);
+      const page: any = await spotifyUserJson(req, res, url);
       items.push(...(page.items ?? []));
       url = page.next ?? "";
     }
@@ -145,7 +131,7 @@ app.get("/api/playlists/:id/tracks", async (req, res) => {
     let url = `https://api.spotify.com/v1/playlists/${req.params.id}/tracks?limit=100`;
     const items: any[] = [];
     while (url) {
-      const page: any = await sfetchWithAuth(req, res, url);
+      const page: any = await spotifyUserJson(req, res, url);
       items.push(...(page.items ?? []));
       url = page.next ?? "";
     }
@@ -193,8 +179,6 @@ app.put("/api/player/seek", seek);
 app.put("/api/player/volume", volume);
 app.put("/api/player/shuffle", shuffle);
 app.put("/api/player/repeat", repeat);
-app.get("/api/player/devices", devices);
-app.get("/api/player/state", state);
 
 // ----- Start -----
 const port = Number(env.PORT || 8080);

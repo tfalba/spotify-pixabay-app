@@ -29,7 +29,6 @@ spotify-pixabay-app/
 - **Client**
   - [Vite](https://vitejs.dev/) + React 19
   - TailwindCSS with custom palette/gradients
-  - shadcn/ui select + scroll components
   - Spotify Web Playback SDK via a shared context provider
 
 - **Server**
@@ -45,6 +44,39 @@ spotify-pixabay-app/
 - Generate descriptive keywords via OpenAI (lyrics → keywords) and retrieve matching images from Pixabay.
 - Rich playback controls powered by Spotify’s Web Playback SDK, with global state so music continues across routes.
 - Responsive, portfolio-styled UI with dimensional gradient panels.
+
+## Server Routes
+
+- Auth
+  - `GET /auth/login`
+  - `GET /auth/callback`
+  - `POST /auth/refresh`
+  - `POST /auth/logout`
+  - `POST /auth/token`
+  - `GET /api/auth/status`
+- Spotify data (server-proxied)
+  - `GET /api/search`
+  - `GET /api/tracks/:id`
+  - `GET /api/me`
+  - `GET /api/me/playlists`
+  - `GET /api/playlists/:id/tracks`
+  - `POST /api/spotify/move-track`
+- Player controls
+  - `POST /api/player/transfer`
+  - `PUT /api/player/play`
+  - `PUT /api/player/pause`
+  - `POST /api/player/next`
+  - `POST /api/player/previous`
+  - `PUT /api/player/seek`
+  - `PUT /api/player/volume`
+  - `PUT /api/player/shuffle`
+  - `PUT /api/player/repeat`
+- Lyrics + imagery
+  - `POST /api/lyrics-to-images`
+  - `GET /api/demo`
+  - `GET /api/pixabay`
+  - `GET /api/lyrics`
+  - `GET /api/itunes/preview`
 
 ## Getting Started
 
