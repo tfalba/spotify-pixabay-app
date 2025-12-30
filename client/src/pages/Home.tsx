@@ -7,6 +7,7 @@ import {
   type JSX,
 } from "react";
 import clsx from "clsx";
+import { motion } from "framer-motion";
 import LyricPlayerContainer from "../components/LyricPlayerContainer";
 import PixabayGrid from "../components/PixabayGrid";
 import { useCurrentTrackData } from "@/context/CurrentTrackContext";
@@ -238,38 +239,37 @@ export default function Home({ pixabay, albumCover }: Props) {
                     </span>
                   </button>
                 )}
-                <div
+                <motion.div
                   className={clsx(
-                    "relative flex h-full w-full min-w-0",
+                    "relative flex w-full min-w-0 overflow-hidden",
                     section.maxWidth ? "justify-center" : "justify-start",
-                    "transform-gpu transition-transform duration-300",
-                    isCollapsed
-                      ? "pointer-events-none opacity-0 translate-y-3 hidden"
-                      : "translate-y-0 flex"
+                    isCollapsed ? "pointer-events-none" : "pointer-events-auto"
                   )}
                   style={wrapperStyle}
+                  animate={
+                    isCollapsed
+                      ? { height: 0, opacity: 0, y: 12 }
+                      : { height: "auto", opacity: 1, y: 0 }
+                  }
+                  initial={false}
+                  transition={{ duration: 0.28, ease: "easeOut" }}
                   inert={isCollapsed || undefined}
                 >
-                  <button
-                    type="button"
-                    onClick={() => toggleSection(section.id)}
-                    className={clsx(
-                      "absolute right-4 top-2 z-10 flex h-9 w-9 items-center justify-center rounded-full border text-lg font-semibold focus-visible:outline-none focus-visible:ring-2",
-                      "border-white/15 bg-black/50 text-white hover:bg-black/70 focus-visible:ring-emerald-300/50"
-                    )}
-                    aria-label={`Collapse ${section.title}`}
-                  >
-                    −
-                  </button>
-                  <div
-                    className={clsx(
-                      "h-full w-full",
-                      isCollapsed ? "hidden" : "block"
-                    )}
-                  >
-                    {section.render()}
+                  <div className="relative h-full w-full">
+                    <button
+                      type="button"
+                      onClick={() => toggleSection(section.id)}
+                      className={clsx(
+                        "absolute right-4 top-2 z-10 flex h-9 w-9 items-center justify-center rounded-full border text-lg font-semibold focus-visible:outline-none focus-visible:ring-2",
+                        "border-white/15 bg-black/50 text-white hover:bg-black/70 focus-visible:ring-emerald-300/50"
+                      )}
+                      aria-label={`Collapse ${section.title}`}
+                    >
+                      −
+                    </button>
+                    <div className="h-full w-full">{section.render()}</div>
                   </div>
-                </div>
+                </motion.div>
               </div>
             );
           })}
