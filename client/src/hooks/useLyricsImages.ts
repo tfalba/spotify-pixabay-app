@@ -71,7 +71,6 @@ function normalizeResponse(
   raw: AnyLyricsImagesResponse,
 ): NormalizedLyricsImagesResponse {
   if (isV1Response(raw)) {
-    console.log("Normalizing v1 response");
     const baseKeywords = raw.keywords;
     const topSingles = baseKeywords.slice(0, 3);
 

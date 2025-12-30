@@ -316,7 +316,6 @@ export default function ManagePlaylistAndSearch({
     }
 
     if (!selectedPlaylistId) {
-      console.log('hitting no selected playlist', searchQuery.trim());
       dispatchTracks({ type: "reset" });
       return () => {
         active = false;
