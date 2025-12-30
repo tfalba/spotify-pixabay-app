@@ -14,29 +14,24 @@ import {
   type SpotifyTrack,
 } from "@/lib/spotify";
 import { moveTrackOnServer } from "@/lib/spotifyActions";
-import { useSpotifyPlayerContext } from "./SpotifyPlayerProvider";
+import {
+  useSpotifyPlayerActions,
+  useSpotifyPlayerState,
+} from "./SpotifyPlayerProvider";
 import type { Track } from "@/types/types";
-import { get } from "@/lib/fetcher";
+import { getAuthStatus } from "@/lib/spotifyApi";
 
-type PlaylistsContextValue = {
+type PlaylistsData = {
   playlists: SpotifyPlaylist[];
   loading: boolean;
   error: string | null;
-  refresh: () => Promise<void>;
-  setPlaylists: React.Dispatch<React.SetStateAction<SpotifyPlaylist[]>>;
   moveTrack: (
     trackId: string,
     sourcePlaylistId: string,
     targetPlaylistId: string
   ) => Promise<void>;
 
-  /**
-   * Keep both:
-   * - loggedIn: cookie-based auth (true right after OAuth redirect)
-   * - isAuthenticated: SDK token auth (Option 1: only true after "Enable full playback")
-   */
   loggedIn: boolean;
-  isAuthenticated: boolean;
 
   selectedPlaylistId: string | null;
   setSelectedPlaylistId: React.Dispatch<React.SetStateAction<string | null>>;
@@ -46,18 +41,31 @@ type PlaylistsContextValue = {
   setCurrentPlaylistId: React.Dispatch<React.SetStateAction<string | null>>;
 
   playlistTracksCache: Record<string, Track[]>;
-  refreshPlaylistTracks: (playlistId: string) => Promise<Track[]>;
 };
 
-type AuthStatus = { authenticated: boolean };
+type PlaylistsActions = {
+  refresh: () => Promise<void>;
+  moveTrack: (
+    trackId: string,
+    sourcePlaylistId: string,
+    targetPlaylistId: string
+  ) => Promise<void>;
+  refreshPlaylistTracks: (playlistId: string) => Promise<Track[]>;
+  setSelectedPlaylistId: React.Dispatch<React.SetStateAction<string | null>>;
+  clearSelectedPlaylist: () => void;
+  setCurrentPlaylistId: React.Dispatch<React.SetStateAction<string | null>>;
+};
 
-const PlaylistsContext = createContext<PlaylistsContextValue | undefined>(
+const PlaylistsDataContext = createContext<PlaylistsData | undefined>(
+  undefined
+);
+const PlaylistsActionsContext = createContext<PlaylistsActions | undefined>(
   undefined
 );
 
 export function PlaylistsProvider({ children }: { children: ReactNode }) {
-  const { isAuthenticated, enableFullPlayback, fullPlaybackEnabled } =
-    useSpotifyPlayerContext(); // SDK auth (not login)
+  const { fullPlaybackEnabled } = useSpotifyPlayerState();
+  const { enableFullPlayback } = useSpotifyPlayerActions();
   const [loggedIn, setLoggedIn] = useState(false); // cookie login
 
   const [playlists, setPlaylists] = useState<SpotifyPlaylist[]>([]);
@@ -73,15 +81,13 @@ export function PlaylistsProvider({ children }: { children: ReactNode }) {
     Record<string, Track[]>
   >({});
 
-  const API = import.meta.env.VITE_API_BASE ?? "";
-
   // ✅ cookie login status (no token refresh)
   useEffect(() => {
     let active = true;
 
     async function loadStatus() {
       try {
-        const status = await get<AuthStatus>(`${API}/api/auth/status`);
+        const status = await getAuthStatus();
         if (active) setLoggedIn(Boolean(status?.authenticated));
       } catch {
         if (active) setLoggedIn(false);
@@ -92,7 +98,7 @@ export function PlaylistsProvider({ children }: { children: ReactNode }) {
     return () => {
       active = false;
     };
-  }, [API]);
+  }, []);
 
   useEffect(() => {
     if (!loggedIn || fullPlaybackEnabled) return;
@@ -199,17 +205,14 @@ export function PlaylistsProvider({ children }: { children: ReactNode }) {
     setSelectedPlaylistId(null);
   }, []);
 
-  const value = useMemo(
+  const data = useMemo<PlaylistsData>(
     () => ({
       playlists,
       loading,
       error,
-      refresh,
-      setPlaylists,
       moveTrack,
 
       loggedIn,
-      isAuthenticated, // still exposed if you want to show SDK state in UI
 
       selectedPlaylistId,
       setSelectedPlaylistId,
@@ -218,37 +221,63 @@ export function PlaylistsProvider({ children }: { children: ReactNode }) {
       setCurrentPlaylistId,
 
       playlistTracksCache,
-      refreshPlaylistTracks,
     }),
     [
       playlists,
       loading,
       error,
-      refresh,
       moveTrack,
       loggedIn,
-      isAuthenticated,
       selectedPlaylistId,
       setSelectedPlaylistId,
       clearSelectedPlaylist,
       currentPlaylistId,
       setCurrentPlaylistId,
       playlistTracksCache,
+    ]
+  );
+  const actions = useMemo<PlaylistsActions>(
+    () => ({
+      refresh,
+      moveTrack,
       refreshPlaylistTracks,
+      setSelectedPlaylistId,
+      clearSelectedPlaylist,
+      setCurrentPlaylistId,
+    }),
+    [
+      refresh,
+      moveTrack,
+      refreshPlaylistTracks,
+      setSelectedPlaylistId,
+      clearSelectedPlaylist,
+      setCurrentPlaylistId,
     ]
   );
 
   return (
-    <PlaylistsContext.Provider value={value}>
-      {children}
-    </PlaylistsContext.Provider>
+    <PlaylistsDataContext.Provider value={data}>
+      <PlaylistsActionsContext.Provider value={actions}>
+        {children}
+      </PlaylistsActionsContext.Provider>
+    </PlaylistsDataContext.Provider>
   );
 }
 
-export function usePlaylists() {
-  const ctx = useContext(PlaylistsContext);
+export function usePlaylistsData() {
+  const ctx = useContext(PlaylistsDataContext);
   if (!ctx) {
-    throw new Error("usePlaylists must be used within a PlaylistsProvider");
+    throw new Error("usePlaylistsData must be used within a PlaylistsProvider");
+  }
+  return ctx;
+}
+
+export function usePlaylistsActions() {
+  const ctx = useContext(PlaylistsActionsContext);
+  if (!ctx) {
+    throw new Error(
+      "usePlaylistsActions must be used within a PlaylistsProvider"
+    );
   }
   return ctx;
 }

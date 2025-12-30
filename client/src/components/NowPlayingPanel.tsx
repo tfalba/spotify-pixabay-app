@@ -2,8 +2,11 @@ import { useEffect, useRef, useState } from "react";
 import clsx from "clsx";
 import backgroundLogo from "../assets/center-logo.svg";
 import { useTheme } from "@/context/ThemeContext";
-import { useCurrentTrack } from "@/context/CurrentTrackContext";
-import { useSpotifyPlayerContext } from "../context/SpotifyPlayerProvider";
+import { useCurrentTrackData } from "@/context/CurrentTrackContext";
+import {
+  useSpotifyPlayerActions,
+  useSpotifyPlayerState,
+} from "../context/SpotifyPlayerProvider";
 
 function formatTime(ms = 0) {
   const sec = Math.floor(ms / 1000);
@@ -13,11 +16,13 @@ function formatTime(ms = 0) {
 }
 
 export function NowPlayingPanel({ onTrackFinished }: { onTrackFinished?: () => void }) {
-  const { current } = useCurrentTrack();
+  const { current } = useCurrentTrackData();
   const { theme } = useTheme();
   const isLight = theme === "light";
 
-  const { playerState, pause, seek, playTrackSmart, isPreviewPlaying } = useSpotifyPlayerContext();
+  const { playerState, playbackPositionMs, isPreviewPlaying } =
+    useSpotifyPlayerState();
+  const { pause, seek, playTrackSmart } = useSpotifyPlayerActions();
 
   const [pos, setPos] = useState(0);
   const duration = playerState?.duration ?? 0;
@@ -32,8 +37,8 @@ export function NowPlayingPanel({ onTrackFinished }: { onTrackFinished?: () => v
 
   // Keep seek slider roughly in sync with Spotify player state (preview audio has its own timing)
   useEffect(() => {
-    if (typeof playerState?.position === "number") setPos(playerState.position);
-  }, [playerState?.position]);
+    if (typeof playbackPositionMs === "number") setPos(playbackPositionMs);
+  }, [playbackPositionMs]);
 
   useEffect(() => {
     if (!current) setPos(0);
@@ -53,7 +58,7 @@ export function NowPlayingPanel({ onTrackFinished }: { onTrackFinished?: () => v
       return;
     }
 
-    const position = playerState?.position ?? pos;
+    const position = playbackPositionMs ?? pos;
     const nearEnd = duration > 0 && duration - position <= 1200;
     const ended = paused && position === 0;
 
@@ -68,7 +73,7 @@ export function NowPlayingPanel({ onTrackFinished }: { onTrackFinished?: () => v
   }, [
     onTrackFinished,
     paused,
-    playerState?.position,
+    playbackPositionMs,
     playerState?.track_window?.current_track?.uri,
     duration,
     pos,

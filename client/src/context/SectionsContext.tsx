@@ -3,13 +3,31 @@ import {
   useCallback,
   useContext,
   useMemo,
-  useState,
+  useReducer,
   type ReactNode,
 } from "react";
 
 type SectionsState = {
   showCurrentPlaylist: boolean;
 };
+
+type SectionsAction =
+  | { type: "set_show_current_playlist"; value: boolean }
+  | { type: "toggle_show_current_playlist" };
+
+function sectionsReducer(
+  state: SectionsState,
+  action: SectionsAction
+): SectionsState {
+  switch (action.type) {
+    case "set_show_current_playlist":
+      return { ...state, showCurrentPlaylist: action.value };
+    case "toggle_show_current_playlist":
+      return { ...state, showCurrentPlaylist: !state.showCurrentPlaylist };
+    default:
+      return state;
+  }
+}
 
 type SectionsActions = {
   setShowCurrentPlaylist: (value: boolean) => void;
@@ -23,27 +41,28 @@ const SectionsContext = createContext<SectionsContextValue | undefined>(
 );
 
 export function SectionsProvider({ children }: { children: ReactNode }) {
-  const [showCurrentPlaylist, setShowCurrentPlaylistState] =
-    useState<boolean>(false);
+  const [state, dispatch] = useReducer(sectionsReducer, {
+    showCurrentPlaylist: false,
+  });
 
   const setShowCurrentPlaylist = useCallback((value: boolean) => {
-    setShowCurrentPlaylistState(value);
+    dispatch({ type: "set_show_current_playlist", value });
   }, []);
 
   const toggleShowCurrentPlaylist = useCallback(() => {
-    setShowCurrentPlaylistState((v) => !v);
+    dispatch({ type: "toggle_show_current_playlist" });
   }, []);
 
 
 
   const value = useMemo<SectionsContextValue>(
     () => ({
-      showCurrentPlaylist,
+      showCurrentPlaylist: state.showCurrentPlaylist,
       setShowCurrentPlaylist,
       toggleShowCurrentPlaylist,
     }),
     [
-      showCurrentPlaylist,
+      state.showCurrentPlaylist,
       setShowCurrentPlaylist,
       toggleShowCurrentPlaylist,
     ]

@@ -10,7 +10,7 @@ import clsx from "clsx";
 import LyricPlayerContainer from "../components/LyricPlayerContainer";
 import PixabayGrid from "../components/PixabayGrid";
 import { useTheme } from "@/context/ThemeContext";
-import { useCurrentTrack } from "@/context/CurrentTrackContext";
+import { useCurrentTrackData } from "@/context/CurrentTrackContext";
 import type { KeywordPlan } from "@/hooks/useLyricsImages";
 import type { HeroImage, ImageCard } from "@/api/lyricsTypes";
 import type { StyleCategory } from "@/types/types";
@@ -43,7 +43,7 @@ type SectionConfig = {
 export default function Home({ pixabay, albumCover }: Props) {
   const { theme } = useTheme();
   const isLightTheme = theme === "light";
-  const { current, handleQueueChange } = useCurrentTrack();
+  const { current } = useCurrentTrackData();
   const [collapsed, setCollapsed] = useState<{
     lyrics: boolean;
     pixabay: boolean;
@@ -112,7 +112,6 @@ export default function Home({ pixabay, albumCover }: Props) {
     [
       albumCover,
       current,
-      handleQueueChange,
       pixabay.error,
       pixabay.heroImage,
       pixabay.heroLoading,
@@ -126,9 +125,15 @@ export default function Home({ pixabay, albumCover }: Props) {
     ]
   );
 
-  const dynamicColumns = sectionMeta
-    .map((section) => (collapsed[section.id] ? "56px" : `${section.ratio}fr`))
-    .join(" ");
+  const dynamicColumns = useMemo(
+    () =>
+      sectionMeta
+        .map((section) =>
+          collapsed[section.id] ? "56px" : `${section.ratio}fr`
+        )
+        .join(" "),
+    [sectionMeta, collapsed]
+  );
 
   type SectionId = SectionConfig["id"];
 

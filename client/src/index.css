@@ -1,4 +1,5 @@
 
+/* stylelint-disable at-rule-no-unknown */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -9,9 +10,6 @@
     "Helvetica Neue", sans-serif;
   line-height: 1.5;
   font-weight: 400;
-  /* color-scheme: dark;
-  color: #e2e8f0;
-  background-color: #080b16; */
   --portfolio-ambient: radial-gradient(circle at 0% 0%, rgba(124, 92, 252, 0.22), transparent 45%),
     radial-gradient(circle at 100% 0%, rgba(45, 212, 191, 0.18), transparent 35%),
     radial-gradient(circle at 50% 100%, rgba(59, 130, 246, 0.18), transparent 40%);
@@ -25,16 +23,7 @@ body {
   margin: 0;
   min-height: 100vh;
   background-image: var(--portfolio-ambient, none);
-  /* background-color: #080b16; */
   place-items: center;
-}
-
-.player-background {
-  background-image: url("./assets/img101-landscape.jpg");
-  background-repeat: no-repeat;
-    background-size: cover;      /* fills the screen */
-  background-position: center; /* centers the image */
-  background-attachment: fixed; /* optional: parallax effect */
 }
 
 @layer utilities {
@@ -53,6 +42,7 @@ body {
   }
   .animate-flipY { animation: flipY 10s linear infinite }
 }
+/* stylelint-enable at-rule-no-unknown */
 
 #root {
   min-height: 100vh;

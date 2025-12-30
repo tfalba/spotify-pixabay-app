@@ -19,6 +19,7 @@ export function useSpotifyWebPlayback() {
   const [isConnected, setIsConnected] = useState(false);
   const [deviceId, setDeviceId] = useState<string | null>(null);
   const [playerState, setPlayerState] = useState<PlayerState>(null);
+  const [playbackPositionMs, setPlaybackPositionMs] = useState(0);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   // ✅ cookie-based login status (separate from SDK token success)
   const [loggedIn, setLoggedIn] = useState(false);
@@ -30,6 +31,11 @@ export function useSpotifyWebPlayback() {
   const [isPreviewPlaying, setIsPreviewPlaying] = useState(false);
 
   const playerRef = useRef<Spotify.Player | null>(null);
+  const positionThrottleRef = useRef<{
+    last: number;
+    timer: number | null;
+    pending: number | null;
+  }>({ last: 0, timer: null, pending: null });
   const deviceIdRef = useRef<string | null>(null);
   const authRef = useRef({
     isAuthenticated: false,
@@ -282,6 +288,29 @@ export function useSpotifyWebPlayback() {
 
     player.addListener("player_state_changed", (state) => {
       setPlayerState(state);
+
+      const now = Date.now();
+      const throttleMs = 250;
+      const throttle = positionThrottleRef.current;
+      const position = state?.position ?? 0;
+
+      if (now - throttle.last >= throttleMs) {
+        throttle.last = now;
+        setPlaybackPositionMs(position);
+        return;
+      }
+
+      throttle.pending = position;
+      if (throttle.timer) return;
+      const delay = throttleMs - (now - throttle.last);
+      throttle.timer = window.setTimeout(() => {
+        throttle.timer = null;
+        throttle.last = Date.now();
+        if (throttle.pending !== null) {
+          setPlaybackPositionMs(throttle.pending);
+          throttle.pending = null;
+        }
+      }, Math.max(0, delay));
     });
 
     player.addListener("initialization_error", ({ message }) =>
@@ -304,6 +333,12 @@ export function useSpotifyWebPlayback() {
     playerRef.current = player;
 
     return () => {
+      const throttle = positionThrottleRef.current;
+      if (throttle.timer) {
+        window.clearTimeout(throttle.timer);
+        throttle.timer = null;
+        throttle.pending = null;
+      }
       try {
         player.disconnect();
       } catch {
@@ -571,6 +606,7 @@ export function useSpotifyWebPlayback() {
     isConnected,
     deviceId,
     playerState,
+    playbackPositionMs,
 
     // Spotify playback actions (only meaningful when fullPlaybackEnabled)
     startPlayback,

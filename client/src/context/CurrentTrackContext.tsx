@@ -3,24 +3,25 @@ import {
   createContext,
   useCallback,
   useContext,
-  useEffect,
   useMemo,
   useState,
   type ReactNode,
 } from "react";
 import type { Track } from "@/types/types";
 
-export type CurrentTrackContextValue = {
+export type CurrentTrackData = {
   current: Track | null;
   albumCover: string | null;
 
+  /** The active queue for next/prev behaviors */
+  queue: Track[];
+};
+
+export type CurrentTrackActions = {
   /** Set the current track directly (does not change queue) */
   setCurrent: (track: Track | null) => void;
   selectTrack: (track: Track, queue?: Track[]) => void;
-
-
-  /** The active queue for next/prev behaviors */
-  queue: Track[];
+  reset: () => void;
 
   /**
    * Replace the queue (and ensure current is valid).
@@ -34,9 +35,12 @@ export type CurrentTrackContextValue = {
   handleTrackFinished: () => void;
 };
 
-const CurrentTrackContext = createContext<CurrentTrackContextValue | undefined>(
+const CurrentTrackDataContext = createContext<CurrentTrackData | undefined>(
   undefined
 );
+const CurrentTrackActionsContext = createContext<
+  CurrentTrackActions | undefined
+>(undefined);
 
 export function CurrentTrackProvider({ children }: { children: ReactNode }) {
   const [current, setCurrent] = useState<Track | null>(null);
@@ -44,7 +48,7 @@ export function CurrentTrackProvider({ children }: { children: ReactNode }) {
 
   const albumCover = current?.image ?? null;
 
-  useEffect(() => {
+  const reset = useCallback(() => {
     setCurrent(null);
     setQueue([]);
   }, []);
@@ -86,30 +90,50 @@ export function CurrentTrackProvider({ children }: { children: ReactNode }) {
     }
   }, [queue, current]);
 
-  const value = useMemo(
+  const data = useMemo<CurrentTrackData>(
     () => ({
       current,
       albumCover,
-      setCurrent,
       queue,
+    }),
+    [current, albumCover, queue]
+  );
+  const actions = useMemo<CurrentTrackActions>(
+    () => ({
+      setCurrent,
       handleQueueChange,
       handleTrackFinished,
       selectTrack,
+      reset,
     }),
-    [current, albumCover, queue, handleQueueChange, handleTrackFinished, selectTrack]
+    [setCurrent, handleQueueChange, handleTrackFinished, selectTrack, reset]
   );
 
   return (
-    <CurrentTrackContext.Provider value={value}>
-      {children}
-    </CurrentTrackContext.Provider>
+    <CurrentTrackDataContext.Provider value={data}>
+      <CurrentTrackActionsContext.Provider value={actions}>
+        {children}
+      </CurrentTrackActionsContext.Provider>
+    </CurrentTrackDataContext.Provider>
   );
 }
 
-export function useCurrentTrack() {
-  const ctx = useContext(CurrentTrackContext);
+export function useCurrentTrackData() {
+  const ctx = useContext(CurrentTrackDataContext);
   if (!ctx) {
-    throw new Error("useCurrentTrack must be used within CurrentTrackProvider");
+    throw new Error(
+      "useCurrentTrackData must be used within CurrentTrackProvider"
+    );
+  }
+  return ctx;
+}
+
+export function useCurrentTrackActions() {
+  const ctx = useContext(CurrentTrackActionsContext);
+  if (!ctx) {
+    throw new Error(
+      "useCurrentTrackActions must be used within CurrentTrackProvider"
+    );
   }
   return ctx;
 }

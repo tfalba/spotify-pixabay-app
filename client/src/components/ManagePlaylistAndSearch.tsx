@@ -1,11 +1,24 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useReducer,
+  useRef,
+  useState,
+} from "react";
 import clsx from "clsx";
 
 import type { Track } from "@/types/types";
 import { useTheme } from "@/context/ThemeContext";
 import { useSectionsContext } from "@/context/SectionsContext";
-import { useSpotifyPlayerContext } from "@/context/SpotifyPlayerProvider";
-import { usePlaylists } from "@/context/PlaylistsContext";
+import {
+  useSpotifyPlayerActions,
+  useSpotifyPlayerState,
+} from "@/context/SpotifyPlayerProvider";
+import {
+  usePlaylistsActions,
+  usePlaylistsData,
+} from "@/context/PlaylistsContext";
 import TrackList from "./TrackList";
 import { LoginButton } from "./LoginButtons";
 import {
@@ -24,6 +37,67 @@ type Props = {
 type PanelSnapshot = {
   trackFilter: string;
 };
+
+type TracksState = {
+  tracks: Track[];
+  filteredTracks: Track[];
+  tracksLoading: boolean;
+  tracksError: string | null;
+  localError: string | null;
+};
+
+type TracksAction =
+  | { type: "reset" }
+  | {
+      type: "set_tracks";
+      tracks: Track[];
+      filtered: Track[];
+      loading?: boolean;
+    }
+  | { type: "set_loading"; loading: boolean }
+  | { type: "set_error"; message: string | null };
+
+const initialTracksState: TracksState = {
+  tracks: [],
+  filteredTracks: [],
+  tracksLoading: false,
+  tracksError: null,
+  localError: null,
+};
+
+function tracksReducer(state: TracksState, action: TracksAction): TracksState {
+  switch (action.type) {
+    case "reset":
+      return {
+        ...state,
+        tracks: [],
+        filteredTracks: [],
+        tracksLoading: false,
+        tracksError: null,
+        localError: null,
+      };
+    case "set_tracks":
+      return {
+        ...state,
+        tracks: action.tracks,
+        filteredTracks: action.filtered,
+        tracksLoading: action.loading ?? false,
+        tracksError: null,
+        localError: null,
+      };
+    case "set_loading":
+      return { ...state, tracksLoading: action.loading };
+    case "set_error":
+      return {
+        ...state,
+        tracksError: action.message,
+        localError: action.message,
+        tracksLoading: false,
+      };
+    default:
+      return state;
+  }
+}
 
 let lastPanelState: PanelSnapshot | null = null;
 
@@ -53,17 +127,19 @@ export default function ManagePlaylistAndSearch({
     playlists,
     loading: playlistsLoading,
     error: playlistsError,
-    refresh,
     selectedPlaylistId,
+    playlistTracksCache,
+    loggedIn,
+  } = usePlaylistsData();
+  const {
+    refresh,
     setSelectedPlaylistId,
     clearSelectedPlaylist,
-    playlistTracksCache,
     refreshPlaylistTracks,
-    loggedIn,
-  } = usePlaylists();
+  } = usePlaylistsActions();
 
-  const { fullPlaybackEnabled, enableFullPlayback, pause } =
-    useSpotifyPlayerContext();
+  const { fullPlaybackEnabled } = useSpotifyPlayerState();
+  const { enableFullPlayback, pause } = useSpotifyPlayerActions();
 
   const activeMode = useMemo(
     () => (showCurrentPlaylist ? "playlists" : "search"),
@@ -80,14 +156,13 @@ export default function ManagePlaylistAndSearch({
   const hadQueryRef = useRef(false);
   const lastSearchIdRef = useRef(0);
 
-  const [tracks, setTracks] = useState<Track[]>([]);
-  const [filteredTracks, setFilteredTracks] = useState<Track[]>([]);
+  const [tracksState, dispatchTracks] = useReducer(
+    tracksReducer,
+    initialTracksState
+  );
   const [trackFilter, setTrackFilter] = useState(
     () => lastPanelState?.trackFilter ?? ""
   );
-  const [tracksLoading, setTracksLoading] = useState(false);
-  const [tracksError, setTracksError] = useState<string | null>(null);
-  const [localError, setLocalError] = useState<string | null>(null);
 
   const stopPlayback = useCallback(() => {
     pause().catch(() => {});
@@ -172,6 +247,22 @@ export default function ManagePlaylistAndSearch({
     return playlists.find((p) => p.id === selectedPlaylistId) ?? null;
   }, [playlists, selectedPlaylistId]);
 
+  const playlistItems = useMemo(
+    () =>
+      playlists.map((playlist) => {
+        const playlistImages = playlist.images ?? [];
+        const thumb =
+          playlistImages[playlistImages.length - 1]?.url ??
+          playlistImages[0]?.url ??
+          "";
+        return {
+          playlist,
+          thumb,
+        };
+      }),
+    [playlists]
+  );
+
   const applyFilter = useCallback((list: Track[], filter: string) => {
     const value = filter.trim().toLowerCase();
     if (!value) return list;
@@ -187,9 +278,14 @@ export default function ManagePlaylistAndSearch({
   const handleFilterChange = useCallback(
     (value: string) => {
       setTrackFilter(value);
-      setFilteredTracks(applyFilter(tracks, value));
+      dispatchTracks({
+        type: "set_tracks",
+        tracks: tracksState.tracks,
+        filtered: applyFilter(tracksState.tracks, value),
+        loading: tracksState.tracksLoading,
+      });
     },
-    [applyFilter, tracks]
+    [applyFilter, tracksState.tracks, tracksState.tracksLoading]
   );
 
   const cachedTracks = selectedPlaylistId
@@ -205,23 +301,15 @@ export default function ManagePlaylistAndSearch({
   useEffect(() => {
     if (loggedIn) return;
     setSelectedPlaylistId(null);
-    setTracks([]);
-    setFilteredTracks([]);
+    dispatchTracks({ type: "reset" });
     setTrackFilter("");
-    setTracksError(null);
-    setLocalError(null);
-    setTracksLoading(false);
   }, [loggedIn, setSelectedPlaylistId]);
 
   useEffect(() => {
     let active = true;
 
     if (!loggedIn) {
-      setTracks([]);
-      setFilteredTracks([]);
-      setTracksError(null);
-      setLocalError(null);
-      setTracksLoading(false);
+      dispatchTracks({ type: "reset" });
       return () => {
         active = false;
       };
@@ -229,55 +317,52 @@ export default function ManagePlaylistAndSearch({
 
     if (!selectedPlaylistId) {
       console.log('hitting no selected playlist', searchQuery.trim());
-      setTracks([]);
-      setFilteredTracks([]);
-      setTracksError(null);
-      setLocalError(null);
-      setTracksLoading(false);
+      dispatchTracks({ type: "reset" });
       return () => {
         active = false;
       };
     }
 
-    const playlist = playlists.find((p) => p.id === selectedPlaylistId);
-    if (!playlist) {
+    if (!selected) {
       setSelectedPlaylistId(null);
-      setTracks([]);
-      setFilteredTracks([]);
+      dispatchTracks({ type: "reset" });
       return () => {
         active = false;
       };
     }
 
     if (cachedTracks) {
-      setTracks(cachedTracks);
-      setFilteredTracks(applyFilter(cachedTracks, trackFilter));
-      setTracksLoading(false);
+      dispatchTracks({
+        type: "set_tracks",
+        tracks: cachedTracks,
+        filtered: applyFilter(cachedTracks, trackFilter),
+        loading: false,
+      });
       return () => {
         active = false;
       };
     }
 
-    setTracks([]);
-    setFilteredTracks([]);
-    setTracksLoading(true);
-    setTracksError(null);
-    setLocalError(null);
+    dispatchTracks({ type: "reset" });
+    dispatchTracks({ type: "set_loading", loading: true });
 
     refreshPlaylistTracks(selectedPlaylistId)
       .then((normalized) => {
         if (!active) return;
-        setTracks(normalized);
-        setFilteredTracks(applyFilter(normalized, trackFilter));
+        dispatchTracks({
+          type: "set_tracks",
+          tracks: normalized,
+          filtered: applyFilter(normalized, trackFilter),
+          loading: false,
+        });
       })
       .catch((e: any) => {
         if (!active) return;
         const message = e?.message ?? "Failed to load playlist tracks";
-        setTracksError(message);
-        setLocalError(message);
+        dispatchTracks({ type: "set_error", message });
       })
       .finally(() => {
-        if (active) setTracksLoading(false);
+        if (active) dispatchTracks({ type: "set_loading", loading: false });
       });
 
     return () => {
@@ -287,6 +372,7 @@ export default function ManagePlaylistAndSearch({
     loggedIn,
     selectedPlaylistId,
     playlists,
+    selected,
     cachedTracks,
     trackFilter,
     applyFilter,
@@ -297,8 +383,7 @@ export default function ManagePlaylistAndSearch({
   const handleSelect = useCallback(
     (playlist: SpotifyPlaylist) => {
       setTrackFilter("");
-      setTracks([]);
-      setFilteredTracks([]);
+      dispatchTracks({ type: "reset" });
       setSelectedPlaylistId(playlist.id);
     },
     [setSelectedPlaylistId]
@@ -306,11 +391,8 @@ export default function ManagePlaylistAndSearch({
 
   const handleBack = useCallback(() => {
     setSelectedPlaylistId(null);
-    setTracks([]);
-    setFilteredTracks([]);
+    dispatchTracks({ type: "reset" });
     setTrackFilter("");
-    setTracksError(null);
-    setLocalError(null);
   }, [setSelectedPlaylistId]);
 
   return (
@@ -523,7 +605,7 @@ export default function ManagePlaylistAndSearch({
               </div>
             ) : (
               <div>
-                {(playlistsError || localError) && (
+                {(playlistsError || tracksState.localError) && (
                   <div
                     className={clsx(
                       "rounded-2xl border px-3 py-2 text-xs",
@@ -532,9 +614,11 @@ export default function ManagePlaylistAndSearch({
                         : "border-red-500/30 bg-red-500/10 text-red-200"
                     )}
                   >
-                    {playlistsError ?? localError ?? "Please try refreshing the page."}
-                  </div>
-                )}
+                    {playlistsError ??
+                      tracksState.localError ??
+                      "Please try refreshing the page."}
+                </div>
+              )}
 
                 {playlistsLoading ? (
                   <div className="flex flex-1 items-center justify-center text-sm text-slate-500 dark:text-slate-300">
@@ -587,7 +671,7 @@ export default function ManagePlaylistAndSearch({
                       </div>
                     </div>
 
-                    {tracksError && (
+                    {tracksState.tracksError && (
                       <div
                         className={clsx(
                           "rounded-2xl border px-3 py-2 text-xs",
@@ -596,18 +680,18 @@ export default function ManagePlaylistAndSearch({
                             : "border-red-500/30 bg-red-500/10 text-red-200"
                         )}
                       >
-                        {tracksError}
+                        {tracksState.tracksError}
                       </div>
                     )}
 
-                    {tracksLoading ? (
+                    {tracksState.tracksLoading ? (
                       <div className="flex flex-1 items-center justify-center text-sm text-slate-500 dark:text-slate-300">
                         Loading tracks…
                       </div>
                     ) : (
                       <TrackList
-                        tracks={filteredTracks}
-                        queue={tracks}
+                        tracks={tracksState.filteredTracks}
+                        queue={tracksState.tracks}
                         twoColumnOnLarge={twoColumnOnLarge}
                         sourcePlaylistId={selected?.id ?? ""}
                       />
@@ -620,12 +704,7 @@ export default function ManagePlaylistAndSearch({
                       compactPlaylistGrid ? "lg:grid-cols-2 xl:grid-cols-3" : "lg:grid-cols-2 xl:grid-cols-2"
                     )}
                   >
-                    {playlists.map((playlist) => {
-                      const playlistImages = playlist.images ?? [];
-                      const thumb =
-                        playlistImages[playlistImages.length - 1]?.url ??
-                        playlistImages[0]?.url ??
-                        "";
+                    {playlistItems.map(({ playlist, thumb }) => {
                       return (
                         <button
                           key={playlist.id}

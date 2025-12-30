@@ -21,16 +21,7 @@ export type SpotifyPlaylist = {
   owner: { display_name: string | null };
 };
 
-const API_BASE = import.meta.env.VITE_API_BASE ?? "";
-
-async function api<T>(path: string, init?: RequestInit): Promise<T> {
-  const r = await fetch(`${API_BASE}${path}`, {
-    credentials: "include",
-    ...(init ?? {}),
-  });
-  if (!r.ok) throw new Error(await r.text());
-  return r.json();
-}
+import { spotifyApiJson } from "./spotifyApi";
 
 // ---- Helpers ----
 
@@ -53,7 +44,10 @@ function normalizeTrack(t: any): SpotifyTrack {
 // ---- Public helpers ----
 
 export async function getAllUserPlaylists(init?: RequestInit): Promise<SpotifyPlaylist[]> {
-  const data = await api<{ items: SpotifyPlaylist[] }>("/api/me/playlists", init);
+  const data = await spotifyApiJson<{ items: SpotifyPlaylist[] }>(
+    "/api/me/playlists",
+    init
+  );
   return (data.items ?? []).map((p) => ({
     id: p.id,
     name: p.name,
@@ -67,7 +61,7 @@ export async function getAllPlaylistTracks(
   playlistId: string,
   init?: RequestInit
 ): Promise<SpotifyTrack[]> {
-  const data = await api<{ items: { track: SpotifyTrack }[] }>(
+  const data = await spotifyApiJson<{ items: { track: SpotifyTrack }[] }>(
     `/api/playlists/${playlistId}/tracks`,
     init
   );
@@ -94,7 +88,7 @@ export async function searchTracks(q: string, init?: RequestInit): Promise<Spoti
   const trimmed = q.trim();
   if (!trimmed) return [];
 
-  const data = await api<{ tracks: { items: any[] } }>(
+  const data = await spotifyApiJson<{ tracks: { items: any[] } }>(
     `/api/search?q=${encodeURIComponent(trimmed)}`,
     init
   );
@@ -114,7 +108,7 @@ export async function getItunesPreview(
 ): Promise<string | null> {
   const params = new URLSearchParams({ artist, title });
   try {
-    const json = await api<{ preview_url?: string | null }>(
+    const json = await spotifyApiJson<{ preview_url?: string | null }>(
       `/api/itunes/preview?${params.toString()}`,
       init
     );

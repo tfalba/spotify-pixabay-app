@@ -1,5 +1,5 @@
 import clsx from "clsx";
-import { useEffect, useState, type CSSProperties } from "react";
+import { memo, useEffect, useMemo, useState, type CSSProperties } from "react";
 import type { HeroImage } from "@/api/lyricsTypes";
 
 export type Img = {
@@ -75,6 +75,45 @@ function FlipCard({
   );
 }
 
+const HeroSlot = memo(function HeroSlot({
+  heroLoading,
+  displayedHeroImage,
+}: {
+  heroLoading: boolean;
+  displayedHeroImage: HeroImage | null;
+}) {
+  return (
+    <div className="col-span-2 row-span-3 overflow-hidden rounded-[28px] shadow-lg md:col-span-2">
+      <div className="relative h-full w-full">
+        {displayedHeroImage ? (
+          <>
+            <img
+              src={displayedHeroImage.url}
+              alt={displayedHeroImage.alt}
+              className="h-full w-full object-cover"
+              loading="lazy"
+            />
+            {displayedHeroImage.attribution && (
+              <div className="pointer-events-none absolute bottom-3 right-3 rounded-full bg-black/60 px-3 py-1 text-[10px] uppercase tracking-[0.2em] text-white/80">
+                {displayedHeroImage.attribution}
+              </div>
+            )}
+            {heroLoading && (
+              <div className="absolute inset-0 flex items-center justify-center bg-black/30 backdrop-blur-[1px]">
+                <span className="h-10 w-10 animate-spin rounded-full border-4 border-white/40 border-t-teal-400" />
+              </div>
+            )}
+          </>
+        ) : (
+          <div className="flex h-full w-full items-center justify-center">
+            <span className="h-10 w-10 animate-spin rounded-full border-4 border-white/30 border-t-teal-400" />
+          </div>
+        )}
+      </div>
+    </div>
+  );
+});
+
 type IndexConstraints = {
   avoidRows?: number[];
   avoidColumns?: number[];
@@ -107,7 +146,7 @@ function pickIndexWithParity(
   return valid[randomIdx];
 }
 
-export function FlipPhotoGrid({
+function FlipPhotoGridBase({
   images,
   gridClassName,
   fullScreen = false,
@@ -122,10 +161,13 @@ export function FlipPhotoGrid({
   heroImage?: HeroImage | null;
   heroLoading?: boolean;
 }) {
-  const baseImages = images.slice();
-  const usable = [...baseImages];
+  const baseImages = useMemo(() => images.slice(), [images]);
+  const usable = useMemo(() => [...baseImages], [baseImages]);
 
-  if (albumCover && images.length >= 2) {
+  const usableWithAlbum = useMemo(() => {
+    const list = [...usable];
+    if (!albumCover || images.length < 2) return list;
+
     const frontImg: Img = {
       id: Number.MIN_SAFE_INTEGER,
       url: albumCover,
@@ -138,17 +180,18 @@ export function FlipPhotoGrid({
       id: Number.MIN_SAFE_INTEGER + 1,
     };
 
-    const evenIndex = pickIndexWithParity(usable.length, 0);
-    usable.splice(evenIndex, 0, frontImg);
+    const evenIndex = pickIndexWithParity(list.length, 0);
+    list.splice(evenIndex, 0, frontImg);
     const frontRow = Math.floor(evenIndex / DEFAULT_COLUMNS);
     const frontColumn = evenIndex % DEFAULT_COLUMNS;
 
-    const oddIndex = pickIndexWithParity(usable.length, 1, {
+    const oddIndex = pickIndexWithParity(list.length, 1, {
       avoidRows: [frontRow],
       avoidColumns: [frontColumn],
     });
-    usable.splice(oddIndex, 0, backImg);
-  }
+    list.splice(oddIndex, 0, backImg);
+    return list;
+  }, [albumCover, images.length, usable]);
 
   const [displayedHeroImage, setDisplayedHeroImage] = useState<HeroImage | null>(
     heroImage ?? null,
@@ -168,28 +211,40 @@ export function FlipPhotoGrid({
     : MAX_COLUMN_TARGET;
   const requiredCards =
     targetColumns * MIN_VISIBLE_ROWS - (heroSlotActive ? 6 : 0);
-  const requiredImages = requiredCards * 2;
+  const pairs = useMemo(() => {
+    const requiredImages = requiredCards * 2;
+    const list = [...usableWithAlbum];
 
-  if (usable.length < requiredImages) {
-    const pool = baseImages.length ? baseImages : usable;
-    if (pool.length > 0) {
-      let i = 0;
-      while (usable.length < requiredImages) {
-        usable.push(pool[i % pool.length]);
-        i += 1;
+    if (list.length < requiredImages) {
+      const pool = baseImages.length ? baseImages : list;
+      if (pool.length > 0) {
+        let i = 0;
+        while (list.length < requiredImages) {
+          list.push(pool[i % pool.length]);
+          i += 1;
+        }
       }
     }
-  }
 
-  const pairs: Array<{ front: Img; back: Img }> = [];
-  const maxPairs = Math.min(Math.floor(usable.length / 2), requiredCards);
+    const maxPairs = Math.min(Math.floor(list.length / 2), requiredCards);
+    const next: Array<{ front: Img; back: Img }> = [];
+    for (let i = 0; i < maxPairs; i++) {
+      next.push({
+        front: list[i * 2],
+        back: list[i * 2 + 1],
+      });
+    }
+    return next;
+  }, [baseImages, requiredCards, usableWithAlbum]);
 
-  for (let i = 0; i < maxPairs; i++) {
-    pairs.push({
-      front: usable[i * 2],
-      back: usable[i * 2 + 1],
-    });
-  }
+  const animationTimings = useMemo(
+    () =>
+      pairs.map(() => ({
+        duration: Math.round((8 + Math.random() * 8) * 10) / 10,
+        delay: Math.round(Math.random() * 3 * 10) / 10,
+      })),
+    [pairs]
+  );
 
   const gridClasses = clsx(
     gridClassName ?? "grid grid-cols-2 md:grid-cols-3 gap-3",
@@ -199,46 +254,20 @@ export function FlipPhotoGrid({
   return (
     <div className={gridClasses}>
       {heroSlotActive && (
-        <div className="col-span-2 row-span-3 overflow-hidden rounded-[28px] shadow-lg md:col-span-2">
-          <div className="relative h-full w-full">
-            {displayedHeroImage ? (
-              <>
-                <img
-                  src={displayedHeroImage.url}
-                  alt={displayedHeroImage.alt}
-                  className="h-full w-full object-cover"
-                  loading="lazy"
-                />
-                {displayedHeroImage.attribution && (
-                  <div className="pointer-events-none absolute bottom-3 right-3 rounded-full bg-black/60 px-3 py-1 text-[10px] uppercase tracking-[0.2em] text-white/80">
-                    {displayedHeroImage.attribution}
-                  </div>
-                )}
-                {heroLoading && (
-                  <div className="absolute inset-0 flex items-center justify-center bg-black/30 backdrop-blur-[1px]">
-                    <span className="h-10 w-10 animate-spin rounded-full border-4 border-white/40 border-t-teal-400" />
-                  </div>
-                )}
-              </>
-            ) : (
-              <div className="flex h-full w-full items-center justify-center">
-                <span className="h-10 w-10 animate-spin rounded-full border-4 border-white/30 border-t-teal-400" />
-              </div>
-            )}
-          </div>
-        </div>
+        <HeroSlot
+          heroLoading={heroLoading}
+          displayedHeroImage={displayedHeroImage}
+        />
       )}
       {pairs.map((p, idx) => {
-        // randomized timing per tile
-        const duration = Math.round((8 + Math.random() * 8) * 10) / 10; // 4–8s -- now 8-16s
-        const delay = Math.round(Math.random() * 3 * 10) / 10; // 0–3s
+        const timing = animationTimings[idx];
         return (
           <FlipCard
             key={`${p.front.id}-${p.back.id}-${idx}`}
             front={p.front}
             back={p.back}
-            duration={duration}
-            delay={delay}
+            duration={timing?.duration ?? 8}
+            delay={timing?.delay ?? 0}
             fullScreen={fullScreen}
           />
         );
@@ -246,3 +275,5 @@ export function FlipPhotoGrid({
     </div>
   );
 }
+
+export const FlipPhotoGrid = memo(FlipPhotoGridBase);

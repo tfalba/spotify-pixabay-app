@@ -8,13 +8,15 @@ import { SpotifyPlayerProvider } from "./context/SpotifyPlayerProvider";
 import { ThemeProvider, useTheme } from "./context/ThemeContext";
 import {
   CurrentTrackProvider,
-  useCurrentTrack,
+  useCurrentTrackActions,
+  useCurrentTrackData,
 } from "./context/CurrentTrackContext";
 import type { StyleCategory } from "./types/types";
 import { STYLE_CATEGORIES } from "./types/types";
 
 function AppContent() {
-  const { current, albumCover } = useCurrentTrack();
+  const { current, albumCover } = useCurrentTrackData();
+  const { reset } = useCurrentTrackActions();
 
   // ✅ memoize to avoid changing string identity in deps
   const API = useMemo(
@@ -171,6 +173,18 @@ function AppContent() {
     setKeywords,
     setHeroImage,
   ]);
+
+  useEffect(() => {
+    if (typeof performance === "undefined") return;
+    const navEntries = performance.getEntriesByType?.("navigation");
+    const navType = (navEntries?.[0] as PerformanceNavigationTiming | undefined)
+      ?.type;
+    const legacyReload =
+      (performance as any).navigation?.type === 1;
+    if (navType === "reload" || legacyReload) {
+      reset();
+    }
+  }, [reset]);
 
   // 2) When style changes AFTER initial hero exists, refresh hero only
   useEffect(() => {

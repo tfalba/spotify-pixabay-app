@@ -1,13 +1,16 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import clsx from "clsx";
-import { get } from "../lib/fetcher";
+import { getAuthStatus, spotifyApiJson } from "../lib/spotifyApi";
 import { LoginButton, LogoutButton } from "./LoginButtons";
 import { useTheme } from "@/context/ThemeContext";
 import type { StyleCategory } from "@/types/types";
-import { useCurrentTrack } from "@/context/CurrentTrackContext";
+import { useCurrentTrackActions } from "@/context/CurrentTrackContext";
 import HeroBar from "./HeroBar";
 import heroBannerAsset from "@/assets/hero-banner.png";
-import { useSpotifyPlayerContext } from "@/context/SpotifyPlayerProvider";
+import {
+  useSpotifyPlayerActions,
+  useSpotifyPlayerState,
+} from "@/context/SpotifyPlayerProvider";
 
 type SpotifyUser = {
   id: string;
@@ -21,21 +24,19 @@ type Props = {
   onStyleChange: (choice: StyleChoice) => void;
 };
 
-type AuthStatus = { authenticated: boolean };
-
 export default function HeaderBar({ styleChoice, onStyleChange }: Props) {
   const [user, setUser] = useState<SpotifyUser | null>(null);
   const [checkedAuth, setCheckedAuth] = useState(false);
   const [loggedIn, setLoggedIn] = useState(false);
 
   const { theme, toggleTheme } = useTheme();
-  const { handleTrackFinished } = useCurrentTrack();
+  const { handleTrackFinished } = useCurrentTrackActions();
 
   // Option A / Option 1: "fullPlaybackEnabled" is separate from "logged in"
-  const { fullPlaybackEnabled, enableFullPlayback } = useSpotifyPlayerContext();
+  const { fullPlaybackEnabled } = useSpotifyPlayerState();
+  const { enableFullPlayback } = useSpotifyPlayerActions();
 
   const isLight = theme === "light";
-  const API = import.meta.env.VITE_API_BASE ?? "";
 
   // Avoid races between multiple refreshes (focus + mount + polling)
   const reqIdRef = useRef(0);
@@ -50,10 +51,10 @@ export default function HeaderBar({ styleChoice, onStyleChange }: Props) {
 
     try {
       // Preferred fast path (you added/are adding this route)
-      let status: AuthStatus | null = null;
+      let status: Awaited<ReturnType<typeof getAuthStatus>> | null = null;
 
       try {
-        status = await get<AuthStatus>(`${API}/api/auth/status`);
+        status = await getAuthStatus();
       } catch {
         status = null;
       }
@@ -61,7 +62,7 @@ export default function HeaderBar({ styleChoice, onStyleChange }: Props) {
       // If /api/auth/status doesn't exist yet, fall back to /api/me
       if (!status) {
         try {
-          const profile = await get<SpotifyUser>(`${API}/api/me`);
+          const profile = await spotifyApiJson<SpotifyUser>("/api/me");
           commitIfLatest(() => {
             setLoggedIn(true);
             setUser(profile ?? null);
@@ -85,7 +86,7 @@ export default function HeaderBar({ styleChoice, onStyleChange }: Props) {
       // If logged in, fetch profile (nice-to-have)
       if (authed) {
         try {
-          const profile = await get<SpotifyUser>(`${API}/api/me`);
+          const profile = await spotifyApiJson<SpotifyUser>("/api/me");
           commitIfLatest(() => setUser(profile ?? null));
         } catch {
           // If status said authed but /me fails, treat as logged out (cookie/token mismatch)
@@ -99,7 +100,7 @@ export default function HeaderBar({ styleChoice, onStyleChange }: Props) {
       // "checkedAuth" just means we've attempted at least once
       if (reqIdRef.current === myReqId) setCheckedAuth(true);
     }
-  }, [API]);
+  }, []);
 
   // Initial load
   useEffect(() => {

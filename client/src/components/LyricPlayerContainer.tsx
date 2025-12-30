@@ -1,6 +1,6 @@
 import clsx from "clsx";
 import { useTheme } from "@/context/ThemeContext";
-import { useCurrentTrack } from "@/context/CurrentTrackContext";
+import { useCurrentTrackData } from "@/context/CurrentTrackContext";
 import { useSectionClass } from "@/styleHooks/useStyleHooks";
 import { useEffect, useState } from "react";
 import { get } from "@/lib/fetcher";
@@ -13,7 +13,7 @@ type CachedLyrics = {
 const lyricsCache = new Map<string, CachedLyrics>();
 
 export default function LyricPlayerContainer() {
-  const { current } = useCurrentTrack();
+  const { current } = useCurrentTrackData();
   const [text, setText] = useState<string>("");
   const [source, setSource] = useState<string>("");
   const API = import.meta.env.VITE_API_BASE || "http://127.0.0.1:5174";
