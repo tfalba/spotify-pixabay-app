@@ -323,40 +323,29 @@ export default function ManagePlaylistAndSearch({
       )}
     >
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={() => setShowCurrentPlaylist(false)}
-            className={clsx(
-              "rounded-full px-3 py-1 text-xs uppercase tracking-[0.2em] transition",
-              activeMode === "search"
-                ? isLight
-                  ? "bg-slate-900 text-white"
-                  : "bg-white/90 text-slate-900"
-                : isLight
-                ? "bg-white text-slate-700 border border-slate-200"
-                : "bg-white/5 text-white border border-white/10"
-            )}
-          >
-            Search
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setShowCurrentPlaylist(true)}
-            className={clsx(
-              "rounded-full px-3 py-1 text-xs uppercase tracking-[0.2em] transition",
-              activeMode === "playlists"
-                ? isLight
-                  ? "bg-slate-900 text-white"
-                  : "bg-white/90 text-slate-900"
-                : isLight
-                ? "bg-white text-slate-700 border border-slate-200"
-                : "bg-white/5 text-white border border-white/10"
-            )}
-          >
-            Playlists
-          </button>
+        <div className="flex gap-3">
+          {[
+            { key: "search" as const, label: "Search" },
+            { key: "playlists" as const, label: "Playlists" },
+          ].map((tab) => (
+            <button
+              key={tab.key}
+              type="button"
+              onClick={() => setShowCurrentPlaylist(tab.key === "playlists")}
+              className={clsx(
+                "flex-1 rounded-t-xl px-4 py-2 text-xs font-semibold uppercase tracking-[0.35em] transition",
+                activeMode === tab.key
+                  ? isLight
+                    ? "bg-teal/50 text-midnight"
+                    : "bg-teal text-midnight"
+                  : isLight
+                  ? "bg-white/70 text-slate-500"
+                  : "bg-white/10 text-white/60"
+              )}
+            >
+              {tab.label}
+            </button>
+          ))}
         </div>
 
         <div
@@ -508,8 +497,7 @@ export default function ManagePlaylistAndSearch({
                   )}
                 </div>
                 <p className="text-sm text-slate-500 dark:text-slate-300 pt-2">
-                  View your Spotify playlists like folders. Organization tools
-                  coming soon.
+                  View your Spotify playlists like folders.
                 </p>
               </div>
 
