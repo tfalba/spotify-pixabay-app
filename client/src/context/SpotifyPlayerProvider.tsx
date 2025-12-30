@@ -73,7 +73,7 @@ export function SpotifyPlayerProvider({ children }: { children: ReactNode }) {
       playPreview: player.playPreview,
       togglePreview: player.togglePreview,
       stopPreview: player.stopPreview,
-      refreshAuthStatus: player.refreshAuthStatus,
+      // refreshAuthStatus: player.refreshAuthStatus,
       playTrackSmart: player.playTrackSmart,
     }),
     [
@@ -95,7 +95,7 @@ export function SpotifyPlayerProvider({ children }: { children: ReactNode }) {
       player.playPreview,
       player.togglePreview,
       player.stopPreview,
-      player.refreshAuthStatus,
+      // player.refreshAuthStatus,
       player.playTrackSmart,
     ]
   );

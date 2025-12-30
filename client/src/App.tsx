@@ -6,6 +6,7 @@ import { get } from "./lib/fetcher";
 import { useLyricsImages } from "./hooks/useLyricsImages";
 import { SpotifyPlayerProvider } from "./context/SpotifyPlayerProvider";
 import { ThemeProvider } from "./context/ThemeContext";
+import { AuthStatusProvider } from "./context/AuthStatusContext";
 import {
   CurrentTrackProvider,
   useCurrentTrackActions,
@@ -244,11 +245,13 @@ function AppContent() {
 export default function App() {
   return (
     <ThemeProvider>
-      <SpotifyPlayerProvider>
-        <CurrentTrackProvider>
-          <AppContent />
-        </CurrentTrackProvider>
-      </SpotifyPlayerProvider>
+      <AuthStatusProvider>
+        <SpotifyPlayerProvider>
+          <CurrentTrackProvider>
+            <AppContent />
+          </CurrentTrackProvider>
+        </SpotifyPlayerProvider>
+      </AuthStatusProvider>
     </ThemeProvider>
   );
 }

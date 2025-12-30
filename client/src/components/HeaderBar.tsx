@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { getAuthStatus, spotifyApiJson } from "../lib/spotifyApi";
+import { useEffect, useMemo } from "react";
+import { useAuthStatus } from "@/context/AuthStatusContext";
 import { LoginButton, LogoutButton } from "./LoginButtons";
 import type { StyleCategory } from "@/types/types";
 import { useCurrentTrackActions } from "@/context/CurrentTrackContext";
@@ -10,11 +10,6 @@ import {
   useSpotifyPlayerState,
 } from "@/context/SpotifyPlayerProvider";
 
-type SpotifyUser = {
-  id: string;
-  display_name?: string | null;
-};
-
 type StyleChoice = StyleCategory | "surprise";
 
 type Props = {
@@ -23,9 +18,7 @@ type Props = {
 };
 
 export default function HeaderBar({ styleChoice, onStyleChange }: Props) {
-  const [user, setUser] = useState<SpotifyUser | null>(null);
-  const [checkedAuth, setCheckedAuth] = useState(false);
-  const [loggedIn, setLoggedIn] = useState(false);
+  const { authenticated, checked, profile, refresh } = useAuthStatus();
 
   const { handleTrackFinished } = useCurrentTrackActions();
 
@@ -33,105 +26,16 @@ export default function HeaderBar({ styleChoice, onStyleChange }: Props) {
   const { fullPlaybackEnabled } = useSpotifyPlayerState();
   const { enableFullPlayback } = useSpotifyPlayerActions();
 
-  // Avoid races between multiple refreshes (focus + mount + polling)
-  const reqIdRef = useRef(0);
-
-  const refreshAuth = useCallback(async () => {
-    const myReqId = ++reqIdRef.current;
-
-    // Helper to safely commit only the latest request
-    const commitIfLatest = (fn: () => void) => {
-      if (reqIdRef.current === myReqId) fn();
-    };
-
-    try {
-      // Preferred fast path (you added/are adding this route)
-      let status: Awaited<ReturnType<typeof getAuthStatus>> | null = null;
-
-      try {
-        status = await getAuthStatus();
-      } catch {
-        status = null;
-      }
-
-      // If /api/auth/status doesn't exist yet, fall back to /api/me
-      if (!status) {
-        try {
-          const profile = await spotifyApiJson<SpotifyUser>("/api/me");
-          commitIfLatest(() => {
-            setLoggedIn(true);
-            setUser(profile ?? null);
-          });
-          return;
-        } catch {
-          commitIfLatest(() => {
-            setLoggedIn(false);
-            setUser(null);
-          });
-          return;
-        }
-      }
-
-      const authed = Boolean(status.authenticated);
-      commitIfLatest(() => {
-        setLoggedIn(authed);
-        if (!authed) setUser(null);
-      });
-
-      // If logged in, fetch profile (nice-to-have)
-      if (authed) {
-        try {
-          const profile = await spotifyApiJson<SpotifyUser>("/api/me");
-          commitIfLatest(() => setUser(profile ?? null));
-        } catch {
-          // If status said authed but /me fails, treat as logged out (cookie/token mismatch)
-          commitIfLatest(() => {
-            setLoggedIn(false);
-            setUser(null);
-          });
-        }
-      }
-    } finally {
-      // "checkedAuth" just means we've attempted at least once
-      if (reqIdRef.current === myReqId) setCheckedAuth(true);
+  useEffect(() => {
+    if (authenticated) {
+      refresh({ forceProfile: false }).catch(() => {});
     }
-  }, []);
-
-  // Initial load
-  useEffect(() => {
-    refreshAuth().catch(() => {});
-  }, [refreshAuth]);
-
-  // Refresh when the tab becomes visible / window regains focus
-  useEffect(() => {
-    const onFocus = () => refreshAuth().catch(() => {});
-    const onVis = () => {
-      if (document.visibilityState === "visible") {
-        refreshAuth().catch(() => {});
-      }
-    };
-
-    window.addEventListener("focus", onFocus);
-    document.addEventListener("visibilitychange", onVis);
-
-    return () => {
-      window.removeEventListener("focus", onFocus);
-      document.removeEventListener("visibilitychange", onVis);
-    };
-  }, [refreshAuth]);
-
-  // Lightweight polling as a backstop (handles cases where cookies change without reload)
-  useEffect(() => {
-    const id = window.setInterval(() => {
-      refreshAuth().catch(() => {});
-    }, 30_000);
-    return () => window.clearInterval(id);
-  }, [refreshAuth]);
+  }, [authenticated, refresh]);
 
   const displayName = useMemo(() => {
-    const dn = user?.display_name?.trim();
-    return dn ? dn : user?.id ?? null;
-  }, [user]);
+    const dn = profile?.display_name?.trim();
+    return dn ? dn : profile?.id ?? null;
+  }, [profile]);
 
   const resolvedStyleName =
     styleChoice === "surprise" ? "Surprise me" : styleChoice;
@@ -151,7 +55,7 @@ export default function HeaderBar({ styleChoice, onStyleChange }: Props) {
         </div>
 
         <div className="flex items-center gap-4 text-sm">
-          {!checkedAuth ? null : loggedIn && displayName ? (
+          {!checked ? null : authenticated && displayName ? (
             <>
               <span
                 className="hidden md:inline text-slate-300"
@@ -171,7 +75,7 @@ export default function HeaderBar({ styleChoice, onStyleChange }: Props) {
           )}
 
           {/* Show full playback enable only when actually logged in */}
-          {loggedIn && !fullPlaybackEnabled && (
+          {authenticated && !fullPlaybackEnabled && (
             <button
               type="button"
               onClick={enableFullPlayback}

@@ -1,8 +1,7 @@
 // useSpotifyWebPlayback.ts
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useAuthStatus } from "@/context/AuthStatusContext";
 import { getItunesPreview } from "@/lib/spotify"; // or "@/lib/itunes"
-
-type AuthStatus = { authenticated: boolean };
 
 const API_BASE = import.meta.env.VITE_API_BASE ?? "";
 const apiFetch = (path: string, init?: RequestInit) =>
@@ -24,6 +23,7 @@ export function useSpotifyWebPlayback() {
   // ✅ cookie-based login status (separate from SDK token success)
   const [loggedIn, setLoggedIn] = useState(false);
   const [authChecked, setAuthChecked] = useState(false);
+  const { authenticated, checked } = useAuthStatus();
 
   // Preview playback state (works when not connected / not authenticated)
   const previewAudioRef = useRef<HTMLAudioElement | null>(null);
@@ -43,26 +43,6 @@ export function useSpotifyWebPlayback() {
     loggedIn: false,
   });
   const pendingDeviceResolvers = useRef<Array<(id: string) => void>>([]);
-
-  const refreshAuthStatus = useCallback(async () => {
-    try {
-      const r = await apiFetch("/api/auth/status", { method: "GET" });
-      if (!r.ok) {
-        setLoggedIn(false);
-        setAuthChecked(true);
-        return false;
-      }
-      const json = (await r.json()) as AuthStatus;
-      const ok = Boolean(json?.authenticated);
-      setLoggedIn(ok);
-      setAuthChecked(true);
-      return ok;
-    } catch {
-      setLoggedIn(false);
-      setAuthChecked(true);
-      return false;
-    }
-  }, []);
 
   const ensurePreviewAudio = useCallback(() => {
     if (!previewAudioRef.current) {
@@ -133,9 +113,9 @@ export function useSpotifyWebPlayback() {
   );
 
   useEffect(() => {
-    // initial check
-    refreshAuthStatus().catch(() => {});
-  }, [refreshAuthStatus]);
+    setLoggedIn(authenticated);
+    setAuthChecked(checked);
+  }, [authenticated, checked]);
 
   useEffect(() => {
     deviceIdRef.current = deviceId;
@@ -152,16 +132,6 @@ export function useSpotifyWebPlayback() {
     };
   }, [isAuthenticated, fullPlaybackEnabled, loggedIn]);
 
-  useEffect(() => {
-    // helpful after redirect login or tab switching
-    const onVis = () => {
-      if (document.visibilityState === "visible") {
-        refreshAuthStatus().catch(() => {});
-      }
-    };
-    document.addEventListener("visibilitychange", onVis);
-    return () => document.removeEventListener("visibilitychange", onVis);
-  }, [refreshAuthStatus]);
 
   // 1) Load SDK script once (safe even if we don't connect yet)
   useEffect(() => {
@@ -370,25 +340,35 @@ export function useSpotifyWebPlayback() {
         await (playerRef.current as any).activateElement();
       }
 
-      // 2) Ensure SDK device is active right now
-      const transferRes = await apiFetch("/api/player/transfer", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ device_id: activeDeviceId, play: true }),
-      });
-      if (!transferRes.ok) {
-        throw new Error(`transfer_failed:${transferRes.status}`);
-      }
-
-      // 3) Play on THIS device explicitly
+      // 2) Play on THIS device explicitly (device_id hints transfer)
       const playRes = await apiFetch("/api/player/play", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ ...urisOrContext, device_id: activeDeviceId }),
       });
-      if (!playRes.ok) {
-        throw new Error(`play_failed:${playRes.status}`);
+      if (playRes.ok) return;
+
+      // If device isn't active yet, fall back to an explicit transfer + retry.
+      if (playRes.status === 404) {
+        const transferRes = await apiFetch("/api/player/transfer", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ device_id: activeDeviceId, play: true }),
+        });
+        if (!transferRes.ok) {
+          throw new Error(`transfer_failed:${transferRes.status}`);
+        }
+        const retryRes = await apiFetch("/api/player/play", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ ...urisOrContext, device_id: activeDeviceId }),
+        });
+        if (!retryRes.ok) {
+          throw new Error(`play_failed:${retryRes.status}`);
+        }
+        return;
       }
+      throw new Error(`play_failed:${playRes.status}`);
     },
     [stopPreview]
   );
@@ -633,7 +613,6 @@ export function useSpotifyWebPlayback() {
     isAuthenticated, // ✅ “SDK token success”
     loggedIn, // ✅ “cookie login status”
     authChecked,
-    refreshAuthStatus,
 
     // Convenience
     playTrackSmart,
