@@ -1,6 +1,5 @@
 import { STYLE_CATEGORIES, type StyleCategory } from "../types/types";
 import clsx from "clsx";
-import { useTheme } from "@/context/ThemeContext";
 
 type ArtStyleDropdownProps = {
   resolvedStyleName: StyleCategory | "Surprise me";
@@ -13,16 +12,11 @@ export default function ArtStyleDropdown({
   styleChoice,
   onStyleChange,
 }: ArtStyleDropdownProps) {
-  const { theme } = useTheme();
-  const isLight = theme === "light";
-
   return (
     <div
       className={clsx(
-        "flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-wide focus-within:ring-2",
-        isLight
-          ? "border-slate-300 bg-white text-slate-600 focus-within:ring-lilac"
-          : "border-white/30 bg-white/10 text-white focus-within:ring-white"
+        "flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] focus-within:ring-2",
+        "border-white/15 bg-white/10 text-white focus-within:ring-emerald-200/60"
       )}
     >
       <div className="group relative flex items-center">
@@ -40,8 +34,7 @@ export default function ArtStyleDropdown({
           onStyleChange?.(e.target.value as StyleCategory | "surprise")
         }
         className={clsx(
-          "bg-transparent text-xs font-semibold uppercase tracking-wide focus-visible:outline-none text-inherit w-auto",
-          isLight ? "sm:text-slate-800" : "sm:text-white"
+          "bg-transparent text-xs font-semibold uppercase tracking-[0.2em] focus-visible:outline-none text-inherit w-auto text-white"
         )}
       >
         <option value="surprise">{"Surprise me"}</option>

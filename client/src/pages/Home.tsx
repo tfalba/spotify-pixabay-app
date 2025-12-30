@@ -9,7 +9,6 @@ import {
 import clsx from "clsx";
 import LyricPlayerContainer from "../components/LyricPlayerContainer";
 import PixabayGrid from "../components/PixabayGrid";
-import { useTheme } from "@/context/ThemeContext";
 import { useCurrentTrackData } from "@/context/CurrentTrackContext";
 import type { KeywordPlan } from "@/hooks/useLyricsImages";
 import type { HeroImage, ImageCard } from "@/api/lyricsTypes";
@@ -41,36 +40,31 @@ type SectionConfig = {
 };
 
 export default function Home({ pixabay, albumCover }: Props) {
-  const { theme } = useTheme();
-  const isLightTheme = theme === "light";
   const { current } = useCurrentTrackData();
   const [collapsed, setCollapsed] = useState<{
+    manage: boolean;
     lyrics: boolean;
     pixabay: boolean;
-    manage: boolean;
   }>({
+    manage: true,
     lyrics: false,
     pixabay: false,
-    manage: true,
   });
   const previousCollapsedRef = useRef<typeof collapsed | null>(null);
 
   const allPanelsExpanded =
-    !collapsed.manage && collapsed.lyrics && collapsed.pixabay;
-  // const manageSoloExpanded =
-  //   !collapsed.manage && collapsed.lyrics && collapsed.pixabay;
+    !collapsed.manage && (collapsed.lyrics || collapsed.pixabay);
 
   const sectionMeta = useMemo<SectionConfig[]>(
     () => [
       {
         id: "manage" as const,
         title: "Manage Playlists",
-        ratio: 42,
+        ratio: 36,
         render: () => (
           <ManagePlaylistsAndSearch
             compactPlaylistGrid={allPanelsExpanded}
             twoColumnOnLarge={allPanelsExpanded}
-            // soloExpanded={manageSoloExpanded}
           />
         ),
         maxWidth: 1050,
@@ -78,14 +72,14 @@ export default function Home({ pixabay, albumCover }: Props) {
       {
         id: "lyrics" as const,
         title: "Lyrics",
-        ratio: 27,
+        ratio: 25,
         render: () => <LyricPlayerContainer />,
-        maxWidth: 950,
+        maxWidth: 1050,
       },
       {
         id: "pixabay" as const,
         title: "Visual Moodboard",
-        ratio: 42,
+        ratio: 39,
         render: () => (
           <PixabayGrid
             images={pixabay.images}
@@ -121,11 +115,10 @@ export default function Home({ pixabay, albumCover }: Props) {
       pixabay.onStyleChange,
       pixabay.styleChoice,
       allPanelsExpanded,
-      // manageSoloExpanded,
     ]
   );
 
-  const dynamicColumns = useMemo(
+  const dynamicRows = useMemo(
     () =>
       sectionMeta
         .map((section) =>
@@ -159,10 +152,8 @@ export default function Home({ pixabay, albumCover }: Props) {
   }, []);
 
   const mainClass = clsx(
-    "relative md:mt-4 flex flex-1 flex-col gap-6 rounded-[32px] border md:p-2 ring-1 before:pointer-events-none before:absolute before:inset-0 before:rounded-[32px] before:opacity-80 before:blur before:content-[''] lg:grid",
-    isLightTheme
-      ? "border-slate-200 bg-lilac/5 text-slate-900 ring-white/40 before:bg-gradient-to-br before:from-white/50 before:via-transparent before:to-slate-100/60 shadow-[0_25px_80px_rgba(4,6,11,0.35)]"
-      : "border-white/5 bg-gradient-to-br from-midnight/80 via-amber/5 to-sapphire/80 text-slate-100 ring-white/10 before:bg-gradient-to-br before:from-white/10 before:via-transparent before:to-white/5 shadow-[0_25px_80px_rgba(45,212,191,0.30)]"
+    "relative flex flex-1 flex-col gap-6 rounded-[34px] border md:p-4 ring-1 before:pointer-events-none before:absolute before:inset-0 before:rounded-[34px] before:opacity-80 before:blur before:content-[''] lg:grid",
+    "border-white/10 bg-[#0a0e13] text-slate-100 ring-white/10 before:bg-gradient-to-br before:from-white/10 before:via-transparent before:to-amber-500/10 shadow-[0_20px_50px_rgba(124,92,252,0.25)] "
   );
 
   useEffect(() => {
@@ -172,16 +163,16 @@ export default function Home({ pixabay, albumCover }: Props) {
           previousCollapsedRef.current = prev;
         }
         if (
+          prev.manage === false &&
           prev.lyrics === true &&
-          prev.pixabay === true &&
-          prev.manage === false
+          prev.pixabay === true
         ) {
           return prev;
         }
         return {
+          manage: false,
           lyrics: true,
           pixabay: true,
-          manage: false,
         };
       });
     } else if (previousCollapsedRef.current) {
@@ -193,87 +184,92 @@ export default function Home({ pixabay, albumCover }: Props) {
   return (
     <PlaylistsProvider>
       <SectionsProvider>
-      <main
-        className={mainClass}
-        style={{
-          gridTemplateColumns: dynamicColumns,
-          transition: "pb-4 grid-template-columns 300ms cubic-bezier(0.4, 0, 0.2, 1)",
-        }}
-      >
-        {sectionMeta.map((section) => {
-          const isCollapsed = collapsed[section.id];
-          const wrapperStyle = section.maxWidth
-            ? { maxWidth: `${section.maxWidth}px` }
-            : undefined;
-          return (
-            <div
-              key={section.id}
-              className={clsx(
-                "relative min-w-0 lg:min-h-[calc(80vh-4rem)]",
-                isCollapsed ? "flex items-start justify-start" : "block"
-              )}
-            >
-              {isCollapsed && (
-                <button
-                  type="button"
-                  onClick={() => toggleSection(section.id)}
-                  ref={(node) => {
-                    expandButtonRefs.current[section.id] = node;
-                  }}
-                  className={clsx(
-                    "mt-2 mx-2 flex lg:flex-col w-fit lg:w-auto items-center gap-2 rounded-2xl border px-4 lg:px-2 py-1 lg:py-3 text-xs font-semibold uppercase tracking-[0.2em] focus-visible:outline-none focus-visible:ring-2",
-                    isLightTheme
-                      ? "border-slate-200 bg-white/80 text-slate-600 focus-visible:ring-slate-400"
-                      : "border-white/30 bg-teal/5 text-white focus-visible:ring-white"
-                  )}
-                  aria-label={`Expand ${section.title}`}
-                >
-                  <span className="text-lg leading-none">+</span>
-                  <span className="text-[11px] uppercase tracking-[0.3em]">
-                    <span
-                      className="hidden lg:inline"
-                      style={{
-                        writingMode: "vertical-rl",
-                        textOrientation: "mixed",
-                      }}
-                    >
-                      {section.title}
-                    </span>
-                    <span className="lg:hidden">{section.title}</span>
-                  </span>
-                </button>
-              )}
+        <main
+          className={mainClass}
+          style={{
+            gridTemplateColumns: dynamicRows,
+            transition: "grid-template-rows 320ms cubic-bezier(0.4, 0, 0.2, 1)",
+          }}
+        >
+          {sectionMeta.map((section) => {
+            const isCollapsed = collapsed[section.id];
+            const wrapperStyle = section.maxWidth
+              ? { maxWidth: `${section.maxWidth}px` }
+              : undefined;
+            return (
               <div
+                key={section.id}
                 className={clsx(
-                  "relative flex h-full w-full min-w-0",
-                  section.maxWidth ? "justify-center" : "justify-start",
-                  "transform-gpu transition-transform duration-300",
+                  "relative min-w-0 lg:min-h-[calc(80vh-4rem)]",
                   isCollapsed
-                    ? "pointer-events-none opacity-0 translate-y-3 hidden"
-                    : "translate-y-0 flex"
+                    ? "flex justify-end items-start lg:justify-start"
+                    : "block"
                 )}
-                style={wrapperStyle}
-                inert={isCollapsed || undefined}
               >
-                <button
-                  type="button"
-                  onClick={() => toggleSection(section.id)}
+                {isCollapsed && (
+                  <button
+                    type="button"
+                    onClick={() => toggleSection(section.id)}
+                    ref={(node) => {
+                      expandButtonRefs.current[section.id] = node;
+                    }}
+                    className={clsx(
+                      "mt-2 mx-2 flex flex-row-reverse lg:flex-col w-fit lg:w-auto items-center gap-2 rounded-2xl border px-4 lg:px-2 py-1 lg:py-3 text-xs font-semibold uppercase tracking-[0.2em] focus-visible:outline-none focus-visible:ring-2",
+                      "border-white/50 bg-transparent text-white/80 focus-visible:ring-emerald-300/50"
+                    )}
+                    aria-label={`Expand ${section.title}`}
+                  >
+                    <span className="text-lg leading-none">+</span>
+                    <span className="text-[11px] uppercase tracking-[0.3em]">
+                      <span
+                        className="hidden lg:inline"
+                        style={{
+                          writingMode: "vertical-rl",
+                          textOrientation: "mixed",
+                        }}
+                      >
+                        {section.title}
+                      </span>
+                      <span className="lg:hidden">{section.title}</span>
+                    </span>
+                  </button>
+                )}
+                <div
                   className={clsx(
-                    "absolute right-4 top-2 z-10 flex h-9 w-9 items-center justify-center rounded-full border text-lg font-semibold focus-visible:outline-none focus-visible:ring-2",
-                    isLightTheme
-                      ? "border-slate-200 bg-white/80 text-slate-600 hover:bg-white focus-visible:ring-slate-400"
-                      : "border-white/30 bg-black/40 text-white hover:bg-black/60 focus-visible:ring-white"
+                    "relative flex h-full w-full min-w-0",
+                    section.maxWidth ? "justify-center" : "justify-start",
+                    "transform-gpu transition-transform duration-300",
+                    isCollapsed
+                      ? "pointer-events-none opacity-0 translate-y-3 hidden"
+                      : "translate-y-0 flex"
                   )}
-                  aria-label={`Collapse ${section.title}`}
+                  style={wrapperStyle}
+                  inert={isCollapsed || undefined}
                 >
-                  −
-                </button>
-                <div className={clsx("h-full w-full", isCollapsed ? "hidden" : "block")}>{section.render()}</div>
+                  <button
+                    type="button"
+                    onClick={() => toggleSection(section.id)}
+                    className={clsx(
+                      "absolute right-4 top-2 z-10 flex h-9 w-9 items-center justify-center rounded-full border text-lg font-semibold focus-visible:outline-none focus-visible:ring-2",
+                      "border-white/15 bg-black/50 text-white hover:bg-black/70 focus-visible:ring-emerald-300/50"
+                    )}
+                    aria-label={`Collapse ${section.title}`}
+                  >
+                    −
+                  </button>
+                  <div
+                    className={clsx(
+                      "h-full w-full",
+                      isCollapsed ? "hidden" : "block"
+                    )}
+                  >
+                    {section.render()}
+                  </div>
+                </div>
               </div>
-            </div>
-          );
-        })}
-      </main>
+            );
+          })}
+        </main>
       </SectionsProvider>
     </PlaylistsProvider>
   );

@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import type { Track } from "../types/types";
 import clsx from "clsx";
-import { useTheme } from "@/context/ThemeContext";
 import {
   useCurrentTrackActions,
   useCurrentTrackData,
@@ -15,11 +14,10 @@ import { useSpotifyPlayerActions } from "@/context/SpotifyPlayerProvider";
 
 type CardProps = {
   track: Track;
-  isLight: boolean;
   actions?: ReactNode;
 };
 
-function TrackCard({ track, isLight, actions }: CardProps) {
+function TrackCard({ track, actions }: CardProps) {
   const containerClasses = "flex w-full min-w-0 items-center gap-4";
   return (
     <div className={containerClasses}>
@@ -33,8 +31,7 @@ function TrackCard({ track, isLight, actions }: CardProps) {
       <div className="min-w-0 flex-1">
         <div
           className={clsx(
-            "truncate text-sm font-semibold",
-            isLight ? "text-slate-900" : "text-white"
+            "truncate text-sm font-semibold text-white"
           )}
         >
           {track.name}
@@ -42,8 +39,7 @@ function TrackCard({ track, isLight, actions }: CardProps) {
 
         <div
           className={clsx(
-            "truncate text-xs",
-            isLight ? "text-slate-600" : "text-slate-300"
+            "truncate text-xs text-slate-300"
           )}
         >
           {Array.isArray(track.artists)
@@ -73,9 +69,6 @@ export default function TrackList({
   twoColumnOnLarge = false,
   sourcePlaylistId = "",
 }: Props) {
-  const { theme } = useTheme();
-  const isLight = theme === "light";
-
   const { current } = useCurrentTrackData();
   const { setCurrent, selectTrack, handleQueueChange } =
     useCurrentTrackActions();
@@ -163,10 +156,7 @@ export default function TrackList({
   return (
     <div
       className={clsx(
-        "flex-[2] mt-2 min-w-0 overflow-hidden overflow-y-auto rounded-2xl shadow-inner",
-        isLight
-          ? "border border-slate-200 bg-white"
-          : "bg-gradient-to-br from-black/5 via-aurora/15 to-teal/10"
+        "flex-[2] mt-2 min-w-0 overflow-hidden overflow-y-auto rounded-2xl border border-white/10 bg-[#0a0f16] shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]"
       )}
       ref={listRef}
     >
@@ -185,7 +175,7 @@ export default function TrackList({
           }
         >
           <div
-            className={clsx(!shouldVirtualize && "contents")}
+            className="contents"
             style={
               shouldVirtualize
                 ? { transform: `translateY(${virtualWindow.offset}px)` }
@@ -199,20 +189,15 @@ export default function TrackList({
                 <div
                   key={t.id}
                   className={clsx(
-                    "flex w-full min-w-0 flex-col gap-2 rounded-2xl border p-2 px-4 transition shadow-glow",
+                    "flex w-full min-w-0 flex-col gap-2 rounded-2xl border p-2 px-4 transition shadow-[0_14px_30px_rgba(2,6,23,0.35)]",
                     isSelected
-                      ? isLight
-                        ? "border-amber/70 bg-white/70 shadow-glow"
-                        : "border-amber/90 bg-white/1 shadow-glow"
-                      : isLight
-                      ? "border-transparent bg-white hover:border-teal-500/30 hover:bg-slate-50"
-                      : "border-transparent bg-white/5 hover:border-teal/40 hover:bg-white/10"
+                      ? "border-amber-300/70 bg-amber-400/10"
+                      : "border-transparent bg-white/5 hover:border-emerald-300/40 hover:bg-white/10"
                   )}
                   style={shouldVirtualize ? { height: rowHeight } : undefined}
                 >
                   <TrackCard
                     track={t}
-                    isLight={isLight}
                     actions={
                       loggedIn ? (
                         <>
@@ -230,9 +215,7 @@ export default function TrackList({
                             }}
                             className={clsx(
                               "rounded-full px-2 py-1 text-[10px] font-semibold uppercase tracking-wide opacity-90",
-                              isLight
-                                ? "bg-teal/30 text-midnight hover:bg-teal/30"
-                                : "bg-teal/80 text-midnight hover:bg-teal"
+                              "bg-emerald-300/90 text-slate-900 hover:bg-emerald-200"
                             )}
                           >
                             Play
@@ -243,9 +226,7 @@ export default function TrackList({
                             onClick={() => openMoveModal(t)}
                             className={clsx(
                               "rounded-full border px-2 py-1 text-[10px] font-semibold uppercase tracking-wide opacity-90",
-                              isLight
-                                ? "border-slate-300 text-slate-500"
-                                : "border-white/30 text-white/70"
+                              "border-white/20 text-white/70 hover:border-white/40"
                             )}
                           >
                             Move
@@ -263,9 +244,7 @@ export default function TrackList({
                           }}
                           className={clsx(
                             "rounded-full px-2 py-1 text-[10px] font-semibold uppercase tracking-wide transition",
-                            isLight
-                              ? "bg-teal/30 text-midnight hover:bg-teal/30"
-                              : "bg-teal/80 text-midnight hover:bg-teal"
+                            "bg-emerald-300/90 text-slate-900 hover:bg-emerald-200"
                           )}
                         >
                           Preview

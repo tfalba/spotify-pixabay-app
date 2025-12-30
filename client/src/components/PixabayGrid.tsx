@@ -2,7 +2,6 @@ import clsx from "clsx";
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { FlipPhotoGrid, type Img } from "./FlipPhotoGrid";
-import { useTheme } from "@/context/ThemeContext";
 import { useSectionClass } from "@/styleHooks/useStyleHooks";
 import type { KeywordPlan } from "@/hooks/useLyricsImages";
 import type { HeroImage } from "@/api/lyricsTypes";
@@ -36,9 +35,7 @@ export default function PixabayGrid({
   styleChoice?: StyleCategory | "surprise";
   onStyleChange?: (choice: StyleCategory | "surprise") => void;
 }) {
-  const { theme } = useTheme();
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const isLight = theme === "light";
   const imageList = images ?? [];
   const hasSelection = !noSelection;
   const showAlbumCoverOnly = Boolean(albumCover) && hasSelection && loading;
@@ -48,28 +45,22 @@ export default function PixabayGrid({
   const albumCoverForGrid = hasSelection && !loading ? albumCover : null;
   const resolvedStyleName = styleChoice === "surprise" ? "Surprise me" : styleChoice;
 
-  const sectionClass = useSectionClass(isLight, 3);
+  const sectionClass = useSectionClass(false, 3);
   const infoPanelClass = clsx(
     "rounded-2xl border p-3 text-xs shadow-inner",
-    isLight
-      ? "border-slate-200 bg-slate-50 text-slate-600"
-      : "border-white/10 bg-black/20 text-slate-300"
+    "border-white/10 bg-black/20 text-slate-300"
   );
   const keywordPill = clsx(
     "rounded-full border px-3 py-1 text-[11px] uppercase tracking-wide",
-    isLight
-      ? "border-slate-200 bg-white text-slate-600"
-      : "border-white/20 bg-white/10 text-slate-200"
+    "border-white/20 bg-white/10 text-slate-200"
   );
   const fullScreenClass = clsx(
     "fixed inset-0 z-50 flex h-screen w-screen flex-col",
-    isLight ? "bg-white" : "bg-black/90"
+    "bg-[#070a0f]"
   );
   const fullScreenClose = clsx(
     "rounded-full border px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.14em] transition  focus-visible:outline-none focus-visible:ring-2",
-    isLight
-      ? "border-lilac/80 bg-lilac/10 hover:border-lilac/100 hover:bg-lical/30 focus-visible-lilac text-slate-900"
-      : "border-white/30 bg-white/10 hover:border-white/60 hover:bg-white/20 focus-visible:ring-white text-white"
+    "border-white/30 bg-white/10 hover:border-white/60 hover:bg-white/20 focus-visible:ring-emerald-200/60 text-white"
   );
 
   useEffect(() => {
@@ -89,16 +80,14 @@ export default function PixabayGrid({
             <div>
               <p
                 className={clsx(
-                  "text-xs uppercase tracking-[0.28em]",
-                  isLight ? "text-slate-500" : "text-slate-400"
+                  "text-xs uppercase tracking-[0.28em] text-slate-400"
                 )}
               >
                 Currently Playing
               </p>
               <h3
                 className={clsx(
-                  "truncate text-2xl font-semibold",
-                  isLight ? "text-slate-900" : "text-slate-50"
+                  "truncate text-2xl font-semibold text-slate-50"
                 )}
               >
                 {trackTitle ?? "Unknown Title"}
@@ -106,8 +95,7 @@ export default function PixabayGrid({
               {trackArtist && (
                 <p
                   className={clsx(
-                    "truncate text-sm",
-                    isLight ? "text-slate-600" : "text-slate-300"
+                    "truncate text-sm text-slate-300"
                   )}
                 >
                   {trackArtist}
@@ -161,20 +149,18 @@ export default function PixabayGrid({
   return (
     <>
       <section className={sectionClass}>
-        <div className="flex items-start gap-3 flex-wrap w-[83%]">
+        <div className="flex items-start justify-between gap-4 flex-wrap">
           <div className="flex flex-col gap-1">
             <h2
               className={clsx(
-                "text-lg font-semibold tracking-tight",
-                isLight ? "text-slate-900" : "text-slate-50"
+                "text-lg font-semibold tracking-tight text-slate-50"
               )}
             >
               Visual Moodboard
             </h2>
             <p
               className={clsx(
-                "text-sm",
-                isLight ? "text-slate-500" : "text-slate-400"
+                "text-sm text-slate-400"
               )}
             >
               Curated image prompts from your selected lyrics.
@@ -185,10 +171,8 @@ export default function PixabayGrid({
             onClick={() => setIsFullscreen(true)}
             disabled={!hasSelection}
             className={clsx(
-              "rounded-full border px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.14em] transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500",
-              isLight
-                ? "border-slate-200 bg-white text-slate-600 hover:text-slate-900"
-                : "border-white/30 bg-white/10 text-slate-100 hover:text-white"
+              "rounded-full border px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.14em] transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300/60",
+              "border-white/30 bg-white/10 text-slate-100 hover:text-white mr-10"
             )}
           >
             Fullscreen
@@ -228,8 +212,8 @@ export default function PixabayGrid({
             {(loading ||
               !keywords ||
               keywords.baseKeywords.length === 0) && (
-                <div className="flex items-center gap-2 text-teal-500">
-                  <span className="h-2 w-2 animate-ping rounded-full bg-teal-500 text-text" />
+                <div className="flex items-center gap-2 text-emerald-200">
+                  <span className="h-2 w-2 animate-ping rounded-full bg-emerald-300 text-text" />
                   Finding imagery…
                 </div>
               )}

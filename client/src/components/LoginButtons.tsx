@@ -1,33 +1,23 @@
 import clsx from "clsx";
-import { useTheme } from "@/context/ThemeContext";
 
 const baseButton =
-  "group relative inline-flex items-center justify-center overflow-hidden rounded-full px-1 py-1 focus:outline-none focus:ring-2 transition-transform duration-200 hover:-translate-y-0.5";
+  "group relative inline-flex items-center justify-center overflow-hidden rounded-full px-1 py-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-300/50 transition-transform duration-200 hover:-translate-y-0.5";
 const baseShine =
-  "pointer-events-none absolute inset-0 z-[1] -translate-x-full skew-x-12 bg-gradient-to-r from-teal via-white/50 to-transparent opacity-0 transition duration-700 motion-safe:group-hover:translate-x-full motion-safe:group-hover:opacity-60";
+  "pointer-events-none absolute inset-0 z-[1] -translate-x-full skew-x-12 bg-gradient-to-r from-emerald-200/40 via-white/40 to-transparent opacity-0 transition duration-700 motion-safe:group-hover:translate-x-full motion-safe:group-hover:opacity-80";
 const baseInner =
-  "relative z-[2] inline-flex items-center gap-1 rounded-full px-4 py-1 text-xs shadow-md font-semibold uppercase tracking-wide";
+  "relative z-[2] inline-flex items-center gap-1 rounded-full px-4 py-1 text-xs shadow-md font-semibold uppercase tracking-[0.2em]";
 
 const API = import.meta.env.VITE_API_BASE || "http://127.0.0.1:5174";
 
 function LoginButton() {
-  const { theme } = useTheme();
-  const isLight = theme === "light";
-  const buttonClasses = clsx(
-    baseButton,
-    isLight ? "focus:ring-slate-300" : "focus:ring-teal/40"
-  );
+  const buttonClasses = clsx(baseButton);
   const borderPill = clsx(
     "pointer-events-none absolute inset-0 z-0 rounded-full border opacity-90 transition duration-200 group-hover:opacity-100",
-    isLight
-      ? "border-teal-500 bg-gradient-to-r from-teal-200 via-white to-teal-50"
-      : "border-teal bg-gradient-to-r from-teal/10 via-white/20 to-teal/40"
+    "border-white/20 bg-gradient-to-r from-emerald-400/20 via-white/10 to-amber-400/20"
   );
   const inner = clsx(
     baseInner,
-    isLight
-      ? "border border-teal-500 bg-white text-teal-700"
-      : "border border-transparent bg-teal-50 text-white"
+    "border border-transparent bg-emerald-300/90 text-slate-900 shadow-[0_12px_30px_rgba(16,185,129,0.35)]"
   );
 
   return (
@@ -40,23 +30,14 @@ function LoginButton() {
 }
 
 function LogoutButton() {
-  const { theme } = useTheme();
-  const isLight = theme === "light";
-  const buttonClasses = clsx(
-    baseButton,
-    isLight ? "focus:ring-slate-300" : "focus:ring-teal/40"
-  );
+  const buttonClasses = clsx(baseButton);
   const borderPill = clsx(
     "pointer-events-none absolute inset-0 z-0 rounded-full border opacity-90 transition duration-200 group-hover:opacity-100",
-    isLight
-      ? "border-slate-300 bg-gradient-to-r from-white via-slate-50 to-white"
-      : "border-teal bg-gradient-to-r from-teal/10 via-white/20 to-teal/40"
+    "border-white/20 bg-gradient-to-r from-white/5 via-white/10 to-white/5"
   );
   const inner = clsx(
     baseInner,
-    isLight
-      ? "border border-slate-200 bg-white text-slate-700"
-      : "border border-transparent bg-teal-50 text-white"
+    "border border-white/10 bg-white/10 text-white/80 shadow-[0_12px_30px_rgba(15,23,42,0.4)]"
   );
 
   async function logout() {

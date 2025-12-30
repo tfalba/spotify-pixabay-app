@@ -5,7 +5,7 @@ import Home from "./pages/Home";
 import { get } from "./lib/fetcher";
 import { useLyricsImages } from "./hooks/useLyricsImages";
 import { SpotifyPlayerProvider } from "./context/SpotifyPlayerProvider";
-import { ThemeProvider, useTheme } from "./context/ThemeContext";
+import { ThemeProvider } from "./context/ThemeContext";
 import {
   CurrentTrackProvider,
   useCurrentTrackActions,
@@ -226,17 +226,9 @@ function AppContent() {
     onStyleChange: setStyleChoice,
   };
 
-  const { theme } = useTheme();
-
-  const pageBg = clsx(
-    "min-h-screen w-full transition-colors duration-300",
-    theme === "light"
-      ? "bg-slate-50 text-slate-900"
-      : "bg-portfolio-gradient text-slate-100"
-  );
+  const pageBg = clsx("min-h-screen w-full text-slate-100");
   const shell = clsx(
-    "mx-auto flex min-h-screen w-full max-w-[1700px] flex-col md:px-6 md:pb-12 pt-3 md:pt-4 lg:px-10 transition-colors duration-300",
-    theme === "light" ? "text-slate-900" : "text-slate-100"
+    "mx-auto flex min-h-screen w-full max-w-[1850px] flex-col md:px-6 md:pb-12 pt-3 md:pt-4 lg:px-10"
   );
 
   return (

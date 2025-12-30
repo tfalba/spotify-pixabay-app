@@ -70,7 +70,7 @@ function FlipCard({
       </span>
 
       {/* optional rim */}
-      <span className="pointer-events-none absolute inset-0 rounded-xl bg-gradient-to-r from-midnight/10 via-white/5 to-teal/20 mix-blend-overlay" />
+      <span className="pointer-events-none absolute inset-0 rounded-xl bg-gradient-to-r from-midnight/10 via-white/5 to-emerald-300/20 mix-blend-overlay" />
     </a>
   );
 }
@@ -100,13 +100,13 @@ const HeroSlot = memo(function HeroSlot({
             )}
             {heroLoading && (
               <div className="absolute inset-0 flex items-center justify-center bg-black/30 backdrop-blur-[1px]">
-                <span className="h-10 w-10 animate-spin rounded-full border-4 border-white/40 border-t-teal-400" />
+                <span className="h-10 w-10 animate-spin rounded-full border-4 border-white/40 border-t-emerald-400" />
               </div>
             )}
           </>
         ) : (
           <div className="flex h-full w-full items-center justify-center">
-            <span className="h-10 w-10 animate-spin rounded-full border-4 border-white/30 border-t-teal-400" />
+            <span className="h-10 w-10 animate-spin rounded-full border-4 border-white/30 border-t-emerald-400" />
           </div>
         )}
       </div>

@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import clsx from "clsx";
 import backgroundLogo from "../assets/center-logo.svg";
-import { useTheme } from "@/context/ThemeContext";
 import { useCurrentTrackData } from "@/context/CurrentTrackContext";
 import {
   useSpotifyPlayerActions,
@@ -17,8 +16,6 @@ function formatTime(ms = 0) {
 
 export function NowPlayingPanel({ onTrackFinished }: { onTrackFinished?: () => void }) {
   const { current } = useCurrentTrackData();
-  const { theme } = useTheme();
-  const isLight = theme === "light";
 
   const { playerState, playbackPositionMs, isPreviewPlaying } =
     useSpotifyPlayerState();
@@ -81,11 +78,8 @@ export function NowPlayingPanel({ onTrackFinished }: { onTrackFinished?: () => v
   ]);
 
   const wrapperClass = clsx(
-    "relative overflow-hidden rounded-[28px] shadow-[0_20px_60px_rgba(15,23,42,0.15)] transition-transform duration-300",
-    isLight
-      ? "bg-gradient-to-br from-white/40 via-lilac/30 to-amber/40 before:from-white/50 before:to-teal/40"
-      : "bg-gradient-to-br from-slate-900 via-midnight/60 to-teal/40 before:from-white/20 before:to-sky-500/30",
-    "before:absolute before:inset-0 before:-z-10 before:rounded-[32px] before:bg-gradient-to-br before:blur-3xl before:opacity-70 before:content-[''] hover:-translate-y-0.5"
+    "relative overflow-hidden rounded-[28px] shadow-[0_24px_60px_rgba(2,6,23,0.55)] transition-transform duration-300",
+    "bg-gradient-to-br from-[#0c1118] via-[#0d141c] to-emerald-400/15 before:absolute before:inset-0 before:-z-10 before:rounded-[32px] before:bg-gradient-to-br before:from-white/10 before:via-transparent before:to-amber-500/20 before:blur-3xl before:opacity-70 before:content-[''] hover:-translate-y-0.5"
   );
 
   const showPaused = paused && !isPreviewPlaying;
@@ -95,7 +89,7 @@ export function NowPlayingPanel({ onTrackFinished }: { onTrackFinished?: () => v
       <div
         className={clsx(
           "relative z-10 flex items-center justify-between overflow-hidden rounded-[24px] border p-2 shadow-[inset_0_1px_0_rgba(255,255,255,0.4)] backdrop-blur-xl transition-colors duration-300",
-          isLight ? "border-white/40 bg-white/80" : "border-white/10 bg-slate-900/70"
+          "border-white/10 bg-[#0a0f16]/80"
         )}
       >
         {/* Artwork + meta */}
@@ -108,16 +102,14 @@ export function NowPlayingPanel({ onTrackFinished }: { onTrackFinished?: () => v
           <div className="p-2 min-w-0 flex-1">
             <div
               className={clsx(
-                "font-semibold text-sm truncate",
-                isLight ? "text-slate-700" : "text-white"
+                "font-semibold text-sm truncate text-white"
               )}
             >
               {title}
             </div>
             <div
               className={clsx(
-                "text-sm truncate",
-                isLight ? "text-slate-400" : "text-white/80"
+                "text-sm truncate text-slate-400"
               )}
             >
               {artists}
@@ -136,8 +128,7 @@ export function NowPlayingPanel({ onTrackFinished }: { onTrackFinished?: () => v
                     playTrackSmart(current).catch(() => {});
                   }}
                   className={clsx(
-                    "text-2xl",
-                    isLight ? "text-slate-700 hover:text-teal-700" : "text-white hover:text-slate-300"
+                    "text-2xl text-white hover:text-emerald-200"
                   )}
                 >
                   ▶️
@@ -146,8 +137,7 @@ export function NowPlayingPanel({ onTrackFinished }: { onTrackFinished?: () => v
                 <button
                   onClick={() => pause().catch(() => {})}
                   className={clsx(
-                    "text-2xl",
-                    isLight ? "text-slate-700 hover:text-teal-700" : "text-white hover:text-slate-300"
+                    "text-2xl text-white hover:text-emerald-200"
                   )}
                 >
                   ⏸
@@ -157,8 +147,7 @@ export function NowPlayingPanel({ onTrackFinished }: { onTrackFinished?: () => v
 
             <h2
               className={clsx(
-                "text-sm font-semibold uppercase tracking-[0.2em]",
-                isLight ? "text-slate-500" : "text-slate-400"
+                "text-sm font-semibold uppercase tracking-[0.2em] text-slate-400"
               )}
             >
               Now Playing
@@ -169,8 +158,7 @@ export function NowPlayingPanel({ onTrackFinished }: { onTrackFinished?: () => v
           <div className="flex items-center gap-2 px-2 pb-1">
             <span
               className={clsx(
-                "w-10 text-right text-[11px] tabular-nums",
-                isLight ? "text-slate-500" : "text-slate-400"
+                "w-10 text-right text-[11px] tabular-nums text-slate-400"
               )}
             >
               {formatTime(pos)}
@@ -178,7 +166,7 @@ export function NowPlayingPanel({ onTrackFinished }: { onTrackFinished?: () => v
 
             <input
               type="range"
-              className="w-full accent-teal-500"
+              className="w-full accent-emerald-300"
               min={0}
               max={Math.max(duration, 1)}
               step={1000}
@@ -191,8 +179,7 @@ export function NowPlayingPanel({ onTrackFinished }: { onTrackFinished?: () => v
 
             <span
               className={clsx(
-                "w-10 text-[11px] tabular-nums",
-                isLight ? "text-slate-500" : "text-slate-400"
+                "w-10 text-[11px] tabular-nums text-slate-400"
               )}
             >
               {formatTime(duration)}

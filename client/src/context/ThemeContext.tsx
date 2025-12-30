@@ -19,9 +19,7 @@ type ThemeContextValue = {
 const ThemeContext = createContext<ThemeContextValue | undefined>(undefined);
 
 function getInitialTheme(): Theme {
-  if (typeof window === "undefined") return "dark";
-  const stored = window.localStorage.getItem("theme");
-  return stored === "light" || stored === "dark" ? stored : "dark";
+  return "dark";
 }
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
@@ -31,13 +29,10 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     if (typeof document !== "undefined") {
       document.documentElement.dataset.theme = theme;
     }
-    if (typeof window !== "undefined") {
-      window.localStorage.setItem("theme", theme);
-    }
   }, [theme]);
 
   const toggleTheme = useCallback(() => {
-    setTheme((prev) => (prev === "dark" ? "light" : "dark"));
+    setTheme("dark");
   }, []);
 
   const value = useMemo(

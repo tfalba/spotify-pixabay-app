@@ -1,5 +1,4 @@
 import clsx from "clsx";
-import { useTheme } from "@/context/ThemeContext";
 import { useCurrentTrackData } from "@/context/CurrentTrackContext";
 import { useSectionClass } from "@/styleHooks/useStyleHooks";
 import { useEffect, useState } from "react";
@@ -18,11 +17,7 @@ export default function LyricPlayerContainer() {
   const [source, setSource] = useState<string>("");
   const API = import.meta.env.VITE_API_BASE || "http://127.0.0.1:5174";
 
-  const { theme } = useTheme();
-  const isLight = theme === "light";
-  const containerClass = clsx(
-    useSectionClass(isLight, 2),
-  );
+  const containerClass = clsx(useSectionClass(false, 2), "relative");
 
   useEffect(() => {
     if (!current?.artists[0].name || !current?.name) {
@@ -59,32 +54,29 @@ export default function LyricPlayerContainer() {
   }, [current, API]);
 
   const nowPlayingClass = clsx(
-    "rounded-2xl p-2 shadow-glow my-2",
-    isLight ? "bg-slate-100" : "bg-sapphire/80"
+    "rounded-2xl border border-white/10 bg-gradient-to-br from-white/10 via-white/5 to-amber-500/10 p-3 shadow-[0_18px_40px_rgba(0,0,0,0.35)] my-2"
   );
-  const trackTitleClass = isLight ? "text-slate-900" : "text-white";
-  const trackArtistClass = isLight ? "text-slate-600" : "text-slate-400";
+  const trackTitleClass = "text-white";
+  const trackArtistClass = "text-slate-400";
 
   return (
     <aside className={containerClass}>
       <div className="flex flex-col gap-1">
         <h2
           className={clsx(
-            "text-lg font-semibold tracking-tight mb-1",
-            isLight ? "text-slate-900" : "text-slate-50"
+            "text-lg font-semibold tracking-tight mb-1 text-slate-50"
           )}
         >
           Lyrics
         </h2>
         {!current?.name || !current?.artists[0]?.name ? (
-          <p>
+          <p className="text-sm text-slate-400">
             Select a track to view lyrics and image prompts will appear here.
           </p>
         ) : (
           <p
             className={clsx(
-              "text-xs uppercase tracking-[0.3em]",
-              isLight ? "text-amber-600" : "text-amber/70"
+              "text-xs uppercase tracking-[0.3em] text-amber-300/80"
             )}
           >
             Storyboard
@@ -106,23 +98,17 @@ export default function LyricPlayerContainer() {
       <div className="mt-4 flex-1 overflow-y-auto pr-1 min-h-0">
         <div
           className={clsx(
-            "space-y-4",
-            isLight ? "text-slate-700" : "text-slate-200"
+            "space-y-4 text-slate-200"
           )}
         >
           <div className="whitespace-pre-wrap text-sm leading-relaxed px-8 lg:px-0">
             {text || (
-              <span
-                className={clsx(isLight ? "text-slate-500" : "text-slate-500")}
-              >
-                Lyrics not available.
-              </span>
+              <span className="text-slate-500">Lyrics not available.</span>
             )}
             {source && (
               <div
                 className={clsx(
-                  "mt-3 text-xs uppercase tracking-wide",
-                  isLight ? "text-slate-500" : "text-slate-500"
+                  "mt-3 text-xs uppercase tracking-wide text-slate-500"
                 )}
               >
                 Source: {source}
