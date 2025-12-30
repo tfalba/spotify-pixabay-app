@@ -52,8 +52,11 @@ export default function Home({ pixabay, albumCover }: Props) {
   });
   const previousCollapsedRef = useRef<typeof collapsed | null>(null);
 
-  const allPanelsExpanded =
+  const somePanelsExpanded =
     !collapsed.manage && (collapsed.lyrics || collapsed.pixabay);
+
+  const allPanelsExpanded = 
+    !collapsed.manage && collapsed.lyrics && collapsed.pixabay;
 
   const sectionMeta = useMemo<SectionConfig[]>(
     () => [
@@ -63,7 +66,7 @@ export default function Home({ pixabay, albumCover }: Props) {
         ratio: 36,
         render: () => (
           <ManagePlaylistsAndSearch
-            compactPlaylistGrid={allPanelsExpanded}
+            compactPlaylistGrid={somePanelsExpanded}
             twoColumnOnLarge={allPanelsExpanded}
           />
         ),
@@ -115,6 +118,7 @@ export default function Home({ pixabay, albumCover }: Props) {
       pixabay.onStyleChange,
       pixabay.styleChoice,
       allPanelsExpanded,
+      somePanelsExpanded,
     ]
   );
 
@@ -152,7 +156,7 @@ export default function Home({ pixabay, albumCover }: Props) {
   }, []);
 
   const mainClass = clsx(
-    "relative flex flex-1 flex-col gap-6 rounded-[34px] border md:p-4 ring-1 before:pointer-events-none before:absolute before:inset-0 before:rounded-[34px] before:opacity-80 before:blur before:content-[''] lg:grid",
+    "relative flex flex-1 flex-col gap-4 rounded-[34px] border p-4 ring-1 before:pointer-events-none before:absolute before:inset-0 before:rounded-[34px] before:opacity-80 before:blur before:content-[''] lg:grid",
     "border-white/10 bg-[#0a0e13] text-slate-100 ring-white/10 before:bg-gradient-to-br before:from-white/10 before:via-transparent before:to-amber-500/10 shadow-[0_20px_50px_rgba(124,92,252,0.25)] "
   );
 
@@ -200,7 +204,7 @@ export default function Home({ pixabay, albumCover }: Props) {
               <div
                 key={section.id}
                 className={clsx(
-                  "relative min-w-0 lg:min-h-[calc(80vh-4rem)]",
+                  "relative min-w-0 lg:min-h-[calc(80vh-4rem)] pb-4",
                   isCollapsed
                     ? "flex justify-end items-start lg:justify-start"
                     : "block"

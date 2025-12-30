@@ -156,7 +156,7 @@ export default function TrackList({
   return (
     <div
       className={clsx(
-        "flex-[2] mt-2 min-w-0 overflow-hidden overflow-y-auto rounded-2xl border border-white/10 bg-[#0a0f16] shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]"
+        "flex-[2] mt-2 min-w-0 rounded-2xl border border-white/10 bg-[#0a0f16] shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]"
       )}
       ref={listRef}
     >
@@ -165,7 +165,7 @@ export default function TrackList({
           className={clsx(
             "p-4",
             twoColumnOnLarge
-              ? "flex min-w-0 flex-col gap-3 p-3 lg:grid lg:grid-cols-2 lg:gap-4"
+              ? "flex min-w-0 flex-col gap-3 p-3 lg:grid xl:grid-cols-2 lg:gap-4"
               : "flex min-w-0 flex-col gap-3"
           )}
           style={

@@ -33,7 +33,8 @@ export default function HeroBar({
     >
       <div
         className={clsx(
-          "pointer-events-none absolute inset-0 opacity-40",
+          "pointer-events-none absolute inset-0",
+          panelOpen ? "opacity-80" : "opacity-40",
           "bg-gradient-to-r from-[#0b0f14]/80 via-[#0f1722]/80 to-[#0f2a2a]/70",
         )}
       />

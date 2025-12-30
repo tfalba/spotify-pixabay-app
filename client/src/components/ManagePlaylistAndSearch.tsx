@@ -165,43 +165,40 @@ export default function ManagePlaylistAndSearch({
     pause().catch(() => {});
   }, [pause]);
 
-  const search = useCallback(
-    async (term: string) => {
-      const trimmed = term.trim();
-      if (!trimmed) return;
+  const search = useCallback(async (term: string) => {
+    const trimmed = term.trim();
+    if (!trimmed) return;
 
-      if (ctrlRef.current) ctrlRef.current.abort();
-      const ac = new AbortController();
-      ctrlRef.current = ac;
+    if (ctrlRef.current) ctrlRef.current.abort();
+    const ac = new AbortController();
+    ctrlRef.current = ac;
 
-      const requestId = ++lastSearchIdRef.current;
+    const requestId = ++lastSearchIdRef.current;
 
-      setSearchLoading(true);
-      try {
-        const results = await searchTracks(trimmed, { signal: ac.signal });
+    setSearchLoading(true);
+    try {
+      const results = await searchTracks(trimmed, { signal: ac.signal });
 
-        if (requestId !== lastSearchIdRef.current) return;
+      if (requestId !== lastSearchIdRef.current) return;
 
-        const out: Track[] = (results ?? []).map(toTrack);
-        setSearchTracksState(out);
+      const out: Track[] = (results ?? []).map(toTrack);
+      setSearchTracksState(out);
 
-        const enriched = await enrichMissingPreviews(results as SpotifyTrack[], {
-          limit: 6,
-          init: { signal: ac.signal },
-        });
+      const enriched = await enrichMissingPreviews(results as SpotifyTrack[], {
+        limit: 6,
+        init: { signal: ac.signal },
+      });
 
-        if (requestId !== lastSearchIdRef.current) return;
-        setSearchTracksState((enriched ?? []).map(toTrack));
-      } catch (e: any) {
-        if (e?.name === "AbortError") return;
-        console.error(e);
-        setSearchTracksState([]);
-      } finally {
-        if (requestId === lastSearchIdRef.current) setSearchLoading(false);
-      }
-    },
-    []
-  );
+      if (requestId !== lastSearchIdRef.current) return;
+      setSearchTracksState((enriched ?? []).map(toTrack));
+    } catch (e: any) {
+      if (e?.name === "AbortError") return;
+      console.error(e);
+      setSearchTracksState([]);
+    } finally {
+      if (requestId === lastSearchIdRef.current) setSearchLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
     const trimmed = searchQuery.trim();
@@ -313,7 +310,6 @@ export default function ManagePlaylistAndSearch({
     }
 
     if (!selectedPlaylistId) {
-      console.log('hitting no selected playlist', searchQuery.trim());
       dispatchTracks({ type: "reset" });
       return () => {
         active = false;
@@ -393,12 +389,7 @@ export default function ManagePlaylistAndSearch({
   }, [setSelectedPlaylistId]);
 
   return (
-    <section
-      className={clsx(
-        sectionClass,
-        "flex h-full min-h-0 flex-col gap-4 rounded-[28px] border border-white/10 bg-[#0b1118]"
-      )}
-    >
+    <section className={clsx(sectionClass, "h-full min-h-0 gap-4")}>
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex gap-3">
           {[
@@ -428,7 +419,7 @@ export default function ManagePlaylistAndSearch({
         </div>
       </div>
 
-      <div className="min-h-0 flex-1">
+      <div className="min-h-0 overflow-y-auto mr-4">
         {activeMode === "search" ? (
           <section
             className={clsx(
@@ -474,7 +465,9 @@ export default function ManagePlaylistAndSearch({
 
                 {!loggedIn && (
                   <div className="flex items-center justify-end gap-2 text-xs text-white/70">
-                    <span className="flex-1">Log in for full playback access</span>
+                    <span className="flex-1">
+                      Log in for full playback access
+                    </span>
                     <LoginButton />
                   </div>
                 )}
@@ -519,11 +512,12 @@ export default function ManagePlaylistAndSearch({
         ) : (
           <section
             className={clsx(
-              "flex h-full min-h-0 flex-col gap-4 rounded-[24px] border border-white/10 bg-white/5 p-3 text-white"
+              "flex h-fit min-h-0 flex-col gap-4 rounded-[24px] border border-white/10 bg-white/5 p-3 text-white"
             )}
           >
             <div className="flex items-start justify-between flex-wrap gap-3">
-              <div className="min-w-0 flex-1">
+                              <div className="min-w-0 flex-1">
+
                 <div className="flex items-center justify-between gap-3">
                   <h2
                     className={clsx(
@@ -583,8 +577,8 @@ export default function ManagePlaylistAndSearch({
                     {playlistsError ??
                       tracksState.localError ??
                       "Please try refreshing the page."}
-                </div>
-              )}
+                  </div>
+                )}
 
                 {playlistsLoading ? (
                   <div className="flex flex-1 items-center justify-center text-sm text-slate-400">
@@ -658,12 +652,14 @@ export default function ManagePlaylistAndSearch({
                 ) : (
                   <div
                     className={clsx(
-                      "grid flex-1 grid-cols-1 gap-4 overflow-y-auto pr-1",
-                      compactPlaylistGrid ? "lg:grid-cols-2 xl:grid-cols-2 2xl:grid-cols-3" : "grid-cols-1 2xl:grid-cols-2"
+                                            "grid flex-1 grid-cols-1 gap-4 pr-1",
+
+                      compactPlaylistGrid
+                        ? "lg:grid-cols-2 xl:grid-cols-2 2xl:grid-cols-3"
+                        : "grid-cols-1 2xl:grid-cols-2"
                     )}
                   >
                     {playlistItems.map(({ playlist, thumb }) => {
-                      console.log(compactPlaylistGrid, 'compactPlaylist');
                       return (
                         <button
                           key={playlist.id}
