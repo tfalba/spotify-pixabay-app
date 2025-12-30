@@ -1,5 +1,3 @@
-// client/src/components/ManagePlaylistAndSearch.tsx
-
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import clsx from "clsx";
 
@@ -479,21 +477,37 @@ export default function ManagePlaylistAndSearch({
         ) : (
           <section
             className={clsx(
-              "flex h-full min-h-0 flex-col gap-4 rounded-b-3xl p-2 pt-6",
+              "flex h-full min-h-0 flex-col gap-4 rounded-b-3xl p-2",
               isLight ? "bg-white/80 text-slate-700" : " bg-teal/5 text-white"
             )}
           >
-            <div className="flex items-center justify-between flex-wrap gap-3">
-              <div>
-                <h2
-                  className={clsx(
-                    "text-sm font-semibold uppercase tracking-[0.2em]",
-                    isLight ? "text-slate-500" : "text-slate-400"
+            <div className="flex items-start justify-between flex-wrap gap-3">
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center justify-between gap-3">
+                  <h2
+                    className={clsx(
+                      "text-sm font-semibold uppercase tracking-[0.2em]",
+                      isLight ? "text-slate-500" : "text-slate-400"
+                    )}
+                  >
+                    Manage Playlists
+                  </h2>
+                  {loggedIn && (
+                    <button
+                      type="button"
+                      onClick={() => refresh().catch(() => {})}
+                      className={clsx(
+                        "rounded-full px-3 py-1 text-xs uppercase tracking-[0.2em]",
+                        isLight
+                          ? "bg-slate-900 text-white"
+                          : "bg-white/80 text-slate-900"
+                      )}
+                    >
+                      Sync
+                    </button>
                   )}
-                >
-                  Manage Playlists
-                </h2>
-                <p className="text-sm text-slate-500 dark:text-slate-300">
+                </div>
+                <p className="text-sm text-slate-500 dark:text-slate-300 pt-2">
                   View your Spotify playlists like folders. Organization tools
                   coming soon.
                 </p>
@@ -502,24 +516,9 @@ export default function ManagePlaylistAndSearch({
               {!loggedIn ? (
                 <LoginButton />
               ) : (
-                <div className="flex items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={() => refresh().catch(() => {})}
-                    className={clsx(
-                      "rounded-full px-3 py-1 text-xs uppercase tracking-[0.2em]",
-                      isLight
-                        ? "bg-slate-900 text-white"
-                        : "bg-white/80 text-slate-900"
-                    )}
-                  >
-                    Sync
-                  </button>
-
-                  {!fullPlaybackEnabled && (
-                    <button onClick={enableFullPlayback}>Enable full playback</button>
-                  )}
-                </div>
+                !fullPlaybackEnabled && (
+                  <button onClick={enableFullPlayback}>Enable full playback</button>
+                )
               )}
             </div>
 
@@ -630,7 +629,7 @@ export default function ManagePlaylistAndSearch({
                   <div
                     className={clsx(
                       "grid flex-1 grid-cols-1 gap-4 overflow-y-auto pr-1",
-                      compactPlaylistGrid ? "xl:grid-cols-2" : "lg:grid-cols-2 xl:grid-cols-3"
+                      compactPlaylistGrid ? "lg:grid-cols-2 xl:grid-cols-3" : "lg:grid-cols-2 xl:grid-cols-2"
                     )}
                   >
                     {playlists.map((playlist) => {

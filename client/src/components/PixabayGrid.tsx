@@ -2,7 +2,6 @@ import clsx from "clsx";
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { FlipPhotoGrid, type Img } from "./FlipPhotoGrid";
-import centerLogo from "../assets/center-logo.svg";
 import { useTheme } from "@/context/ThemeContext";
 import { useSectionClass } from "@/styleHooks/useStyleHooks";
 import type { KeywordPlan } from "@/hooks/useLyricsImages";
@@ -45,8 +44,7 @@ export default function PixabayGrid({
   const showAlbumCoverOnly = Boolean(albumCover) && hasSelection && loading;
   const hasImages = imageList.length >= 2;
   const shouldShowGrid = hasImages && !showAlbumCoverOnly;
-  const shouldShowPlaceholderLogo =
-    noSelection && !hasImages && !showAlbumCoverOnly;
+
   const albumCoverForGrid = hasSelection && !loading ? albumCover : null;
   const resolvedStyleName = styleChoice === "surprise" ? "Surprise me" : styleChoice;
 
@@ -223,15 +221,7 @@ export default function PixabayGrid({
                   heroLoading={heroLoading}
                 />
               </div>
-            ) : shouldShowPlaceholderLogo ? (
-              <div className="m-auto place-items-center">
-                <img
-                  src={centerLogo}
-                  alt="App logo"
-                  className="h-80 w-auto animate-flipY"
-                />
-              </div>
-            ) : null}
+            ) :  null}
           </div>
 
           <div className={infoPanelClass}>

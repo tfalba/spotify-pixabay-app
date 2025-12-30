@@ -426,8 +426,12 @@ export function useSpotifyWebPlayback() {
   );
 
   const pause = useCallback(async () => {
+    if (previewAudioRef.current && !previewAudioRef.current.paused) {
+      stopPreview();
+      return;
+    }
     await apiFetch("/api/player/pause", { method: "PUT" });
-  }, []);
+  }, [stopPreview]);
 
   const resume = useCallback(async () => {
     stopPreview();

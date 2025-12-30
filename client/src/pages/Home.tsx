@@ -56,7 +56,7 @@ export default function Home({ pixabay, albumCover }: Props) {
   const previousCollapsedRef = useRef<typeof collapsed | null>(null);
 
   const allPanelsExpanded =
-    !collapsed.manage && !collapsed.lyrics && !collapsed.pixabay;
+    !collapsed.manage && collapsed.lyrics && collapsed.pixabay;
   // const manageSoloExpanded =
   //   !collapsed.manage && collapsed.lyrics && collapsed.pixabay;
 
@@ -69,6 +69,7 @@ export default function Home({ pixabay, albumCover }: Props) {
         render: () => (
           <ManagePlaylistsAndSearch
             compactPlaylistGrid={allPanelsExpanded}
+            twoColumnOnLarge={allPanelsExpanded}
             // soloExpanded={manageSoloExpanded}
           />
         ),
@@ -191,7 +192,7 @@ export default function Home({ pixabay, albumCover }: Props) {
         className={mainClass}
         style={{
           gridTemplateColumns: dynamicColumns,
-          transition: "grid-template-columns 300ms cubic-bezier(0.4, 0, 0.2, 1)",
+          transition: "pb-4 grid-template-columns 300ms cubic-bezier(0.4, 0, 0.2, 1)",
         }}
       >
         {sectionMeta.map((section) => {

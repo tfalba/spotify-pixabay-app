@@ -33,7 +33,7 @@ export default function HeroBar({
 
   return (
     <section
-      className="relative mb-4 min-h-[340px] overflow-hidden bg-contain bg-center px-4 py-6"
+      className="relative mb-4 min-h-[250px] overflow-hidden bg-contain bg-center px-4 py-6"
       style={{ backgroundImage: heroBanner ? `url(${heroBanner})` : undefined }}
     >
       <div
@@ -49,7 +49,7 @@ export default function HeroBar({
         <div className="absolute right-0 -bottom-24 h-48 w-48 rounded-full bg-lilac/40 blur-3xl" />
       </div>
 
-      <div className="absolute inset-x-0 top-20 flex justify-end px-4">
+      <div className="absolute inset-x-0 flex justify-end px-4">
         <div
           className="w-full max-w-xl transition-transform duration-300"
           style={{

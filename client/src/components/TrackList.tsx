@@ -64,7 +64,7 @@ type Props = {
 export default function TrackList({
   tracks,
   queue,
-  twoColumnOnLarge = false,
+  twoColumnOnLarge,
   sourcePlaylistId = "",
 }: Props) {
   const { theme } = useTheme();
@@ -107,12 +107,10 @@ export default function TrackList({
     >
       {tracks.length > 0 && (
         <div
-          className={clsx(
+          className={clsx("p-4",
             twoColumnOnLarge
               ? "flex min-w-0 flex-col gap-3 p-3 lg:grid lg:grid-cols-2 lg:gap-4"
               : "flex min-w-0 flex-col gap-3",
-            // !twoColumnOnLarge &&
-            //   (isLight ? "divide-slate-200" : "divide-white/5")
           )}
         >
           {tracks.map((t) => {
@@ -122,7 +120,7 @@ export default function TrackList({
               <div
                 key={t.id}
                 className={clsx(
-                  "flex w-full min-w-0 flex-col gap-2 rounded-2xl border p-2 transition",
+                  "flex w-full min-w-0 flex-col gap-2 rounded-2xl border p-2 px-4 transition shadow-glow",
                   isSelected
                     ? isLight
                       ? "border-amber/70 bg-white/70 shadow-glow"
@@ -150,6 +148,12 @@ export default function TrackList({
                               preview_url: t.preview_url ?? null,
                             }).catch(() => {});
                           }}
+                            className={clsx(
+                            "rounded-full px-2 py-1 text-[10px] font-semibold uppercase tracking-wide opacity-90",
+                             isLight
+                            ? "bg-teal/30 text-midnight hover:bg-teal/30"
+                            : "bg-teal/80 text-midnight hover:bg-teal"
+                          )}
                         >
                           Play
                         </button>
@@ -158,7 +162,7 @@ export default function TrackList({
                           type="button"
                           onClick={() => openMoveModal(t)}
                           className={clsx(
-                            "rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide opacity-70",
+                            "rounded-full border px-2 py-1 text-[10px] font-semibold uppercase tracking-wide opacity-90",
                             isLight
                               ? "border-slate-300 text-slate-500"
                               : "border-white/30 text-white/70"
@@ -178,10 +182,10 @@ export default function TrackList({
                           }
                         }}
                         className={clsx(
-                          "rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide transition",
+                          "rounded-full px-2 py-1 text-[10px] font-semibold uppercase tracking-wide transition",
                           isLight
-                            ? "bg-teal/20 text-midnight hover:bg-teal/30"
-                            : "bg-teal/70 text-midnight hover:bg-teal"
+                            ? "bg-teal/30 text-midnight hover:bg-teal/30"
+                            : "bg-teal/80 text-midnight hover:bg-teal"
                         )}
                       >
                         Preview
