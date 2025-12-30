@@ -247,8 +247,8 @@ function FlipPhotoGridBase({
   );
 
   const gridClasses = clsx(
-    gridClassName ?? "grid grid-cols-2 md:grid-cols-3 gap-3",
-    "auto-rows-[minmax(140px,_auto)]"
+    gridClassName ?? "grid grid-cols-3 2xl:grid-cols-4 gap-3",
+    "auto-rows-[minmax(120px,_auto)]"
   );
 
   return (

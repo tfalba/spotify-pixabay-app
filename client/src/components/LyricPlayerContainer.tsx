@@ -54,7 +54,7 @@ export default function LyricPlayerContainer() {
   }, [current, API]);
 
   const nowPlayingClass = clsx(
-    "rounded-2xl border border-white/10 bg-gradient-to-br from-white/10 via-white/5 to-amber-500/10 p-3 shadow-[0_18px_40px_rgba(0,0,0,0.35)] my-2"
+    "rounded-2xl mx-auto border border-white/10 bg-gradient-to-br from-white/10 via-white/5 to-amber-500/10 py-2 px-6 shadow-[0_14px_30px_rgba(88,92,107,0.55)] mt-2"
   );
   const trackTitleClass = "text-white";
   const trackArtistClass = "text-slate-400";
@@ -95,7 +95,7 @@ export default function LyricPlayerContainer() {
           </div>
         </div>
       )}
-      <div className="mt-4 flex-1 overflow-y-auto pr-1 min-h-0">
+      <div className="mt-2 flex-1 overflow-y-auto pr-1 min-h-0">
         <div
           className={clsx(
             "space-y-4 text-slate-200"

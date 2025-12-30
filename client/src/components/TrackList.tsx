@@ -156,7 +156,7 @@ export default function TrackList({
   return (
     <div
       className={clsx(
-        "flex-[2] mt-2 min-w-0 rounded-2xl border border-white/10 bg-[#0a0f16] shadow-[inset_0_1px_0_rgba(63,81,181,0.55)]"
+        "flex-[2] mt-2 min-w-0 overflow-hidden overflow-y-auto rounded-2xl border border-white/10 bg-[#0a0f16] shadow-[inset_0_1px_0_rgba(63,81,181,0.55)]"
       )}
       ref={listRef}
     >

@@ -243,7 +243,7 @@ export default function Home({ pixabay, albumCover }: Props) {
                   className={clsx(
                     "relative flex w-full min-w-0 overflow-hidden",
                     section.maxWidth ? "justify-center" : "justify-start",
-                    isCollapsed ? "pointer-events-none" : "pointer-events-auto"
+                    isCollapsed ? "pointer-events-none hidden" : "pointer-events-auto flex"
                   )}
                   style={wrapperStyle}
                   animate={

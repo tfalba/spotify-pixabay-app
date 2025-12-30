@@ -520,23 +520,25 @@ export default function ManagePlaylistAndSearch({
                 <div className="flex items-center justify-between gap-3">
                   <h2
                     className={clsx(
-                      "text-sm font-semibold uppercase tracking-[0.2em] text-slate-400"
+                      "flex-1 text-sm font-semibold uppercase tracking-[0.2em] text-slate-400"
                     )}
                   >
                     Manage Playlists
                   </h2>
                   {loggedIn && (
-                    <div className="flex gap-4">
+                    <div className="flex flex-[2] justify-end gap-4">
+                      {selected && (
                       <button
                         type="button"
                         onClick={() => {
                           handleBack();
                         }}
-                        className="w-full rounded-full border border-white/20 px-3 py-2 text-[11px] uppercase tracking-[0.2em] text-white/80 transition hover:border-white/40 hover:text-black focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-200/60"
+                        className="rounded-full border border-white/20 px-3 py-2 text-[11px] uppercase tracking-[0.2em] text-white/80 transition hover:border-white/40 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-200/60"
                         role="menuitem"
                       >
                         ← Back
                       </button>
+                      )}
                       <button
                         type="button"
                         onClick={() => refresh().catch(() => {})}
@@ -598,8 +600,8 @@ export default function ManagePlaylistAndSearch({
                   </div>
                 ) : selected ? (
                   <div className="flex flex-1 min-h-0 flex-col gap-2">
-                    <div className="relative z-20 flex items-start gap-3">
-                      <div className="min-w-0 flex-1">
+                    <div className="relative flex flex-wrap items-start gap-3">
+                      <div className="min-w-0 flex items-center gap-col-4 flex-wrap flex-1">
                         <div className="truncate text-base font-semibold">
                           {selected.name}
                         </div>
@@ -617,7 +619,7 @@ export default function ManagePlaylistAndSearch({
                           onChange={(e) => handleFilterChange(e.target.value)}
                           placeholder="Filter tracks..."
                           className={clsx(
-                            "w-64 rounded-full border border-white/20 bg-white/5 px-3 py-1 text-sm text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300/60"
+                            "w-48 rounded-full border border-white/20 bg-white/5 px-3 py-1 text-sm text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300/60"
                           )}
                         />
                       </div>
