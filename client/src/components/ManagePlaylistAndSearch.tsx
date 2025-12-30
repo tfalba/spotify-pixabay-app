@@ -412,7 +412,7 @@ export default function ManagePlaylistAndSearch({
           ))}
         </div>
 
-        <div className="text-xs mr-10 pl-4 text-white/60">
+        <div className="text-xs mr-10 pl-2 text-white/60">
           {activeMode === "search"
             ? "Search tracks and play previews (or full playback if enabled)."
             : "Browse your Spotify playlists (login required)."}
@@ -423,10 +423,10 @@ export default function ManagePlaylistAndSearch({
         {activeMode === "search" ? (
           <section
             className={clsx(
-              "flex h-fit min-h-0 flex-col rounded-[24px] border border-white/10 bg-white/5 p-1 lg:p-3 text-white shadow-glow"
+              "flex h-fit min-h-0 flex-col rounded-[24px] border border-white/10 bg-white/5 p-2 lg:p-3 text-white shadow-glow"
             )}
           >
-            <div className="mb-1 flex flex-col md:flex-row items-start md:items-center justify-between gap-3 flex-wrap">
+            <div className="mb-1 flex flex-col md:flex-row items-start md:items-center justify-between md:justify-start gap-3 flex-wrap">
               <h2
                 className={clsx(
                   "text-sm font-semibold uppercase tracking-[0.2em] text-slate-400"
@@ -435,7 +435,7 @@ export default function ManagePlaylistAndSearch({
                 Search
               </h2>
 
-              <div className="flex-wrap space-y-2 flex flex-col md:flex-row w-full gap-4 justify-between">
+              <div className="flex-wrap space-y-2 flex flex-col md:flex-row w-auto gap-4 justify-between">
                 <div className="flex items-center gap-2 rounded-2xl">
                   <input
                     ref={inputRef}
@@ -516,8 +516,7 @@ export default function ManagePlaylistAndSearch({
             )}
           >
             <div className="flex items-start justify-between flex-wrap gap-3">
-                              <div className="min-w-0 flex-1">
-
+              <div className="min-w-0 flex-1">
                 <div className="flex items-center justify-between gap-3">
                   <h2
                     className={clsx(
@@ -527,15 +526,27 @@ export default function ManagePlaylistAndSearch({
                     Manage Playlists
                   </h2>
                   {loggedIn && (
-                    <button
-                      type="button"
-                      onClick={() => refresh().catch(() => {})}
-                      className={clsx(
-                        "rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs uppercase tracking-[0.2em] text-white/80 hover:border-white/30 hover:text-white"
-                      )}
-                    >
-                      Sync
-                    </button>
+                    <div className="flex gap-4">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          handleBack();
+                        }}
+                        className="w-full rounded-full border border-white/20 px-3 py-2 text-[11px] uppercase tracking-[0.2em] text-white/80 transition hover:border-white/40 hover:text-black focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-200/60"
+                        role="menuitem"
+                      >
+                        ← Back
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => refresh().catch(() => {})}
+                        className={clsx(
+                          "rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs uppercase tracking-[0.2em] text-white/80 hover:border-white/30 hover:text-white"
+                        )}
+                      >
+                        Sync
+                      </button>
+                    </div>
                   )}
                 </div>
               </div>
@@ -586,20 +597,9 @@ export default function ManagePlaylistAndSearch({
                     No playlists found.
                   </div>
                 ) : selected ? (
-                  <div className="flex flex-1 min-h-0 flex-col gap-4">
-                    <div className="flex items-center gap-3 flex-wrap">
-                      <button
-                        type="button"
-                        onClick={handleBack}
-                        className={clsx(
-                          "rounded-full border px-3 py-1 text-[11px] uppercase tracking-[0.2em] transition focus-visible:outline-none focus-visible:ring-2",
-                          "border-white/30 text-white/80 focus-visible:ring-white"
-                        )}
-                      >
-                        ← Back
-                      </button>
-
-                      <div className="min-w-0">
+                  <div className="flex flex-1 min-h-0 flex-col gap-2">
+                    <div className="relative z-20 flex items-start gap-3">
+                      <div className="min-w-0 flex-1">
                         <div className="truncate text-base font-semibold">
                           {selected.name}
                         </div>
@@ -649,7 +649,7 @@ export default function ManagePlaylistAndSearch({
                 ) : (
                   <div
                     className={clsx(
-                                            "grid flex-1 grid-cols-1 gap-4 pr-1",
+                      "grid flex-1 grid-cols-1 gap-4 pr-1",
 
                       compactPlaylistGrid
                         ? "lg:grid-cols-2 xl:grid-cols-2 2xl:grid-cols-3"

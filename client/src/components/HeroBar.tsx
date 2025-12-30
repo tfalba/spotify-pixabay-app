@@ -28,7 +28,7 @@ export default function HeroBar({
 
   return (
     <section
-      className="relative my-4 min-h-[250px] overflow-hidden rounded-[32px] border border-black/90 bg-contain bg-center px-4 py-6 shadow-[0_20px_50px_rgba(124,92,252,0.25)]"
+      className="relative mt-2 min-h-[220px] overflow-hidden rounded-[32px] border border-black/90 bg-contain bg-center px-4 py-6 shadow-[0_20px_50px_rgba(124,92,252,0.25)]"
       style={{ backgroundImage: heroBanner ? `url(${heroBanner})` : undefined }}
     >
       <div
