@@ -236,7 +236,11 @@ function AppContent() {
     <div className={pageBg}>
       <div className={shell}>
         <HeaderBar styleChoice={styleChoice} onStyleChange={setStyleChoice} />
-        <Home pixabay={pixabayProps} albumCover={albumCover} />
+        <Home
+          pixabay={pixabayProps}
+          albumCover={albumCover}
+          lyricsAvailable={Boolean(currentLyrics)}
+        />
       </div>
     </div>
   );

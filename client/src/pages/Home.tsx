@@ -30,6 +30,7 @@ type Props = {
     onStyleChange?: (choice: StyleCategory | "surprise") => void;
   };
   albumCover?: string | null;
+  lyricsAvailable?: boolean;
 };
 
 type SectionConfig = {
@@ -40,18 +41,21 @@ type SectionConfig = {
   maxWidth?: number;
 };
 
-export default function Home({ pixabay, albumCover }: Props) {
+export default function Home({ pixabay, albumCover, lyricsAvailable }: Props) {
   const { current } = useCurrentTrackData();
   const [collapsed, setCollapsed] = useState<{
     manage: boolean;
     lyrics: boolean;
     pixabay: boolean;
   }>({
-    manage: true,
-    lyrics: false,
-    pixabay: false,
+    manage: false,
+    lyrics: true,
+    pixabay: true,
   });
-  const previousCollapsedRef = useRef<typeof collapsed | null>(null);
+  const autoExpandedRef = useRef<string | null>(null);
+  const lastTrackKeyRef = useRef<string | null>(null);
+  const trackKey = current?.uri ?? current?.id ?? null;
+  const panelsReady = Boolean(lyricsAvailable && albumCover);
 
   const somePanelsExpanded =
     !collapsed.manage && (collapsed.lyrics || collapsed.pixabay);
@@ -162,29 +166,43 @@ export default function Home({ pixabay, albumCover }: Props) {
   );
 
   useEffect(() => {
-    if (!current) {
+    if (trackKey === lastTrackKeyRef.current) return;
+
+    lastTrackKeyRef.current = trackKey;
+    autoExpandedRef.current = null;
+
+    if (!trackKey) return;
+
+    setCollapsed((prev) => ({
+      ...prev,
+      lyrics: true,
+      pixabay: true,
+    }));
+  }, [trackKey]);
+
+  useEffect(() => {
+    if (!trackKey) {
+      autoExpandedRef.current = null;
       setCollapsed((prev) => {
-        if (!previousCollapsedRef.current) {
-          previousCollapsedRef.current = prev;
-        }
-        if (
-          prev.manage === false &&
-          prev.lyrics === true &&
-          prev.pixabay === true
-        ) {
-          return prev;
-        }
+        if (!prev.manage && prev.lyrics && prev.pixabay) return prev;
         return {
           manage: false,
           lyrics: true,
           pixabay: true,
         };
       });
-    } else if (previousCollapsedRef.current) {
-      setCollapsed(previousCollapsedRef.current);
-      previousCollapsedRef.current = null;
+      return;
     }
-  }, [current]);
+
+    if (!panelsReady || autoExpandedRef.current === trackKey) return;
+
+    setCollapsed((prev) => ({
+      ...prev,
+      lyrics: false,
+      pixabay: false,
+    }));
+    autoExpandedRef.current = trackKey;
+  }, [trackKey, panelsReady]);
 
   return (
     <PlaylistsProvider>
@@ -262,7 +280,7 @@ export default function Home({ pixabay, albumCover }: Props) {
                       type="button"
                       onClick={() => toggleSection(section.id)}
                       className={clsx(
-                        "absolute right-5 top-4 z-10 flex h-9 w-9 items-center justify-center rounded-full border font-semibold focus-visible:outline-none focus-visible:ring-2",
+                        "absolute right-2 top-2 md:right-5 md:top-4 z-10 flex h-9 w-9 items-center justify-center rounded-full border font-semibold focus-visible:outline-none focus-visible:ring-2",
                         "border-white/15 bg-black/50 text-white/80 hover:bg-black/70 focus-visible:ring-emerald-300/50 text-[12px] uppercase tracking-[0.3em]"
                       )}
                       aria-label={`Collapse ${section.title}`}

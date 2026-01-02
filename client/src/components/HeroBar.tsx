@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import clsx from "clsx";
 import { motion } from "framer-motion";
 import type { StyleCategory } from "@/types/types";
 import { NowPlayingPanel } from "./NowPlayingPanel";
 import ArtStyleDropdown from "./ArtStyleDropdown";
+import { useCurrentTrackData } from "@/context/CurrentTrackContext";
 
 type StyleChoice = StyleCategory | "surprise";
 
@@ -22,9 +23,20 @@ export default function HeroBar({
   onStyleChange,
   onTrackFinished,
 }: HeroProps) {
+  const { current } = useCurrentTrackData();
   const [activeTab, setActiveTab] = useState<"song" | "style">("song");
   const [panelOpen, setPanelOpen] = useState(false);
+  const lastTrackKeyRef = useRef<string | null>(null);
   const panelLabel = activeTab === "song" ? "Now Playing" : "Art Style";
+
+  useEffect(() => {
+    const trackKey = current?.uri ?? current?.id ?? null;
+    if (!trackKey || trackKey === lastTrackKeyRef.current) return;
+
+    lastTrackKeyRef.current = trackKey;
+    setActiveTab("song");
+    setPanelOpen(true);
+  }, [current?.uri, current?.id]);
 
   return (
     <motion.section
