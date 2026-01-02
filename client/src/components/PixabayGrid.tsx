@@ -43,7 +43,8 @@ export default function PixabayGrid({
   const shouldShowGrid = hasImages && !showAlbumCoverOnly;
 
   const albumCoverForGrid = hasSelection && !loading ? albumCover : null;
-  const resolvedStyleName = styleChoice === "surprise" ? "Surprise me" : styleChoice;
+  const resolvedStyleName =
+    styleChoice === "surprise" ? "Surprise me" : styleChoice;
 
   const sectionClass = useSectionClass(false, 3);
   const infoPanelClass = clsx(
@@ -93,11 +94,7 @@ export default function PixabayGrid({
                 {trackTitle ?? "Unknown Title"}
               </h3>
               {trackArtist && (
-                <p
-                  className={clsx(
-                    "truncate text-sm text-slate-300"
-                  )}
-                >
+                <p className={clsx("truncate text-sm text-slate-300")}>
                   {trackArtist}
                 </p>
               )}
@@ -149,20 +146,16 @@ export default function PixabayGrid({
   return (
     <>
       <section className={sectionClass}>
-        <div className="flex items-start justify-between gap-4 flex-wrap">
-          <div className="flex flex-col gap-1">
+        <div className="flex items-start flex-row-reverse justify-between gap-4 flex-wrap mr-8">
+          <div className="flex flex-col gap-2 text-right">
             <h2
               className={clsx(
-                "text-lg font-semibold tracking-tight text-slate-50"
+                "text-[12px] uppercase tracking-[0.3em] font-semibold"
               )}
             >
               Visual Moodboard
             </h2>
-            <p
-              className={clsx(
-                "text-sm text-slate-400"
-              )}
-            >
+            <p className={clsx("text-sm text-slate-400")}>
               Curated image prompts from your selected lyrics.
             </p>
           </div>
@@ -172,7 +165,7 @@ export default function PixabayGrid({
             disabled={!hasSelection}
             className={clsx(
               "rounded-full border px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.14em] transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300/60",
-              "border-white/30 bg-white/10 text-slate-100 hover:text-white mr-10"
+              "border-white/30 bg-white/10 text-slate-100 hover:text-white mr-auto"
             )}
           >
             Fullscreen
@@ -205,18 +198,16 @@ export default function PixabayGrid({
                   heroLoading={heroLoading}
                 />
               </div>
-            ) :  null}
+            ) : null}
           </div>
 
           <div className={infoPanelClass}>
-            {(loading ||
-              !keywords ||
-              keywords.baseKeywords.length === 0) && (
-                <div className="flex items-center gap-2 text-emerald-200">
-                  <span className="h-2 w-2 animate-ping rounded-full bg-emerald-300 text-text" />
-                  Finding imagery…
-                </div>
-              )}
+            {(loading || !keywords || keywords.baseKeywords.length === 0) && (
+              <div className="flex items-center gap-2 text-emerald-200">
+                <span className="h-2 w-2 animate-ping rounded-full bg-emerald-300 text-text" />
+                Finding imagery…
+              </div>
+            )}
             {/* {error && (
               <div className="text-red-400">Image search error: {error}</div>
             )} */}

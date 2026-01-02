@@ -427,15 +427,14 @@ export default function ManagePlaylistAndSearch({
             )}
           >
             <div className="mb-1 flex flex-col md:flex-row items-start md:items-center justify-between md:justify-start gap-3 flex-wrap">
-              <h2
-                className={clsx(
-                  "text-sm font-semibold uppercase tracking-[0.2em] text-slate-400"
-                )}
-              >
-                Search
-              </h2>
-
-              <div className="flex-wrap space-y-2 flex flex-col md:flex-row w-auto gap-4 justify-between">
+              <div className="flex items-center">
+                <h2
+                  className={clsx(
+                    "text-sm font-semibold uppercase tracking-[0.2em] text-slate-400"
+                  )}
+                >
+                  Search
+                </h2>
                 <div className="flex items-center gap-2 rounded-2xl">
                   <input
                     ref={inputRef}
@@ -462,7 +461,8 @@ export default function ManagePlaylistAndSearch({
                     </button>
                   )}
                 </div>
-
+              </div>
+              <div className="flex-wrap space-y-2 flex flex-col md:flex-[2] md:flex-row w-auto gap-4 justify-end">
                 {!loggedIn && (
                   <div className="flex items-center justify-end gap-2 text-xs text-white/70">
                     <span className="flex-1">
@@ -528,16 +528,16 @@ export default function ManagePlaylistAndSearch({
                   {loggedIn && (
                     <div className="flex flex-[2] justify-end gap-4">
                       {selected && (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          handleBack();
-                        }}
-                        className="rounded-full border border-white/20 px-3 py-2 text-[11px] uppercase tracking-[0.2em] text-white/80 transition hover:border-white/40 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-200/60"
-                        role="menuitem"
-                      >
-                        ← Back
-                      </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            handleBack();
+                          }}
+                          className="rounded-full border border-white/20 px-3 py-2 text-[11px] uppercase tracking-[0.2em] text-white/80 transition hover:border-white/40 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-200/60"
+                          role="menuitem"
+                        >
+                          ← Back
+                        </button>
                       )}
                       <button
                         type="button"
@@ -571,13 +571,13 @@ export default function ManagePlaylistAndSearch({
             {!loggedIn ? (
               <div
                 className={clsx(
-                  "rounded-2xl border border-white/10 bg-black/30 px-4 py-3 text-sm text-white/80"
+                  "rounded-2xl border border-white/10 bg-black/30 px-4 py-3 text-sm text-white/80 overflow-x-hidden"
                 )}
               >
                 Log in to view and manage your playlists.
               </div>
             ) : (
-              <div>
+              <div className="overflow-x-hidden">
                 {(playlistsError || tracksState.localError) && (
                   <div
                     className={clsx(

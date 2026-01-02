@@ -36,8 +36,8 @@ export default function LyricPlayerContainer() {
     setSource("");
     get<{ lyrics: string; source: string }>(
       `${API}/api/lyrics?artist=${encodeURIComponent(
-        current.artists[0].name,
-      )}&title=${encodeURIComponent(current.name)}`,
+        current.artists[0].name
+      )}&title=${encodeURIComponent(current.name)}`
     )
       .then((d) => {
         const payload = { lyrics: d.lyrics || "", source: d.source || "" };
@@ -54,53 +54,44 @@ export default function LyricPlayerContainer() {
   }, [current, API]);
 
   const nowPlayingClass = clsx(
-    "rounded-2xl mx-auto border border-white/10 bg-gradient-to-br from-white/10 via-white/5 to-amber-500/10 py-2 px-6 shadow-[0_14px_30px_rgba(88,92,107,0.55)] mt-2"
+    "rounded-2xl mx-auto max-w-full border border-white/10 bg-gradient-to-br from-white/10 via-white/5 to-amber-500/10 py-2 px-6 shadow-[0_14px_30px_rgba(88,92,107,0.55)] overflow-x-hidden"
   );
   const trackTitleClass = "text-white";
   const trackArtistClass = "text-slate-400";
 
   return (
     <aside className={containerClass}>
-      <div className="flex flex-col gap-1">
+      <div className="flex flex-col justify-end align-end gap-2 mb-2 mr-6">
         <h2
           className={clsx(
-            "text-lg font-semibold tracking-tight mb-1 text-slate-50"
+            "text-[12px] uppercase tracking-[0.3em] font-semibold ml-auto"
           )}
         >
           Lyrics
         </h2>
+        {current && (
+          <div className={nowPlayingClass}>
+            <div
+              className={clsx(
+                "text-base font-medium truncate",
+                trackTitleClass
+              )}
+            >
+              {current.name}
+            </div>
+            <div className={clsx("text-sm truncate", trackArtistClass)}>
+              {current.artists[0]?.name}
+            </div>
+          </div>
+        )}
         {!current?.name || !current?.artists[0]?.name ? (
-          <p className="text-sm text-slate-400">
+          <p className="text-sm text-slate-400 text-right">
             Select a track to view lyrics and image prompts will appear here.
           </p>
-        ) : (
-          <p
-            className={clsx(
-              "text-xs uppercase tracking-[0.3em] text-amber-300/80"
-            )}
-          >
-            Storyboard
-          </p>
-        )}
+        ) : null}
       </div>
-      {current && (
-        <div className={nowPlayingClass}>
-          <div
-            className={clsx("text-base font-medium truncate", trackTitleClass)}
-          >
-            {current.name}
-          </div>
-          <div className={clsx("text-sm truncate", trackArtistClass)}>
-            {current.artists[0]?.name}
-          </div>
-        </div>
-      )}
       <div className="mt-2 flex-1 overflow-y-auto pr-1 min-h-0">
-        <div
-          className={clsx(
-            "space-y-4 text-slate-200"
-          )}
-        >
+        <div className={clsx("space-y-4 text-slate-200")}>
           <div className="whitespace-pre-wrap text-sm leading-relaxed px-8 lg:px-0">
             {text || (
               <span className="text-slate-500">Lyrics not available.</span>

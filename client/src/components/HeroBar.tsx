@@ -29,9 +29,9 @@ export default function HeroBar({
   return (
     <motion.section
       initial={{ height: "600px" }}
-      animate={{ height: "220px", minHeight: "220px" }}
+      animate={{ height: "315px", minHeight: "315px" }}
       transition={{ duration: 1.1, ease: "easeOut" }}
-      className="relative min-h[220px] h-[220px] overflow-hidden rounded-[32px] border border-black/90 bg-contain bg-center px-4 py-6 mb-4 shadow-[0_20px_50px_rgba(124,92,252,0.25)]"
+      className="relative min-h[315px] h-[315px] overflow-hidden rounded-[32px] border border-black/90 bg-contain bg-center px-4 py-6 mb-4 shadow-[0_20px_50px_rgba(124,92,252,0.25)]"
       style={{ backgroundImage: heroBanner ? `url(${heroBanner})` : undefined }}
     >
       <div
@@ -80,7 +80,7 @@ export default function HeroBar({
 
             <div className="flex gap-3 pb-4">
               {[
-                { key: "song" as const, label: "Song → Visual" },
+                { key: "song" as const, label: "Now Playing" },
                 { key: "style" as const, label: "Art Style" },
               ].map((tab) => (
                 <button
@@ -88,7 +88,7 @@ export default function HeroBar({
                   type="button"
                   onClick={() => setActiveTab(tab.key)}
                   className={clsx(
-                    "flex-1 rounded-t-xl px-4 py-2 text-xs font-semibold uppercase tracking-[0.35em] transition",
+                    "flex-1 rounded-t-xl px-2 md:px-4 py-2 text-xs font-semibold uppercase tracking-[0.25em] transition",
                     activeTab === tab.key
                       ? "bg-emerald-300/90 text-slate-900"
                       : "bg-white/10 text-white/60",
@@ -102,7 +102,7 @@ export default function HeroBar({
             {activeTab === "song" ? (
               <div>
                 <p className="text-xs font-semibold uppercase tracking-[0.25em] text-slate-400">
-                  Song → Visual
+                  Now Playing
                 </p>
                 {onTrackFinished && (
                   <div className="mt-4">

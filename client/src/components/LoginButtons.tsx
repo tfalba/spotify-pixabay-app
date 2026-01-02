@@ -5,7 +5,7 @@ const baseButton =
 const baseShine =
   "pointer-events-none absolute inset-0 z-[1] -translate-x-full skew-x-12 bg-gradient-to-r from-emerald-200/40 via-white/40 to-transparent opacity-0 transition duration-700 motion-safe:group-hover:translate-x-full motion-safe:group-hover:opacity-80";
 const baseInner =
-  "relative z-[2] inline-flex items-center gap-1 rounded-full px-4 py-1 text-xs shadow-md font-semibold uppercase tracking-[0.2em]";
+  "relative z-[2] inline-flex items-center gap-1 rounded-full px-2 md:px-4 py-1 text-xs shadow-md font-semibold uppercase tracking-[0.2em]";
 
 const API = import.meta.env.VITE_API_BASE || "http://127.0.0.1:5174";
 
@@ -17,7 +17,7 @@ function LoginButton() {
   );
   const inner = clsx(
     baseInner,
-    "border border-transparent bg-emerald-300/90 text-slate-900 shadow-[0_12px_30px_rgba(16,185,129,0.35)]"
+    "border border-transparent bg-emerald-300/90 text-slate-900 shadow-[0_12px_30px_rgba(16,185,129,0.35)] text-center"
   );
 
   return (

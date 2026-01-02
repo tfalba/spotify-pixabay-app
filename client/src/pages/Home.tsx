@@ -56,7 +56,7 @@ export default function Home({ pixabay, albumCover }: Props) {
   const somePanelsExpanded =
     !collapsed.manage && (collapsed.lyrics || collapsed.pixabay);
 
-  const allPanelsExpanded = 
+  const allPanelsExpanded =
     !collapsed.manage && collapsed.lyrics && collapsed.pixabay;
 
   const sectionMeta = useMemo<SectionConfig[]>(
@@ -205,7 +205,7 @@ export default function Home({ pixabay, albumCover }: Props) {
               <div
                 key={section.id}
                 className={clsx(
-                  "relative min-w-0 lg:min-h-[calc(80vh-4rem)] pb-4",
+                  "relative min-w-0 lg:min-h-[calc(50vh-4rem)] pb-4 rounded-2xl",
                   isCollapsed
                     ? "flex justify-end items-start lg:justify-start"
                     : "block"
@@ -219,13 +219,13 @@ export default function Home({ pixabay, albumCover }: Props) {
                       expandButtonRefs.current[section.id] = node;
                     }}
                     className={clsx(
-                      "mt-2 mx-2 flex flex-row-reverse lg:flex-col w-fit lg:w-auto items-center gap-2 rounded-2xl border px-4 lg:px-2 py-1 lg:py-3 text-xs font-semibold uppercase tracking-[0.2em] focus-visible:outline-none focus-visible:ring-2",
-                      "border-white/50 bg-transparent text-white/80 focus-visible:ring-emerald-300/50"
+                      "mt-2 mx-2 flex flex-row-reverse lg:flex-col w-fit lg:w-auto items-center gap-2 rounded-2xl border px-2 lg:px-2 pl-4 lg:pl-2 py-2 lg:py-3 text-s font-semibold uppercase tracking-[0.2em] focus-visible:outline-none focus-visible:ring-2",
+                      "border-white/50 bg-transparent text-white/80 focus-visible:ring-emerald-300/50 shadow-[0_20px_50px_rgba(0,150,136,0.55)]"
                     )}
                     aria-label={`Expand ${section.title}`}
                   >
                     <span className="text-lg leading-none">+</span>
-                    <span className="text-[11px] uppercase tracking-[0.3em]">
+                    <span className="text-[12px] uppercase tracking-[0.3em]">
                       <span
                         className="hidden lg:inline"
                         style={{
@@ -241,9 +241,11 @@ export default function Home({ pixabay, albumCover }: Props) {
                 )}
                 <motion.div
                   className={clsx(
-                    "relative flex w-full min-w-0 overflow-hidden",
+                    "relative flex w-full min-w-0 overflow-hidden rounded-2xl",
                     section.maxWidth ? "justify-center" : "justify-start",
-                    isCollapsed ? "pointer-events-none hidden" : "pointer-events-auto flex"
+                    isCollapsed
+                      ? "pointer-events-none hidden"
+                      : "pointer-events-auto flex"
                   )}
                   style={wrapperStyle}
                   animate={
@@ -260,14 +262,16 @@ export default function Home({ pixabay, albumCover }: Props) {
                       type="button"
                       onClick={() => toggleSection(section.id)}
                       className={clsx(
-                        "absolute right-4 top-2 z-10 flex h-9 w-9 items-center justify-center rounded-full border text-lg font-semibold focus-visible:outline-none focus-visible:ring-2",
-                        "border-white/15 bg-black/50 text-white hover:bg-black/70 focus-visible:ring-emerald-300/50"
+                        "absolute right-5 top-4 z-10 flex h-9 w-9 items-center justify-center rounded-full border font-semibold focus-visible:outline-none focus-visible:ring-2",
+                        "border-white/15 bg-black/50 text-white/80 hover:bg-black/70 focus-visible:ring-emerald-300/50 text-[12px] uppercase tracking-[0.3em]"
                       )}
                       aria-label={`Collapse ${section.title}`}
                     >
                       −
                     </button>
-                    <div className="h-full w-full">{section.render()}</div>
+                    <div className="h-full w-full p-0 md:pt-2 md:px-4 pb-4">
+                      {section.render()}
+                    </div>
                   </div>
                 </motion.div>
               </div>
