@@ -287,7 +287,7 @@ export default function Home({ pixabay, albumCover, lyricsAvailable }: Props) {
                     >
                       −
                     </button>
-                    <div className="h-full w-full p-0 md:pt-2 md:px-4 pb-4">
+                    <div className="h-full w-full p-0 md:pt-2 md:px-1 xl:px-3 pb-4">
                       {section.render()}
                     </div>
                   </div>
