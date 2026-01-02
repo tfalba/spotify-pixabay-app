@@ -426,7 +426,7 @@ export default function ManagePlaylistAndSearch({
               "flex h-fit min-h-0 flex-col rounded-[24px] border border-white/10 bg-white/5 p-2 lg:p-3 text-white shadow-glow"
             )}
           >
-            <div className="mb-1 flex flex-col md:flex-row items-start md:items-center justify-between md:justify-start gap-3 flex-wrap">
+            <div className="mb-1 flex flex-col md:flex-row items-start md:items-center justify-between md:justify-start gap-3 flex-wrap overflow-x-hidden">
               <div className="flex items-center">
                 <h2
                   className={clsx(
