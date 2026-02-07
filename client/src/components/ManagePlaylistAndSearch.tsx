@@ -569,6 +569,17 @@ export default function ManagePlaylistAndSearch({
                     )}
                   >
                     Manage Playlists
+                    {!loggedIn && (
+                      <span className="normal-case tracking-[0] group relative ml-2 inline-flex h-5 w-5 items-center justify-center rounded-full border border-white/20 text-[12px] font-semibold text-white/70">
+                        i
+                        <span
+                          role="tooltip"
+                          className="pointer-events-none absolute left-1/2 top-full z-10 mt-2 w-56 -translate-x-1/2 rounded-lg border border-white/10 bg-[#0a0f16] px-3 py-2 text-[12px] font-normal text-white/80 opacity-0 shadow-[0_14px_30px_rgba(15,23,42,0.45)] transition-opacity duration-200 group-hover:opacity-100"
+                        >
+                          Sample playlist available while logged out.
+                        </span>
+                      </span>
+                    )}
                   </h2>
                   {loggedIn ? (
                     <div className="flex flex-[2] justify-end gap-4">
@@ -595,15 +606,7 @@ export default function ManagePlaylistAndSearch({
                       </button>
                     </div>
                   )
-                  :
-                      <div
-                  className={clsx(
-                    "rounded-2xl border border-white/10 bg-black/30 px-4 py-2 text-[15px] text-white/80"
-                  )}
-                >
-                  Sample playlist available while logged out.
-                </div>
-                  }
+                  : null}
                 </div>
               </div>
 
