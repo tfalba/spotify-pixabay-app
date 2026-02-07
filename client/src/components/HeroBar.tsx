@@ -41,15 +41,15 @@ export default function HeroBar({
   return (
     <motion.section
       initial={{ height: "600px" }}
-      animate={{ height: "315px", minHeight: "315px" }}
+      animate={{ height: "296px", minHeight: "296px" }}
       transition={{ duration: 1.1, ease: "easeOut" }}
-      className="relative min-h[315px] h-[315px] overflow-hidden rounded-[32px] border border-black/90 bg-contain bg-center px-4 py-6 mb-4 shadow-[0_20px_50px_rgba(124,92,252,0.25)]"
+      className="relative min-h[296px] h-[296px] overflow-hidden rounded-[32px] border border-black/90 bg-contain bg-center px-4 py-6 mb-4 shadow-[0_20px_50px_rgba(124,92,252,0.25)]"
       style={{ backgroundImage: heroBanner ? `url(${heroBanner})` : undefined }}
     >
       <div
         className={clsx(
           "pointer-events-none absolute inset-0",
-          panelOpen ? "opacity-80" : "opacity-40",
+          panelOpen ? "opacity-20" : "opacity-10",
           "bg-gradient-to-r from-[#0b0f14]/80 via-[#0f1722]/80 to-[#0f2a2a]/70",
         )}
       />

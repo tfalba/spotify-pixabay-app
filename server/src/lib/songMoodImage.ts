@@ -89,6 +89,8 @@ const prompt =
   `- Select or blend styles that best amplify the emotional tone and atmosphere of the lyrics.\n` +
   `- Use expressive lighting, strong mood, and visually intentional color palettes.\n` +
   `- Avoid all text, logos, or typography.\n` +
+  `- Incorporate elements that evoke the song's themes and emotions.\n` +
+  `- Avoid using overly dark colors and too much black, images should be visible.\n` +
   `- The artwork must feel bespoke—more like a unique album cover than generic stock art.\n`;
 
   try {
