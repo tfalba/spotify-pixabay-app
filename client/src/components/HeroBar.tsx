@@ -41,9 +41,9 @@ export default function HeroBar({
   return (
     <motion.section
       initial={{ height: "600px" }}
-      animate={{ height: "296px", minHeight: "296px" }}
+      animate={{ height: "270px", minHeight: "270px" }}
       transition={{ duration: 1.1, ease: "easeOut" }}
-      className="relative min-h[296px] h-[296px] overflow-hidden rounded-[32px] border border-black/90 bg-contain bg-center px-4 py-6 mb-4 shadow-[0_20px_50px_rgba(124,92,252,0.25)]"
+      className="relative min-h[270px] h-[270px] overflow-hidden rounded-[32px] border border-black/90 bg-contain bg-center px-4 py-6 mb-4 shadow-[0_20px_50px_rgba(124,92,252,0.25)]"
       style={{ backgroundImage: heroBanner ? `url(${heroBanner})` : undefined }}
     >
       <div

@@ -156,7 +156,7 @@ export default function PixabayGrid({
               Visual Moodboard
             </h2>
             <p className={clsx("text-sm text-slate-400")}>
-              Curated image prompts from your selected lyrics.
+              Curated images from your selected song.
             </p>
           </div>
           <button
@@ -174,7 +174,7 @@ export default function PixabayGrid({
 
         <div
           className={`flex flex-col gap-1 ${
-            imageList.length === 0 ? "m-auto" : "mt-1"
+            imageList.length === 0 ? "m-auto" : "mt-1 overflow-y-auto"
           }`}
         >
           <div className="flex items-center justify-center mt-4">

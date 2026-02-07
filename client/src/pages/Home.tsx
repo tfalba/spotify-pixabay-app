@@ -138,6 +138,11 @@ export default function Home({ pixabay, albumCover, lyricsAvailable }: Props) {
     [sectionMeta, collapsed]
   );
 
+  const expandedColumns = useMemo(
+    () => sectionMeta.map((section) => `${section.ratio}fr`).join(" "),
+    [sectionMeta]
+  );
+
   type SectionId = SectionConfig["id"];
 
   const expandButtonRefs = useRef<Record<SectionId, HTMLButtonElement | null>>({
@@ -164,6 +169,33 @@ export default function Home({ pixabay, albumCover, lyricsAvailable }: Props) {
   const mainClass = clsx(
     "relative flex flex-1 flex-col gap-4 rounded-[34px] border p-4 ring-1 before:pointer-events-none before:absolute before:inset-0 before:rounded-[34px] before:opacity-80 before:blur before:content-[''] lg:grid",
     "border-white/10 bg-[#0a0e13] text-slate-100 ring-white/10 before:bg-gradient-to-br before:from-white/10 before:via-transparent before:to-amber-500/10 shadow-[0_20px_50px_rgba(124,92,252,0.25)] "
+  );
+
+  const infoColumns = useMemo(
+    () => [
+      {
+        id: "manage",
+        title: "1. Pick from Your Playlists Or Search Spotify",
+        body:
+          "Choose a playlist or search for a track and play to start the mood gallery. When logged out, use the sample playlist to preview or search for tracks. Managing and adding to playlists is also possible.",
+        maxWidth: 1050,
+      },
+      {
+        id: "lyrics",
+        title: "2. Song Lyrics",
+        body:
+          "Lyrics load for the current track and are used to extract visual keywords.",
+        maxWidth: 1050,
+      },
+      {
+        id: "pixabay",
+        title: "3. Watch The Moodboard Come to Life",
+        body:
+          "Pixabay results based on lyric keywords render into a flipping grid and a hero image is generated that follows the song’s mood.",
+        maxWidth: 1200,
+      },
+    ],
+    []
   );
 
   useEffect(() => {
@@ -297,6 +329,40 @@ export default function Home({ pixabay, albumCover, lyricsAvailable }: Props) {
             );
           })}
         </main>
+        <section
+          className={clsx(
+            "mt-4 flex flex-col md:grid md:grid-cols-1 gap-4 text-white/80 lg:grid"
+          )}
+          style={{ gridTemplateColumns: expandedColumns }}
+          aria-label="How it works"
+        >
+          {infoColumns.map((step) => {
+            const wrapperStyle = step.maxWidth
+              ? { maxWidth: `${step.maxWidth}px` }
+              : undefined;
+            return (
+              <div
+                key={step.id}
+                className={clsx(
+                  "flex min-w-0",
+                  step.maxWidth ? "justify-center" : "justify-start"
+                )}
+              >
+                <div
+                  className={clsx(
+                    "w-full rounded-2xl border border-white/10 bg-white/5 p-4 shadow-[0_14px_30px_rgba(63,81,181,0.25)]"
+                  )}
+                  style={wrapperStyle}
+                >
+                  <div className="text-sm font-semibold uppercase tracking-[0.2em] text-slate-300">
+                    {step.title}
+                  </div>
+                  <p className="mt-2 text-sm text-white/70">{step.body}</p>
+                </div>
+              </div>
+            );
+          })}
+        </section>
       </SectionsProvider>
     </PlaylistsProvider>
   );

@@ -624,14 +624,6 @@ export default function ManagePlaylistAndSearch({
 
             {!loggedIn ? (
               <div className="overflow-x-hidden">
-                {/* <div
-                  className={clsx(
-                    "rounded-2xl border border-white/10 bg-black/30 px-4 py-3 text-sm text-white/80"
-                  )}
-                >
-                  Sample playlist available while logged out.
-                </div> */}
-
                 {sampleSelected ? (
                   <div className="mt-4 flex flex-1 min-h-0 flex-col gap-2">
                     <div className="relative flex flex-wrap items-start gap-3">

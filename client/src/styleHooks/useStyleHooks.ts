@@ -26,8 +26,8 @@ export function useSectionClass(_isLight: boolean, colNum: number = 2) {
 
   return clsx(
     `flex min-w-0 flex-col rounded-[28px] border border-white/10 min-h-auto bg-gradient-to-br ${columnPalette[colNum].from} ${columnPalette[colNum].via} ${columnPalette[colNum].to} ${columnPalette[colNum].base}`,
-    colNum === 1 && `max-h-[min(200vw,max(520px,calc(100vh-8rem)))] px-1 py-2`,
-    colNum === 2 && ` max-h-[min(200vw,max(520px,calc(100vh-8rem)))] p-4`,
-    colNum === 3 && `min-h-[calc(100vh-8rem)] max-h-fit p-4`
+    colNum === 1 && `min-h-[max(520px,calc(100vh-15rem))] max-h-[min(200vw,max(520px,calc(100vh-15rem)))] px-1 py-2`,
+    colNum === 2 && `min-h-[max(520px,calc(100vh-15rem))] max-h-[min(200vw,max(520px,calc(100vh-15rem)))] p-4`,
+    colNum === 3 && `min-h-[max(520px,calc(100vh-15rem))] max-h-[min(200vw,max(520px,calc(100vh-15rem)))] p-4`
   );
 }
