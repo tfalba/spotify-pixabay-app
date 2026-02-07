@@ -7,14 +7,21 @@ export const env = {
   SPOTIFY_REDIRECT_URI:
     process.env.SPOTIFY_REDIRECT_URI || "http://127.0.0.1:5174/auth/callback",
   SPOTIFY_SCOPES:
-    process.env.SPOTIFY_SCOPES || "user-read-email user-read-private playlist-read-private playlist-read-collaborative user-read-playback-state user-modify-playback-state playlist-modify-public playlist-modify-private",
+    process.env.SPOTIFY_SCOPES ||
+    "user-read-email user-read-private playlist-read-private playlist-read-collaborative user-read-playback-state user-modify-playback-state playlist-modify-public playlist-modify-private",
   SESSION_SECRET: process.env.SESSION_SECRET || "dev_secret_change_me",
-    CLIENT_ORIGIN: process.env.CLIENT_ORIGIN || "http://127.0.0.1:5173",
+  CLIENT_ORIGIN: process.env.CLIENT_ORIGIN || "http://127.0.0.1:5173",
 
   PIXABAY_API_KEY: process.env.PIXABAY_API_KEY || "",
   LYRICS_PROVIDER: process.env.LYRICS_PROVIDER || "",
   OPENAI_API_KEY: process.env.OPENAI_API_KEY || "",
   COOKIE_SECRET: process.env.COOKIE_SECRET || "super-secret",
-  ALLOWED_ORIGINS: (process.env.ALLOWED_ORIGINS || "http://127.0.0.1:5173").split(","),
+  RESEND_API_KEY: process.env.RESEND_API_KEY || "",
+  RESEND_FROM: process.env.RESEND_FROM || "",
+  RESEND_TO: process.env.RESEND_TO || "",
+  HCAPTCHA_SECRET_KEY: process.env.HCAPTCHA_SECRET_KEY || "",
+  ALLOWED_ORIGINS: (
+    process.env.ALLOWED_ORIGINS || "http://127.0.0.1:5173"
+  ).split(","),
   PORT: process.env.PORT || 5174,
 };
