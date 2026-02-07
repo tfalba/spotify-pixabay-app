@@ -56,8 +56,8 @@ export async function imagesFromLyrics(
   // Remove accidental duplicates just in case
   queries = Array.from(new Set(queries));
 
-  const desiredTotal = 48;
-  const oversample = 12;
+  const desiredTotal = 40;
+  const oversample = 16;
   const totalTarget = desiredTotal + oversample;
 
   const perQuery = Math.ceil(totalTarget / queries.length); // ~7 each for 6 queries
@@ -72,7 +72,7 @@ export async function imagesFromLyrics(
   // Bias toward more "popular" images using downloads/likes/views
   const sorted = sortByPopularity(all);
 
-  // Take the top 30, then shuffle for variety in the UI
+  // Take the top N, then shuffle for variety in the UI
   const picked = sorted.slice(0, desiredTotal);
 
   const images: ImageCard[] = picked.map((h) => ({
@@ -98,11 +98,11 @@ export async function imagesFromLyrics(
 export async function imagesForDemo(): Promise<{ keywords: string[]; images: ImageCard[] }> {
   const keywords = ["music"];
   const batches = await Promise.all(
-    keywords.map((k) => fetchPixabayImagesForKeyword(k, 40)),
+    keywords.map((k) => fetchPixabayImagesForKeyword(k, 60)),
   );
 
   const all = dedupeById(batches.flat());
-  const picked = sortByPopularity(all).slice(0, 30);
+  const picked = sortByPopularity(all).slice(0, 40);
 
   const images: ImageCard[] = picked.map((h) => ({
     id: h.id,

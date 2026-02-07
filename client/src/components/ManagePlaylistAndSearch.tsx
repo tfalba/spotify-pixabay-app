@@ -27,6 +27,7 @@ import {
   type SpotifyTrack,
 } from "@/lib/spotify";
 import { useSectionClass } from "@/styleHooks/useStyleHooks";
+import { samplePlaylist } from "@/data/samplePlaylists";
 
 type Props = {
   twoColumnOnLarge?: boolean;
@@ -160,6 +161,11 @@ export default function ManagePlaylistAndSearch({
   const [trackFilter, setTrackFilter] = useState(
     () => lastPanelState?.trackFilter ?? ""
   );
+  const [sampleSelected, setSampleSelected] = useState(false);
+  const [sampleTracksState, setSampleTracksState] = useState<Track[]>(
+    () => samplePlaylist.tracks.map(toTrack)
+  );
+  const [sampleLoading, setSampleLoading] = useState(false);
 
   const stopPlayback = useCallback(() => {
     pause().catch(() => {});
@@ -297,6 +303,7 @@ export default function ManagePlaylistAndSearch({
     setSelectedPlaylistId(null);
     dispatchTracks({ type: "reset" });
     setTrackFilter("");
+    setSampleSelected(false);
   }, [loggedIn, setSelectedPlaylistId]);
 
   useEffect(() => {
@@ -373,6 +380,30 @@ export default function ManagePlaylistAndSearch({
     setSelectedPlaylistId,
   ]);
 
+  useEffect(() => {
+    if (loggedIn) return;
+    let active = true;
+    const baseTracks = samplePlaylist.tracks;
+
+    setSampleLoading(true);
+    enrichMissingPreviews(baseTracks as SpotifyTrack[], { limit: 6 })
+      .then((enriched) => {
+        if (!active) return;
+        setSampleTracksState((enriched ?? []).map(toTrack));
+      })
+      .catch(() => {
+        if (!active) return;
+        setSampleTracksState(baseTracks.map(toTrack));
+      })
+      .finally(() => {
+        if (active) setSampleLoading(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [loggedIn]);
+
   const handleSelect = useCallback(
     (playlist: SpotifyPlaylist) => {
       setTrackFilter("");
@@ -387,6 +418,20 @@ export default function ManagePlaylistAndSearch({
     dispatchTracks({ type: "reset" });
     setTrackFilter("");
   }, [setSelectedPlaylistId]);
+
+  const sampleFilteredTracks = useMemo(
+    () => applyFilter(sampleTracksState, trackFilter),
+    [applyFilter, sampleTracksState, trackFilter]
+  );
+
+  const sampleThumb = useMemo(() => {
+    const images = samplePlaylist.images ?? [];
+    return (
+      images[images.length - 1]?.url ??
+      images[0]?.url ??
+      ""
+    );
+  }, []);
 
   return (
     <section className={clsx(sectionClass, "h-full min-h-0 gap-4")}>
@@ -569,12 +614,102 @@ export default function ManagePlaylistAndSearch({
             </div>
 
             {!loggedIn ? (
-              <div
-                className={clsx(
-                  "rounded-2xl border border-white/10 bg-black/30 px-4 py-3 text-sm text-white/80 overflow-x-hidden"
+              <div className="overflow-x-hidden">
+                <div
+                  className={clsx(
+                    "rounded-2xl border border-white/10 bg-black/30 px-4 py-3 text-sm text-white/80"
+                  )}
+                >
+                  Sample playlist available while logged out.
+                </div>
+
+                {sampleSelected ? (
+                  <div className="mt-4 flex flex-1 min-h-0 flex-col gap-2">
+                    <div className="relative flex flex-wrap items-start gap-3">
+                      <div className="min-w-0 flex items-center gap-col-4 flex-wrap flex-1">
+                        <div className="truncate text-base font-semibold">
+                          {samplePlaylist.name}
+                        </div>
+                        <div className="truncate text-xs text-slate-400">
+                          Sample playlist · {samplePlaylist.tracks.length} tracks
+                        </div>
+                      </div>
+                      <div className="ml-auto flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setSampleSelected(false);
+                            setTrackFilter("");
+                          }}
+                          className="rounded-full border border-white/20 px-3 py-2 text-[11px] uppercase tracking-[0.2em] text-white/80 transition hover:border-white/40 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-200/60"
+                        >
+                          ← Back
+                        </button>
+                        <input
+                          type="text"
+                          value={trackFilter}
+                          onChange={(e) => handleFilterChange(e.target.value)}
+                          placeholder="Filter tracks..."
+                          className={clsx(
+                            "w-48 rounded-full border border-white/20 bg-white/5 px-3 py-1 text-sm text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300/60"
+                          )}
+                        />
+                      </div>
+                    </div>
+
+                    {sampleLoading ? (
+                      <div className="flex flex-1 items-center justify-center text-sm text-slate-400">
+                        Loading preview samples…
+                      </div>
+                    ) : (
+                      <TrackList
+                        tracks={sampleFilteredTracks}
+                        queue={sampleTracksState}
+                        twoColumnOnLarge={twoColumnOnLarge}
+                      />
+                    )}
+                  </div>
+                ) : (
+                  <div
+                    className={clsx(
+                      "mt-4 grid flex-1 grid-cols-1 gap-4 pr-1",
+                      compactPlaylistGrid
+                        ? "lg:grid-cols-2 xl:grid-cols-2 2xl:grid-cols-3"
+                        : "grid-cols-1 2xl:grid-cols-2"
+                    )}
+                  >
+                    <button
+                      type="button"
+                      onClick={() => setSampleSelected(true)}
+                      className={clsx(
+                        "flex flex-col gap-3 rounded-2xl border border-white/10 bg-black/30 p-4 text-left shadow-[0_14px_30px_rgba(88,92,107,0.55)] transition hover:border-emerald-300/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-200/50"
+                      )}
+                    >
+                      <div className="flex items-center gap-3">
+                        {sampleThumb ? (
+                          <img
+                            src={sampleThumb}
+                            alt=""
+                            className="h-12 w-12 rounded-xl object-cover"
+                            loading="lazy"
+                          />
+                        ) : (
+                          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-400 to-amber-400 text-lg font-semibold text-slate-900">
+                            {samplePlaylist.name.charAt(0)}
+                          </div>
+                        )}
+                        <div className="min-w-0">
+                          <div className="truncate text-sm font-semibold">
+                            {samplePlaylist.name}
+                          </div>
+                          <div className="truncate text-xs text-slate-400">
+                            Sample playlist · {samplePlaylist.tracks.length} tracks
+                          </div>
+                        </div>
+                      </div>
+                    </button>
+                  </div>
                 )}
-              >
-                Log in to view and manage your playlists.
               </div>
             ) : (
               <div className="overflow-x-hidden">

@@ -1,0 +1,292 @@
+import type { SpotifyDemoPlaylist } from "@/lib/spotify";
+
+export const samplePlaylist: SpotifyDemoPlaylist = {
+  id: "12166530026",
+  name: "Boss Babes",
+  images: [
+    {
+      height: 640,
+      url: "https://mosaic.scdn.co/640/ab67616d00001e028db37bc9a58543471bee78c5ab67616d00001e029abdf14e6058bd3903686148ab67616d00001e02e3393cc1df54616b1e7a388dab67616d00001e02f8553e18a11209d4becd0336",
+      width: 640,
+    },
+    {
+      height: 300,
+      url: "https://mosaic.scdn.co/300/ab67616d00001e028db37bc9a58543471bee78c5ab67616d00001e029abdf14e6058bd3903686148ab67616d00001e02e3393cc1df54616b1e7a388dab67616d00001e02f8553e18a11209d4becd0336",
+      width: 300,
+    },
+    {
+      height: 60,
+      url: "https://mosaic.scdn.co/60/ab67616d00001e028db37bc9a58543471bee78c5ab67616d00001e029abdf14e6058bd3903686148ab67616d00001e02e3393cc1df54616b1e7a388dab67616d00001e02f8553e18a11209d4becd0336",
+      width: 60,
+    },
+  ],
+  tracks: [
+    {
+      id: "2il8ICaZ6X9eQ8GiobqqcJ",
+      name: "'Tain't Nobody's Bizness If I Do",
+      preview_url: null,
+      external_url: "https://open.spotify.com/track/2il8ICaZ6X9eQ8GiobqqcJ",
+      image: "https://mosaic.scdn.co/640/ab67616d00001e028db37bc9a58543471bee78c5ab67616d00001e029abdf14e6058bd3903686148ab67616d00001e02e3393cc1df54616b1e7a388dab67616d00001e02f8553e18a11209d4becd0336",
+      uri: "spotify:track:2il8ICaZ6X9eQ8GiobqqcJ",
+      artists: [
+        {
+          name: "Bessie Smith",
+        },
+      ],
+      album: {
+        images: [
+          {
+            height: 640,
+            url: "https://i.scdn.co/image/ab67616d0000b273e3393cc1df54616b1e7a388d",
+            width: 640,
+          },
+          {
+            height: 300,
+            url: "https://i.scdn.co/image/ab67616d00001e02e3393cc1df54616b1e7a388d",
+            width: 300,
+          },
+          {
+            height: 64,
+            url: "https://i.scdn.co/image/ab67616d00004851e3393cc1df54616b1e7a388d",
+            width: 64,
+          },
+        ],
+        name: "The Collection",
+      },
+    },
+    {
+      id: "1p80LdxRV74UKvL8gnD7ky",
+      name: "Blank Space",
+      preview_url: null,
+      external_url: "https://open.spotify.com/track/1p80LdxRV74UKvL8gnD7ky",
+      image: "https://i.scdn.co/image/ab67616d0000b2739abdf14e6058bd3903686148",
+      uri: "spotify:track:1p80LdxRV74UKvL8gnD7ky",
+      artists: [
+        {
+          name: "Taylor Swift",
+        },
+      ],
+      album: {
+        images: [
+          {
+            height: 640,
+            url: "https://i.scdn.co/image/ab67616d0000b2739abdf14e6058bd3903686148",
+            width: 640,
+          },
+          {
+            height: 300,
+            url: "https://i.scdn.co/image/ab67616d00001e029abdf14e6058bd3903686148",
+            width: 300,
+          },
+          {
+            height: 64,
+            url: "https://i.scdn.co/image/ab67616d000048519abdf14e6058bd3903686148",
+            width: 64,
+          },
+        ],
+        name: "1989",
+      },
+    },
+    {
+      id: "6ie2Bw3xLj2JcGowOlcMhb",
+      name: "Green Light",
+      preview_url: null,
+      external_url: "https://open.spotify.com/track/6ie2Bw3xLj2JcGowOlcMhb",
+      image: "https://i.scdn.co/image/ab67616d0000b273f8553e18a11209d4becd0336",
+      uri: "spotify:track:6ie2Bw3xLj2JcGowOlcMhb",
+      artists: [
+        {
+          name: "Lorde",
+        },
+      ],
+      album: {
+        images: [
+          {
+            height: 640,
+            url: "https://i.scdn.co/image/ab67616d0000b273f8553e18a11209d4becd0336",
+            width: 640,
+          },
+          {
+            height: 300,
+            url: "https://i.scdn.co/image/ab67616d00001e02f8553e18a11209d4becd0336",
+            width: 300,
+          },
+          {
+            height: 64,
+            url: "https://i.scdn.co/image/ab67616d00004851f8553e18a11209d4becd0336",
+            width: 64,
+          },
+        ],
+        name: "Melodrama",
+      },
+    },
+    {
+      id: "6g0Orsxv6glTJCt4cHsRsQ",
+      name: "Formation",
+      preview_url: null,
+      external_url: "https://open.spotify.com/track/6g0Orsxv6glTJCt4cHsRsQ",
+      image: "https://i.scdn.co/image/ab67616d0000b2738db37bc9a58543471bee78c5",
+      uri: "spotify:track:6g0Orsxv6glTJCt4cHsRsQ",
+      artists: [
+        {
+          name: "Beyoncé",
+        },
+      ],
+      album: {
+        images: [
+          {
+            height: 640,
+            url: "https://i.scdn.co/image/ab67616d0000b2738db37bc9a58543471bee78c5",
+            width: 640,
+          },
+          {
+            height: 300,
+            url: "https://i.scdn.co/image/ab67616d00001e028db37bc9a58543471bee78c5",
+            width: 300,
+          },
+          {
+            height: 64,
+            url: "https://i.scdn.co/image/ab67616d000048518db37bc9a58543471bee78c5",
+            width: 64,
+          },
+        ],
+        name: "Lemonade",
+      },
+    },
+    {
+      id: "3aSWXU6owkZeVhh94XxEWO",
+      name: "30 For 30 (with Kendrick Lamar)",
+      preview_url: null,
+      external_url: "https://open.spotify.com/track/3aSWXU6owkZeVhh94XxEWO",
+      image: "https://i.scdn.co/image/ab67616d0000b27316fdde9f6b5606419ca9b7ca",
+      uri: "spotify:track:3aSWXU6owkZeVhh94XxEWO",
+      artists: [
+        {
+          name: "SZA",
+        },
+        {
+          name: "Kendrick Lamar",
+        },
+      ],
+      album: {
+        images: [
+          {
+            height: 640,
+            url: "https://i.scdn.co/image/ab67616d0000b27316fdde9f6b5606419ca9b7ca",
+            width: 640,
+          },
+          {
+            height: 300,
+            url: "https://i.scdn.co/image/ab67616d00001e0216fdde9f6b5606419ca9b7ca",
+            width: 300,
+          },
+          {
+            height: 64,
+            url: "https://i.scdn.co/image/ab67616d0000485116fdde9f6b5606419ca9b7ca",
+            width: 64,
+          },
+        ],
+        name: "SOS Deluxe: LANA",
+      },
+    },
+    {
+      id: "1zf8Xmj66XRiI6Etw2Ddu7",
+      name: "Don't Rain On My Parade",
+      preview_url: null,
+      external_url: "https://open.spotify.com/track/1zf8Xmj66XRiI6Etw2Ddu7",
+      image: "https://i.scdn.co/image/ab67616d0000b2735b43b4683afb406bca3b3b6b",
+      uri: "spotify:track:1zf8Xmj66XRiI6Etw2Ddu7",
+      artists: [
+        {
+          name: "Barbra Streisand",
+        },
+      ],
+      album: {
+        images: [
+          {
+            height: 640,
+            url: "https://i.scdn.co/image/ab67616d0000b2735b43b4683afb406bca3b3b6b",
+            width: 640,
+          },
+          {
+            height: 300,
+            url: "https://i.scdn.co/image/ab67616d00001e025b43b4683afb406bca3b3b6b",
+            width: 300,
+          },
+          {
+            height: 64,
+            url: "https://i.scdn.co/image/ab67616d000048515b43b4683afb406bca3b3b6b",
+            width: 64,
+          },
+        ],
+        name: "Funny Girl - Original Soundtrack Recording",
+      },
+    },
+    {
+      id: "6LCEyZZHFF4ebF1Mike1s5",
+      name: "Not Ready to Make Nice",
+      preview_url: null,
+      external_url: "https://open.spotify.com/track/6LCEyZZHFF4ebF1Mike1s5",
+      image: "https://i.scdn.co/image/ab67616d0000b273ed795dc9883d624d716db437",
+      uri: "spotify:track:6LCEyZZHFF4ebF1Mike1s5",
+      artists: [
+        {
+          name: "The Chicks",
+        },
+      ],
+      album: {
+        images: [
+          {
+            height: 640,
+            url: "https://i.scdn.co/image/ab67616d0000b273ed795dc9883d624d716db437",
+            width: 640,
+          },
+          {
+            height: 300,
+            url: "https://i.scdn.co/image/ab67616d00001e02ed795dc9883d624d716db437",
+            width: 300,
+          },
+          {
+            height: 64,
+            url: "https://i.scdn.co/image/ab67616d00004851ed795dc9883d624d716db437",
+            width: 64,
+          },
+        ],
+        name: "Taking The Long Way",
+      },
+    },
+    {
+      id: "2SpEHTbUuebeLkgs9QB7Ue",
+      name: "Jolene",
+      preview_url: null,
+      external_url: "https://open.spotify.com/track/2SpEHTbUuebeLkgs9QB7Ue",
+      image: "https://i.scdn.co/image/ab67616d0000b273220f3b1f40e3276662155f16",
+      uri: "spotify:track:2SpEHTbUuebeLkgs9QB7Ue",
+      artists: [
+        {
+          name: "Dolly Parton",
+        },
+      ],
+      album: {
+        images: [
+          {
+            height: 640,
+            url: "https://i.scdn.co/image/ab67616d0000b273220f3b1f40e3276662155f16",
+            width: 640,
+          },
+          {
+            height: 300,
+            url: "https://i.scdn.co/image/ab67616d00001e02220f3b1f40e3276662155f16",
+            width: 300,
+          },
+          {
+            height: 64,
+            url: "https://i.scdn.co/image/ab67616d00004851220f3b1f40e3276662155f16",
+            width: 64,
+          },
+        ],
+        name: "Jolene",
+      },
+    },
+  ],
+};

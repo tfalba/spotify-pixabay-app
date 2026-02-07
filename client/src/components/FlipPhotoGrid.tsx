@@ -11,9 +11,10 @@ export type Img = {
 };
 
 const DEFAULT_COLUMNS = 2; // grid defaults to 2 columns on small screens
-const MIN_VISIBLE_ROWS = 5;
-const MAX_COLUMN_TARGET = 3;
-const MAX_COLUMN_TARGET_FULLSCREEN = 4;
+const MIN_VISIBLE_ROWS = 4;
+const BASE_REQUIRED_CARDS = 20;
+const MAX_COLUMN_TARGET = 4;
+const MAX_COLUMN_TARGET_FULLSCREEN = 5;
 
 function FlipCard({
   front,
@@ -36,7 +37,7 @@ function FlipCard({
       title={front.alt}
       className={clsx(
         "relative block w-full overflow-hidden rounded-xl border-midnight-800/60 perspective-1000",
-        !fullScreen && "aspect-[4/3]"
+        !fullScreen && "aspect-[1]"
       )}
     >
       {/* flipper */}
@@ -209,8 +210,10 @@ function FlipPhotoGridBase({
   const targetColumns = fullScreen
     ? MAX_COLUMN_TARGET_FULLSCREEN
     : MAX_COLUMN_TARGET;
-  const requiredCards =
-    targetColumns * MIN_VISIBLE_ROWS - (heroSlotActive ? 6 : 0);
+  const requiredCards = Math.max(
+    BASE_REQUIRED_CARDS,
+    targetColumns * MIN_VISIBLE_ROWS
+  ) - (heroSlotActive ? 6 : 0);
   const pairs = useMemo(() => {
     const requiredImages = requiredCards * 2;
     const list = [...usableWithAlbum];
@@ -247,7 +250,7 @@ function FlipPhotoGridBase({
   );
 
   const gridClasses = clsx(
-    gridClassName ?? "grid grid-cols-3 2xl:grid-cols-4 gap-3",
+    gridClassName ?? "grid grid-cols-3 xl:grid-cols-4 gap-3",
     "auto-rows-[minmax(120px,_auto)]"
   );
 

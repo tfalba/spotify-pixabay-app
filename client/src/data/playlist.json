@@ -1,0 +1,46 @@
+  {
+            "collaborative": false,
+            "description": "",
+            "external_urls": {
+                "spotify": "https://open.spotify.com/playlist/4p05rb2Pu0g2ZxTcqVnPuf"
+            },
+            "href": "https://api.spotify.com/v1/playlists/4p05rb2Pu0g2ZxTcqVnPuf",
+            "id": "4p05rb2Pu0g2ZxTcqVnPuf",
+            "images": [
+                {
+                    "height": 640,
+                    "url": "https://mosaic.scdn.co/640/ab67616d00001e028db37bc9a58543471bee78c5ab67616d00001e029abdf14e6058bd3903686148ab67616d00001e02e3393cc1df54616b1e7a388dab67616d00001e02f8553e18a11209d4becd0336",
+                    "width": 640
+                },
+                {
+                    "height": 300,
+                    "url": "https://mosaic.scdn.co/300/ab67616d00001e028db37bc9a58543471bee78c5ab67616d00001e029abdf14e6058bd3903686148ab67616d00001e02e3393cc1df54616b1e7a388dab67616d00001e02f8553e18a11209d4becd0336",
+                    "width": 300
+                },
+                {
+                    "height": 60,
+                    "url": "https://mosaic.scdn.co/60/ab67616d00001e028db37bc9a58543471bee78c5ab67616d00001e029abdf14e6058bd3903686148ab67616d00001e02e3393cc1df54616b1e7a388dab67616d00001e02f8553e18a11209d4becd0336",
+                    "width": 60
+                }
+            ],
+            "name": "Boss Babes",
+            "owner": {
+                "display_name": "Tracy Falba",
+                "external_urls": {
+                    "spotify": "https://open.spotify.com/user/12166530026"
+                },
+                "href": "https://api.spotify.com/v1/users/12166530026",
+                "id": "12166530026",
+                "type": "user",
+                "uri": "spotify:user:12166530026"
+            },
+            "primary_color": null,
+            "public": true,
+            "snapshot_id": "AAAAC+j5mlZGkvLZ6oHtPhgOVZrZ9WTa",
+            "tracks": {
+                "href": "https://api.spotify.com/v1/playlists/4p05rb2Pu0g2ZxTcqVnPuf/tracks",
+                "total": 8
+            },
+            "type": "playlist",
+            "uri": "spotify:playlist:4p05rb2Pu0g2ZxTcqVnPuf"
+        }

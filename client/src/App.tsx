@@ -229,7 +229,7 @@ function AppContent() {
 
   const pageBg = clsx("min-h-screen w-full text-slate-100");
   const shell = clsx(
-    "mx-auto flex min-h-screen w-full max-w-[1850px] flex-col px-3 pb-4 md:pb-12 pt-3 md:pt-4 lg:px-10"
+    "mx-auto flex min-h-screen w-full max-w-[2150px] flex-col px-3 pb-4 md:pb-12 pt-3 md:pt-4 lg:px-10"
   );
 
   return (

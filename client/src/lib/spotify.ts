@@ -21,6 +21,24 @@ export type SpotifyPlaylist = {
   owner: { display_name: string | null };
 };
 
+export type SpotifyDemoTrack = {
+  id: string;
+  name: string;
+  preview_url: string | null;
+  external_url: string;
+  image: string | null;
+  uri: string;
+  artists: { name: string }[];
+  album: { images: SpotifyImage[]; name: string };
+};
+
+export type SpotifyDemoPlaylist = {
+  id: string;
+  name: string;
+  images: SpotifyImage[];
+  tracks: SpotifyDemoTrack[];
+};
+
 import { spotifyApiJson } from "./spotifyApi";
 
 // ---- Helpers ----
