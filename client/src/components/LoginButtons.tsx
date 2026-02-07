@@ -10,7 +10,6 @@ const baseInner =
 const API = import.meta.env.VITE_API_BASE || "http://127.0.0.1:5174";
 
 function LoginButton() {
-
   const buttonClasses = clsx(baseButton);
   const borderPill = clsx(
     "pointer-events-none absolute inset-0 z-0 rounded-full border opacity-90 transition duration-200 group-hover:opacity-100",
@@ -22,13 +21,11 @@ function LoginButton() {
   );
 
   return (
-    <div className="flex items-center gap-2">
-      <a href={`${API}/auth/login`} className={buttonClasses}>
-        <span className={borderPill} />
-        <span aria-hidden="true" className={baseShine} />
-        <span className={inner}>Login to Spotify</span>
-      </a>
-    </div>
+    <a href={`${API}/auth/login`} className={buttonClasses}>
+      <span className={borderPill} />
+      <span aria-hidden="true" className={baseShine} />
+      <span className={inner}>Login to Spotify</span>
+    </a>
   );
 }
 

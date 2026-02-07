@@ -50,7 +50,7 @@ export default function HeaderBar({ styleChoice, onStyleChange }: Props) {
             Spotify x Pixabay
           </p>
           <h1 className="text-xl font-semibold tracking-tight text-slate-50 md:text-2xl">
-            Noir Studio
+            Color My Music
           </h1>
         </div>
 
