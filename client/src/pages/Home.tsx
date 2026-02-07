@@ -52,6 +52,11 @@ export default function Home({ pixabay, albumCover, lyricsAvailable }: Props) {
     lyrics: true,
     pixabay: true,
   });
+  const [showBetaRequest, setShowBetaRequest] = useState(false);
+  const [fullName, setFullName] = useState("");
+  const [email, setEmail] = useState("");
+  const dialogRef = useRef<HTMLDivElement | null>(null);
+
   const autoExpandedRef = useRef<string | null>(null);
   const lastTrackKeyRef = useRef<string | null>(null);
   const trackKey = current?.uri ?? current?.id ?? null;
@@ -125,22 +130,26 @@ export default function Home({ pixabay, albumCover, lyricsAvailable }: Props) {
       pixabay.styleChoice,
       allPanelsExpanded,
       somePanelsExpanded,
-    ]
+    ],
   );
 
   const dynamicRows = useMemo(
     () =>
       sectionMeta
         .map((section) =>
-          collapsed[section.id] ? collapsed["lyrics"] && collapsed["manage"] ? "max(256px,30fr)" : "56px" : `${section.ratio}fr`
+          collapsed[section.id]
+            ? collapsed["lyrics"] && collapsed["manage"]
+              ? "max(256px,30fr)"
+              : "56px"
+            : `${section.ratio}fr`,
         )
         .join(" "),
-    [sectionMeta, collapsed]
+    [sectionMeta, collapsed],
   );
 
   const expandedColumns = useMemo(
     () => sectionMeta.map((section) => `${section.ratio}fr`).join(" "),
-    [sectionMeta]
+    [sectionMeta],
   );
 
   type SectionId = SectionConfig["id"];
@@ -150,6 +159,37 @@ export default function Home({ pixabay, albumCover, lyricsAvailable }: Props) {
     lyrics: null,
     pixabay: null,
   });
+
+  const requestHref = (() => {
+    const to = "tracy.falba12@gmail.com";
+    const subject = "Beta access request";
+    const bodyLines = [
+      "Request access to beta version",
+      "",
+      `Full Name: ${fullName || "(not provided)"}`,
+      `Email for Spotify Account: ${email || "(not provided)"}`,
+    ];
+    const body = bodyLines.join("\n");
+    return `mailto:${encodeURIComponent(to)}?subject=${encodeURIComponent(
+      subject,
+    )}&body=${encodeURIComponent(body)}`;
+  })();
+
+  useEffect(() => {
+    if (!showBetaRequest) return;
+    dialogRef.current?.focus();
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setShowBetaRequest(false);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [showBetaRequest]);
+
+  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    window.location.href = requestHref;
+    setShowBetaRequest(false);
+  }
 
   const toggleSection = useCallback((id: SectionId) => {
     setCollapsed((prev) => {
@@ -168,34 +208,31 @@ export default function Home({ pixabay, albumCover, lyricsAvailable }: Props) {
 
   const mainClass = clsx(
     "relative flex flex-1 flex-col gap-4 rounded-[34px] border p-4 ring-1 before:pointer-events-none before:absolute before:inset-0 before:rounded-[34px] before:opacity-80 before:blur before:content-[''] lg:grid",
-    "border-white/10 bg-[#0a0e13] text-slate-100 ring-white/10 before:bg-gradient-to-br before:from-white/10 before:via-transparent before:to-amber-500/10 shadow-[0_20px_50px_rgba(124,92,252,0.25)] "
+    "border-white/10 bg-[#0a0e13] text-slate-100 ring-white/10 before:bg-gradient-to-br before:from-white/10 before:via-transparent before:to-amber-500/10 shadow-[0_20px_50px_rgba(124,92,252,0.25)] ",
   );
 
   const infoColumns = useMemo(
     () => [
       {
         id: "manage",
-        title: "1. Pick from Your Playlists Or Search Spotify",
-        body:
-          "Choose a playlist or search for a track and play to start the mood gallery. When logged out, use the sample playlist to preview or search for tracks. Managing and adding to playlists is also possible.",
+        title: "1. Choose From Playlists Or Search Spotify",
+        body: "Choose a playlist or search for a track, then play to start the mood gallery. Use the sample playlist to preview or search for tracks.",
         maxWidth: 1050,
       },
       {
         id: "lyrics",
         title: "2. Song Lyrics",
-        body:
-          "Lyrics load for the current track and are used to extract visual keywords.",
+        body: "Lyrics load for the current track and are used to extract visual keywords.",
         maxWidth: 1050,
       },
       {
         id: "pixabay",
         title: "3. Watch The Moodboard Come to Life",
-        body:
-          "Pixabay results based on lyric keywords render into a flipping grid and a hero image is generated that follows the song’s mood.",
+        body: "Pixabay results based on lyric keywords render into a flipping grid and a hero image is generated that follows the song’s mood.",
         maxWidth: 1200,
       },
     ],
-    []
+    [],
   );
 
   useEffect(() => {
@@ -259,7 +296,7 @@ export default function Home({ pixabay, albumCover, lyricsAvailable }: Props) {
                   "relative min-w-0 lg:min-h-[calc(50vh-4rem)] pb-4 rounded-2xl",
                   isCollapsed
                     ? "flex justify-end items-start lg:justify-start"
-                    : "block"
+                    : "block",
                 )}
               >
                 {isCollapsed && (
@@ -271,7 +308,7 @@ export default function Home({ pixabay, albumCover, lyricsAvailable }: Props) {
                     }}
                     className={clsx(
                       "mt-2 mx-2 flex flex-row-reverse lg:flex-col w-fit lg:w-auto items-center gap-2 rounded-2xl border px-2 lg:px-2 pl-4 lg:pl-2 py-2 lg:py-3 text-s font-semibold uppercase tracking-[0.2em] focus-visible:outline-none focus-visible:ring-2",
-                      "border-white/50 bg-transparent text-white/80 focus-visible:ring-emerald-300/50 shadow-[0_20px_50px_rgba(0,150,136,0.55)]"
+                      "border-white/50 bg-transparent text-white/80 focus-visible:ring-emerald-300/50 shadow-[0_20px_50px_rgba(0,150,136,0.55)]",
                     )}
                     aria-label={`Expand ${section.title}`}
                   >
@@ -296,7 +333,7 @@ export default function Home({ pixabay, albumCover, lyricsAvailable }: Props) {
                     section.maxWidth ? "justify-center" : "justify-start",
                     isCollapsed
                       ? "pointer-events-none hidden"
-                      : "pointer-events-auto flex"
+                      : "pointer-events-auto flex",
                   )}
                   style={wrapperStyle}
                   animate={
@@ -314,7 +351,7 @@ export default function Home({ pixabay, albumCover, lyricsAvailable }: Props) {
                       onClick={() => toggleSection(section.id)}
                       className={clsx(
                         "absolute right-2 top-2 md:right-5 md:top-4 z-10 flex h-9 w-9 items-center justify-center rounded-full border font-semibold focus-visible:outline-none focus-visible:ring-2",
-                        "border-white/15 bg-black/50 text-white/80 hover:bg-black/70 focus-visible:ring-emerald-300/50 text-[12px] uppercase tracking-[0.3em]"
+                        "border-white/15 bg-black/50 text-white/80 hover:bg-black/70 focus-visible:ring-emerald-300/50 text-[12px] uppercase tracking-[0.3em]",
                       )}
                       aria-label={`Collapse ${section.title}`}
                     >
@@ -331,7 +368,7 @@ export default function Home({ pixabay, albumCover, lyricsAvailable }: Props) {
         </main>
         <section
           className={clsx(
-            "mt-4 flex flex-col md:grid md:grid-cols-1 gap-4 text-white/80 lg:grid"
+            "mt-4 flex flex-col md:grid md:grid-cols-1 gap-4 text-white/80 lg:grid",
           )}
           style={{ gridTemplateColumns: expandedColumns }}
           aria-label="How it works"
@@ -345,12 +382,12 @@ export default function Home({ pixabay, albumCover, lyricsAvailable }: Props) {
                 key={step.id}
                 className={clsx(
                   "flex min-w-0",
-                  step.maxWidth ? "justify-center" : "justify-start"
+                  step.maxWidth ? "justify-center" : "justify-start",
                 )}
               >
                 <div
                   className={clsx(
-                    "w-full rounded-2xl border border-white/10 bg-white/5 p-4 shadow-[0_14px_30px_rgba(63,81,181,0.25)]"
+                    "w-full rounded-2xl border border-white/10 bg-white/5 p-4 shadow-[0_14px_30px_rgba(63,81,181,0.25)]",
                   )}
                   style={wrapperStyle}
                 >
@@ -363,6 +400,87 @@ export default function Home({ pixabay, albumCover, lyricsAvailable }: Props) {
             );
           })}
         </section>
+        <aside className="flex mt-4 gap-2 items-center">
+          <span className="font-script inline-flex h-5 w-5 font-times items-center justify-center rounded-full border border-white/45 bg-lilac/20 text-[16px] font-semibold text-white/90 p-3">
+            i
+          </span>
+          <div className="flex items-center gap-2 text-[16px]">
+            <span className="font-script text-emerald-300 font-light">
+              Login required for full playback access. Request access to beta
+              version.
+            </span>
+            <button
+              type="button"
+              className="pointer-events-auto inline-flex h-6 w-6 items-center justify-center rounded-full font-semibold text-emerald-300 border border-white/20 text-[16px] hover:bg-white/10"
+              onClick={() => setShowBetaRequest(true)}
+              aria-label="Open beta request form"
+            >
+              →
+            </button>
+          </div>
+        </aside>
+        {showBetaRequest && (
+          <div
+            className="fixed inset-0 z-[70] flex items-center justify-center bg-black/60 px-4"
+            onClick={() => setShowBetaRequest(false)}
+          >
+            <div
+              className="w-full max-w-md rounded-2xl border border-white/10 bg-[#0a0f16] p-5 shadow-[0_20px_50px_rgba(15,23,42,0.55)]"
+              onClick={(e) => e.stopPropagation()}
+              ref={dialogRef}
+              tabIndex={-1}
+            >
+              <div className="mb-4 flex items-center justify-between">
+                <h3 className="text-[15px] font-semibold text-white">
+                  Request Access
+                </h3>
+                <button
+                  type="button"
+                  className="rounded-full px-2 py-1 text-[14px] text-white/70 hover:bg-white/10"
+                  onClick={() => setShowBetaRequest(false)}
+                >
+                  ✕
+                </button>
+              </div>
+              <form className="space-y-3" onSubmit={handleSubmit}>
+                <label className="block text-[14px] text-white/70">
+                  Full Name
+                  <input
+                    className="mt-1 w-full rounded-xl border border-white/10 bg-black/40 px-3 py-2 text-[15px] text-white focus:outline-none focus:ring-2 focus:ring-emerald-300/60"
+                    value={fullName}
+                    onChange={(e) => setFullName(e.target.value)}
+                    placeholder="Your name"
+                  />
+                </label>
+                <label className="block text-[14px] text-white/70">
+                  Email for Spotify Account
+                  <input
+                    type="email"
+                    className="mt-1 w-full rounded-xl border border-white/10 bg-black/40 px-3 py-2 text-[15px] text-white focus:outline-none focus:ring-2 focus:ring-emerald-300/60"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="you@example.com"
+                  />
+                </label>
+                <div className="flex items-center justify-end gap-2 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setShowBetaRequest(false)}
+                    className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[14px] text-white/70 hover:bg-white/10"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="rounded-full border border-transparent bg-emerald-300/90 px-3 py-1 text-[14px] font-semibold text-slate-900 shadow-[0_12px_25px_-18px_rgba(16,185,129,0.7)]"
+                  >
+                    Submit
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
       </SectionsProvider>
     </PlaylistsProvider>
   );

@@ -12,6 +12,11 @@ export default {
   		'2xl': '1536px'
   	},
   	extend: {
+		  fontFamily: {
+        cursive: ['"Pacifico"', 'cursive'],
+		  script: ['"Dancing Script"', 'cursive'],
+
+      },
   		screens: {
   			xxl: '1300px'
   		},

@@ -505,7 +505,7 @@ export default function ManagePlaylistAndSearch({
               </div>
               <div className="flex-wrap space-y-2 flex flex-col md:flex-[2] md:flex-row w-auto gap-4 justify-end">
                 {!loggedIn && (
-                  <LoginButton betaSubmit={true} />
+                  <LoginButton/>
                 )}
 
                 {loggedIn && !fullPlaybackEnabled && (
@@ -601,7 +601,7 @@ export default function ManagePlaylistAndSearch({
               </div>
 
               {!loggedIn ? (
-                <LoginButton betaSubmit={true} />
+                <LoginButton />
               ) : (
                 !fullPlaybackEnabled && (
                   <button
@@ -667,9 +667,9 @@ export default function ManagePlaylistAndSearch({
                 ) : (
                   <div
                     className={clsx(
-                      "mt-4 grid flex-1 grid-cols-1 gap-4 pr-1",
+                      "grid flex-1 grid-cols-1 gap-4 pr-1",
                       compactPlaylistGrid
-                        ? "lg:grid-cols-2 xl:grid-cols-2 2xl:grid-cols-3"
+                        ? "lg:grid-cols-2 xl:grid-cols-2"
                         : "grid-cols-1 2xl:grid-cols-2",
                     )}
                   >
