@@ -357,7 +357,7 @@ export default function Home({ pixabay, albumCover, lyricsAvailable }: Props) {
                   <div className="text-sm font-semibold uppercase tracking-[0.2em] text-slate-300">
                     {step.title}
                   </div>
-                  <p className="mt-2 text-sm text-white/70">{step.body}</p>
+                  <p className="mt-2 text-[15px] text-white/70">{step.body}</p>
                 </div>
               </div>
             );

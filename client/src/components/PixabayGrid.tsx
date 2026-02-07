@@ -48,11 +48,11 @@ export default function PixabayGrid({
 
   const sectionClass = useSectionClass(false, 3);
   const infoPanelClass = clsx(
-    "rounded-2xl border p-3 text-xs shadow-inner",
+    "rounded-2xl border p-3 text-[0.9rem] shadow-inner",
     "border-white/10 bg-black/20 text-slate-300"
   );
   const keywordPill = clsx(
-    "rounded-full border px-3 py-1 text-[11px] uppercase tracking-wide",
+    "rounded-full border px-3 py-1 text-[13px] uppercase tracking-wide",
     "border-white/20 bg-white/10 text-slate-200"
   );
   const fullScreenClass = clsx(
@@ -60,7 +60,7 @@ export default function PixabayGrid({
     "bg-[#070a0f]"
   );
   const fullScreenClose = clsx(
-    "rounded-full border px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.14em] transition  focus-visible:outline-none focus-visible:ring-2",
+    "rounded-full border px-3 py-1 text-[13px] font-semibold uppercase tracking-[0.14em] transition  focus-visible:outline-none focus-visible:ring-2",
     "border-white/30 bg-white/10 hover:border-white/60 hover:bg-white/20 focus-visible:ring-emerald-200/60 text-white"
   );
 
@@ -81,7 +81,7 @@ export default function PixabayGrid({
             <div>
               <p
                 className={clsx(
-                  "text-xs uppercase tracking-[0.28em] text-slate-400"
+                  "text-[0.9rem] uppercase tracking-[0.28em] text-slate-400"
                 )}
               >
                 Currently Playing
@@ -94,7 +94,7 @@ export default function PixabayGrid({
                 {trackTitle ?? "Unknown Title"}
               </h3>
               {trackArtist && (
-                <p className={clsx("truncate text-sm text-slate-300")}>
+                <p className={clsx("truncate text-[1.05rem] text-slate-300")}>
                   {trackArtist}
                 </p>
               )}
@@ -155,7 +155,7 @@ export default function PixabayGrid({
             >
               Visual Moodboard
             </h2>
-            <p className={clsx("text-sm text-slate-400")}>
+            <p className={clsx("text-[1.05rem] text-slate-400")}>
               Curated images from your selected song.
             </p>
           </div>
@@ -164,7 +164,7 @@ export default function PixabayGrid({
             onClick={() => setIsFullscreen(true)}
             disabled={!hasSelection}
             className={clsx(
-              "rounded-full border px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.14em] transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300/60",
+              "rounded-full border px-3 py-1 text-[13px] font-semibold uppercase tracking-[0.14em] transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300/60",
               "border-white/30 bg-white/10 text-slate-100 hover:text-white mr-auto"
             )}
           >

@@ -79,27 +79,27 @@ export default function LyricPlayerContainer() {
             >
               {current.name}
             </div>
-            <div className={clsx("text-sm truncate", trackArtistClass)}>
+            <div className={clsx("text-[15px] truncate", trackArtistClass)}>
               {current.artists[0]?.name}
             </div>
           </div>
         )}
         {!current?.name || !current?.artists[0]?.name ? (
-          <p className="text-sm text-slate-400 text-right">
+          <p className="text-[15px] text-slate-400 text-right">
             Select a track to view lyrics and image prompts will appear here.
           </p>
         ) : null}
       </div>
       <div className="mt-2 flex-1 overflow-y-auto pr-1 min-h-0">
         <div className={clsx("space-y-4 text-slate-200")}>
-          <div className="whitespace-pre-wrap text-sm leading-relaxed px-2 lg:px-1">
+          <div className="whitespace-pre-wrap text-[1rem] leading-relaxed px-2 lg:px-1">
             {text || (
               <span className="text-slate-500">Lyrics not available.</span>
             )}
             {source && (
               <div
                 className={clsx(
-                  "mt-3 text-xs uppercase tracking-wide text-slate-500"
+                  "mt-3 text-[0.9rem] uppercase tracking-wide text-slate-500"
                 )}
               >
                 Source: {source}

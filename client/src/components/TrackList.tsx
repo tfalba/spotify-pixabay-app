@@ -31,7 +31,7 @@ function TrackCard({ track, actions }: CardProps) {
       <div className="min-w-0 flex-1">
         <div
           className={clsx(
-            "truncate text-sm font-semibold text-white"
+            "truncate text-[15px] font-semibold text-white"
           )}
         >
           {track.name}
@@ -39,7 +39,7 @@ function TrackCard({ track, actions }: CardProps) {
 
         <div
           className={clsx(
-            "truncate text-xs text-slate-300"
+            "truncate text-[14px] text-slate-300"
           )}
         >
           {Array.isArray(track.artists)

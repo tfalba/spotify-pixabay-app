@@ -128,7 +128,7 @@ export default function HeroBar({
                     <p className="text-xs font-semibold uppercase tracking-[0.25em] text-slate-400">
                       Art Style
                     </p>
-                    <p className="mt-2 text-sm text-slate-400">
+                    <p className="mt-2 text-[15px] text-slate-400">
                       Swap styles anytime—your next PNG will take on a whole new mood.
                     </p>
                   </div>

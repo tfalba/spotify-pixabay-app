@@ -46,7 +46,7 @@ export default function HeaderBar({ styleChoice, onStyleChange }: Props) {
         className="md:sticky md:top-4 z-50 flex items-center justify-between rounded-[24px] border border-white/10 bg-[#0a0e13] px-5 py-4 backdrop-blur-xl shadow-[0_20px_50px_rgba(124,92,252,0.35)]"
       >
         <div className="flex flex-col gap-1">
-          <p className="text-xs uppercase tracking-[0.4em] text-emerald-200/70">
+          <p className="text-sm uppercase tracking-[0.4em] text-emerald-200/70">
             Spotify x Pixabay
           </p>
           <h1 className="text-xl font-semibold tracking-tight text-slate-50 md:text-2xl">
@@ -54,7 +54,7 @@ export default function HeaderBar({ styleChoice, onStyleChange }: Props) {
           </h1>
         </div>
 
-        <div className="flex items-center gap-4 text-sm">
+        <div className="flex items-center gap-4 text-[15px]">
           {!checked ? null : authenticated && displayName ? (
             <>
               <span

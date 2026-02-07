@@ -102,14 +102,14 @@ export function NowPlayingPanel({ onTrackFinished }: { onTrackFinished?: () => v
           <div className="p-2 min-w-0 flex-1">
             <div
               className={clsx(
-                "font-semibold text-sm truncate text-white"
+                "font-semibold text-[15px] truncate text-white"
               )}
             >
               {title}
             </div>
             <div
               className={clsx(
-                "text-sm truncate text-slate-400"
+                "text-[15px] truncate text-slate-400"
               )}
             >
               {artists}

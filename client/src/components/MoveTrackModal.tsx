@@ -36,17 +36,17 @@ export const MoveTrackModal: React.FC<MoveTrackModalProps> = ({
       <div className="relative z-50 w-full max-w-md rounded-2xl bg-slate-900 p-4 shadow-xl">
         <div className="mb-3 flex items-center justify-between gap-4">
           <div>
-            <h2 className="text-sm font-semibold text-slate-100">
+            <h2 className="text-[15px] font-semibold text-slate-100">
               Move track to playlist
             </h2>
-            <p className="text-xs text-slate-400">
+            <p className="text-[14px] text-slate-400">
               {track.name}
             </p>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="rounded-full px-2 py-1 text-xs text-slate-400 hover:bg-slate-800"
+            className="rounded-full px-2 py-1 text-[14px] text-slate-400 hover:bg-slate-800"
           >
             ✕
           </button>
@@ -59,14 +59,14 @@ export const MoveTrackModal: React.FC<MoveTrackModalProps> = ({
               key={pl.id}
               type="button"
               onClick={() => onSelectPlaylist(pl.id)}
-              className="flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-sm text-slate-100 hover:bg-slate-800"
+              className="flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-[15px] text-slate-100 hover:bg-slate-800"
             >
               <span className="truncate">{pl.name}</span>
             </button>
           ))}
 
           {playlists.length === 0 && (
-            <p className="py-4 text-center text-xs text-slate-500">
+            <p className="py-4 text-center text-[14px] text-slate-500">
               No playlists found.
             </p>
           )}
