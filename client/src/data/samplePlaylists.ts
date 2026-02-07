@@ -26,7 +26,7 @@ export const samplePlaylist: SpotifyDemoPlaylist = {
       name: "'Tain't Nobody's Bizness If I Do",
       preview_url: null,
       external_url: "https://open.spotify.com/track/2il8ICaZ6X9eQ8GiobqqcJ",
-      image: "https://mosaic.scdn.co/640/ab67616d00001e028db37bc9a58543471bee78c5ab67616d00001e029abdf14e6058bd3903686148ab67616d00001e02e3393cc1df54616b1e7a388dab67616d00001e02f8553e18a11209d4becd0336",
+      image: "https://i.scdn.co/image/ab67616d0000b273e3393cc1df54616b1e7a388d",
       uri: "spotify:track:2il8ICaZ6X9eQ8GiobqqcJ",
       artists: [
         {

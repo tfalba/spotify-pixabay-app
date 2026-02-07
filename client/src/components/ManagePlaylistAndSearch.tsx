@@ -570,7 +570,7 @@ export default function ManagePlaylistAndSearch({
                   >
                     Manage Playlists
                   </h2>
-                  {loggedIn && (
+                  {loggedIn ? (
                     <div className="flex flex-[2] justify-end gap-4">
                       {selected && (
                         <button
@@ -594,7 +594,16 @@ export default function ManagePlaylistAndSearch({
                         Sync
                       </button>
                     </div>
+                  )
+                  :
+                      <div
+                  className={clsx(
+                    "rounded-2xl border border-white/10 bg-black/30 px-4 py-2 text-sm text-white/80"
                   )}
+                >
+                  Sample playlist available while logged out.
+                </div>
+                  }
                 </div>
               </div>
 
@@ -615,13 +624,13 @@ export default function ManagePlaylistAndSearch({
 
             {!loggedIn ? (
               <div className="overflow-x-hidden">
-                <div
+                {/* <div
                   className={clsx(
                     "rounded-2xl border border-white/10 bg-black/30 px-4 py-3 text-sm text-white/80"
                   )}
                 >
                   Sample playlist available while logged out.
-                </div>
+                </div> */}
 
                 {sampleSelected ? (
                   <div className="mt-4 flex flex-1 min-h-0 flex-col gap-2">

@@ -109,6 +109,7 @@ export default function Home({ pixabay, albumCover, lyricsAvailable }: Props) {
             }
           />
         ),
+        maxWidth: 1200,
       },
     ],
     [
@@ -131,7 +132,7 @@ export default function Home({ pixabay, albumCover, lyricsAvailable }: Props) {
     () =>
       sectionMeta
         .map((section) =>
-          collapsed[section.id] ? "56px" : `${section.ratio}fr`
+          collapsed[section.id] ? collapsed["lyrics"] && collapsed["manage"] ? "max(256px,30fr)" : "56px" : `${section.ratio}fr`
         )
         .join(" "),
     [sectionMeta, collapsed]

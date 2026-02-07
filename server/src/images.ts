@@ -126,7 +126,7 @@ function addDebugIfNeeded(
   if (isLegacy) {
     const legacy = payload as LegacyImagesPayload;
     const baseKeywords = legacy.keywords;
-    const topSingles = baseKeywords.slice(0, 3);
+    const topSingles = baseKeywords.slice(0, 4);
 
     const debugInfo: DebugInfo = {
       baseKeywords,

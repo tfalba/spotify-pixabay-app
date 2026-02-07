@@ -29,7 +29,7 @@ function scheduleOpenAI<T>(task: () => Promise<T>): Promise<T> {
 export type KeywordPlan = {
   baseKeywords: string[];          // 6–8 solid single-word visual keywords
   pairQueries: [string, string][]; // exactly 3 keyword pairs
-  topSingles: string[];            // exactly 3 strongest singles
+  topSingles: string[];            // exactly 4 strongest singles
 };
 
 export async function extractDescriptiveKeywords(
@@ -77,9 +77,9 @@ export async function extractDescriptiveKeywords(
       topSingles: {
         type: "array",
         description:
-          "Exactly 3 of the strongest baseKeywords that work well as standalone image searches.",
-        minItems: 3,
-        maxItems: 3,
+          "Exactly 4 of the strongest baseKeywords that work well as standalone image searches.",
+        minItems: 4,
+        maxItems: 4,
         items: {
           type: "string",
           minLength: 2,
@@ -107,7 +107,7 @@ export async function extractDescriptiveKeywords(
     `  • Each keyword in the pairs MUST come from baseKeywords.\n` +
     `  • Combine words to suggest a vivid, photographable scene (e.g. 'neon' + 'city', 'golden' + 'forest').\n` +
     `  • Avoid near-duplicate pairs.\n` +
-    `- "topSingles": exactly 3 of the strongest baseKeywords that should work well as standalone searches.\n` +
+    `- "topSingles": exactly 4 of the strongest baseKeywords that should work well as standalone searches.\n` +
     `  • Each item MUST be one of the baseKeywords.\n\n` +
     `Focus on visually rich, concrete imagery that a photographer could actually capture. Let the song title subtly guide the mood if it adds clarity.\n\n` +
     `Lyrics:\n"""${truncatedLyrics}"""`;
