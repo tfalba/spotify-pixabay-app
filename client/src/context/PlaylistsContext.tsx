@@ -19,7 +19,7 @@ import {
   useSpotifyPlayerState,
 } from "./SpotifyPlayerProvider";
 import type { Track } from "@/types/types";
-import { getAuthStatus } from "@/lib/spotifyApi";
+import { useAuthStatus } from "@/context/AuthStatusContext";
 
 type PlaylistsData = {
   playlists: SpotifyPlaylist[];
@@ -66,7 +66,7 @@ const PlaylistsActionsContext = createContext<PlaylistsActions | undefined>(
 export function PlaylistsProvider({ children }: { children: ReactNode }) {
   const { fullPlaybackEnabled } = useSpotifyPlayerState();
   const { enableFullPlayback } = useSpotifyPlayerActions();
-  const [loggedIn, setLoggedIn] = useState(false); // cookie login
+  const { authenticated, checked } = useAuthStatus();
 
   const [playlists, setPlaylists] = useState<SpotifyPlaylist[]>([]);
   const [loading, setLoading] = useState(false);
@@ -81,24 +81,7 @@ export function PlaylistsProvider({ children }: { children: ReactNode }) {
     Record<string, Track[]>
   >({});
 
-  // ✅ cookie login status (no token refresh)
-  useEffect(() => {
-    let active = true;
-
-    async function loadStatus() {
-      try {
-        const status = await getAuthStatus();
-        if (active) setLoggedIn(Boolean(status?.authenticated));
-      } catch {
-        if (active) setLoggedIn(false);
-      }
-    }
-
-    loadStatus();
-    return () => {
-      active = false;
-    };
-  }, []);
+  const loggedIn = checked && authenticated;
 
   useEffect(() => {
     if (!loggedIn || fullPlaybackEnabled) return;

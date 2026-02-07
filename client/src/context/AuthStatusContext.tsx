@@ -31,6 +31,11 @@ export function AuthStatusProvider({ children }: { children: ReactNode }) {
   const [checked, setChecked] = useState(false);
   const [profile, setProfile] = useState<SpotifyUser | null>(null);
   const reqIdRef = useRef(0);
+  const profileRef = useRef<SpotifyUser | null>(null);
+
+  useEffect(() => {
+    profileRef.current = profile;
+  }, [profile]);
 
   const refresh = useCallback(async (opts?: { forceProfile?: boolean }) => {
     const myReqId = ++reqIdRef.current;
@@ -54,7 +59,7 @@ export function AuthStatusProvider({ children }: { children: ReactNode }) {
         if (!authed) setProfile(null);
       }
 
-      if (authed && (opts?.forceProfile || !profile)) {
+      if (authed && (opts?.forceProfile || !profileRef.current)) {
         try {
           const data = await spotifyApiJson<SpotifyUser>("/api/me");
           if (reqIdRef.current === myReqId) {
@@ -72,11 +77,11 @@ export function AuthStatusProvider({ children }: { children: ReactNode }) {
         setChecked(true);
       }
     }
-  }, [profile]);
+  }, []);
 
   useEffect(() => {
     refresh().catch(() => {});
-  }, [refresh]);
+  }, []);
 
   useEffect(() => {
     const onFocus = () => refresh().catch(() => {});
@@ -91,14 +96,14 @@ export function AuthStatusProvider({ children }: { children: ReactNode }) {
       window.removeEventListener("focus", onFocus);
       document.removeEventListener("visibilitychange", onVis);
     };
-  }, [refresh]);
+  }, []);
 
   useEffect(() => {
     const id = window.setInterval(() => {
       refresh().catch(() => {});
     }, 30_000);
     return () => window.clearInterval(id);
-  }, [refresh]);
+  }, []);
 
   const value = useMemo(
     () => ({ authenticated, checked, profile, refresh }),
