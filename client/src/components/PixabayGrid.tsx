@@ -15,6 +15,7 @@ export default function PixabayGrid({
   error,
   heroImage,
   heroLoading = false,
+  heroKey,
   noSelection,
   albumCover,
   trackTitle,
@@ -28,6 +29,7 @@ export default function PixabayGrid({
   error: string | null;
   heroImage?: HeroImage | null;
   heroLoading?: boolean;
+  heroKey?: string | null;
   noSelection: boolean;
   albumCover?: string | null;
   trackTitle?: string | null;
@@ -125,6 +127,7 @@ export default function PixabayGrid({
             albumCover={albumCoverForGrid}
             heroImage={heroImage}
             heroLoading={heroLoading}
+            heroKey={heroKey}
           />
         ) : (
           <div>
@@ -196,6 +199,7 @@ export default function PixabayGrid({
                   albumCover={albumCoverForGrid}
                   heroImage={heroImage}
                   heroLoading={heroLoading}
+                  heroKey={heroKey}
                 />
               </div>
             ) : null}

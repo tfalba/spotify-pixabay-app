@@ -103,6 +103,7 @@ export default function Home({ pixabay, albumCover, lyricsAvailable }: Props) {
             heroLoading={pixabay.heroLoading ?? false}
             styleChoice={pixabay.styleChoice ?? "surprise"}
             onStyleChange={pixabay.onStyleChange}
+            heroKey={trackKey}
             noSelection={!current}
             albumCover={albumCover}
             trackTitle={current?.name ?? null}

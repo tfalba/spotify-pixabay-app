@@ -154,6 +154,7 @@ function FlipPhotoGridBase({
   albumCover,
   heroImage,
   heroLoading = false,
+  heroKey,
 }: {
   images: Img[];
   gridClassName?: string;
@@ -161,6 +162,7 @@ function FlipPhotoGridBase({
   albumCover?: string | null;
   heroImage?: HeroImage | null;
   heroLoading?: boolean;
+  heroKey?: string | null;
 }) {
   const baseImages = useMemo(() => images.slice(), [images]);
   const usable = useMemo(() => [...baseImages], [baseImages]);
@@ -199,9 +201,12 @@ function FlipPhotoGridBase({
   );
 
   useEffect(() => {
-    if (heroImage) {
-      setDisplayedHeroImage(heroImage);
-    } else if (!heroLoading) {
+    setDisplayedHeroImage(heroImage ?? null);
+  }, [heroKey, heroImage]);
+
+  useEffect(() => {
+    if (heroImage) return;
+    if (!heroLoading) {
       setDisplayedHeroImage(null);
     }
   }, [heroImage, heroLoading]);

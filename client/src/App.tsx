@@ -4,6 +4,10 @@ import HeaderBar from "./components/HeaderBar";
 import Home from "./pages/Home";
 import { get } from "./lib/fetcher";
 import { useLyricsImages } from "./hooks/useLyricsImages";
+import {
+  normalizeLyricsImagesResponse,
+} from "./api/normalizeLyricsResponse";
+import type { HeroImage, ImageCard, KeywordPlan } from "./api/lyricsTypes";
 import { SpotifyPlayerProvider } from "./context/SpotifyPlayerProvider";
 import { ThemeProvider } from "./context/ThemeContext";
 import { AuthStatusProvider } from "./context/AuthStatusContext";
@@ -16,7 +20,7 @@ import type { StyleCategory } from "./types/types";
 import { STYLE_CATEGORIES } from "./types/types";
 
 function AppContent() {
-  const { current, albumCover } = useCurrentTrackData();
+  const { current, albumCover, queue } = useCurrentTrackData();
   const { reset } = useCurrentTrackActions();
 
   // ✅ memoize to avoid changing string identity in deps
@@ -35,6 +39,19 @@ function AppContent() {
   // refs used to avoid dependency-triggered reruns
   const styleChoiceRef = useRef<StyleCategory | "surprise">("surprise");
   const hasInitialHeroRef = useRef(false);
+  const prefetchStyleRef = useRef<Map<string, StyleCategory>>(new Map());
+  const prefetchCacheRef = useRef<
+    Map<
+      string,
+      {
+        lyrics: string;
+        keywords: KeywordPlan;
+        images: ImageCard[];
+        heroImage: HeroImage | null;
+      }
+    >
+  >(new Map());
+  const prefetchAbortRef = useRef<AbortController | null>(null);
 
   // ✅ stable helpers
   const pickRandomStyle = useCallback(
@@ -101,19 +118,36 @@ function AppContent() {
 
     const myRequestId = ++requestIdRef.current;
 
-    // reset for new track
-    setImages(null);
-    setKeywords(null);
-    setHeroImage(null);
-    setCurrentLyrics(null);
-    setHasInitialHero(false);
-
     const baseKey =
       current?.uri ||
       (artist && title ? `${artist}::${title}` : current?.id ?? "");
     setCurrentCacheKey(baseKey);
 
-    const styleForRequest = resolveStyle(styleChoiceRef.current);
+    const prefetchedStyle =
+      styleChoiceRef.current === "surprise"
+        ? prefetchStyleRef.current.get(baseKey)
+        : null;
+    const styleForRequest = prefetchedStyle ?? resolveStyle(styleChoiceRef.current);
+    const requestCacheKey = makeCacheKey(baseKey, styleForRequest);
+
+    if (requestCacheKey) {
+      const prefetched = prefetchCacheRef.current.get(requestCacheKey);
+      if (prefetched) {
+        setCurrentLyrics(prefetched.lyrics);
+        setKeywords(prefetched.keywords);
+        setImages(prefetched.images);
+        setHeroImage(prefetched.heroImage);
+        setHasInitialHero(true);
+        return;
+      }
+    }
+
+    // reset for new track (no prefetched data)
+    setImages(null);
+    setKeywords(null);
+    setHeroImage(null);
+    setCurrentLyrics(null);
+    setHasInitialHero(false);
 
     get<{ lyrics: string; source: string }>(
       `${API}/api/lyrics?artist=${encodeURIComponent(
@@ -133,8 +167,6 @@ function AppContent() {
         }
 
         setCurrentLyrics(d.lyrics);
-
-        const requestCacheKey = makeCacheKey(baseKey, styleForRequest);
 
         try {
           await fetchImages(d.lyrics, {
@@ -173,6 +205,88 @@ function AppContent() {
     setImages,
     setKeywords,
     setHeroImage,
+  ]);
+
+  // 1b) Prefetch next track's lyrics + images while current plays
+  useEffect(() => {
+    if (!current || !queue.length) return;
+    const idx = queue.findIndex((t) => t.id === current.id);
+    if (idx < 0 || idx + 1 >= queue.length) return;
+
+    const next = queue[idx + 1];
+    const artist = next?.artists?.[0]?.name ?? "";
+    const title = next?.name ?? "";
+    if (!artist || !title) return;
+
+    const baseKey =
+      next?.uri || (artist && title ? `${artist}::${title}` : next?.id ?? "");
+    if (!baseKey) return;
+
+    const resolvedStyle =
+      styleChoiceRef.current === "surprise"
+        ? prefetchStyleRef.current.get(baseKey) ?? resolveStyle("surprise")
+        : resolveStyle(styleChoiceRef.current);
+
+    if (styleChoiceRef.current === "surprise") {
+      prefetchStyleRef.current.set(baseKey, resolvedStyle);
+    }
+
+    const cacheKey = makeCacheKey(baseKey, resolvedStyle);
+    if (!cacheKey) return;
+    if (prefetchCacheRef.current.has(cacheKey)) return;
+
+    if (prefetchAbortRef.current) {
+      prefetchAbortRef.current.abort();
+    }
+    const controller = new AbortController();
+    prefetchAbortRef.current = controller;
+
+    get<{ lyrics: string; source: string }>(
+      `${API}/api/lyrics?artist=${encodeURIComponent(
+        artist
+      )}&title=${encodeURIComponent(title)}`,
+      { signal: controller.signal }
+    )
+      .then(async (d) => {
+        if (controller.signal.aborted) return;
+        if (!d?.lyrics) return;
+
+        const res = await fetch(`${API}/api/lyrics-to-images`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          signal: controller.signal,
+          body: JSON.stringify({
+            lyrics: d.lyrics,
+            songTitle: title,
+            songArtist: artist,
+            cacheKey,
+            styleCategory: resolvedStyle,
+          }),
+        });
+
+        const raw = await res.json();
+        if (!res.ok) return;
+        const data = normalizeLyricsImagesResponse(raw);
+        prefetchCacheRef.current.set(cacheKey, {
+          lyrics: d.lyrics,
+          keywords: data.keywords,
+          images: data.images,
+          heroImage: data.heroImage ?? null,
+        });
+      })
+      .catch(() => {})
+      .finally(() => {
+        if (prefetchAbortRef.current === controller) {
+          prefetchAbortRef.current = null;
+        }
+      });
+  }, [
+    current?.id,
+    current?.uri,
+    queue,
+    API,
+    makeCacheKey,
+    resolveStyle,
   ]);
 
   useEffect(() => {
