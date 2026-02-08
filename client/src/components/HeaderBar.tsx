@@ -1,8 +1,11 @@
-import { useEffect, useMemo } from "react";
+import { useCallback, useEffect, useMemo } from "react";
 import { useAuthStatus } from "@/context/AuthStatusContext";
 import { LoginButton, LogoutButton } from "./LoginButtons";
 import type { StyleCategory } from "@/types/types";
-import { useCurrentTrackActions } from "@/context/CurrentTrackContext";
+import {
+  useCurrentTrackActions,
+  useCurrentTrackData,
+} from "@/context/CurrentTrackContext";
 import HeroBar from "./HeroBar";
 import heroBannerAsset from "@/assets/hero-banner.png";
 import {
@@ -21,10 +24,11 @@ export default function HeaderBar({ styleChoice, onStyleChange }: Props) {
   const { authenticated, checked, profile, refresh } = useAuthStatus();
 
   const { handleTrackFinished } = useCurrentTrackActions();
+  const { current, queue } = useCurrentTrackData();
 
   // Option A / Option 1: "fullPlaybackEnabled" is separate from "logged in"
-  const { fullPlaybackEnabled } = useSpotifyPlayerState();
-  const { enableFullPlayback } = useSpotifyPlayerActions();
+  const { fullPlaybackEnabled, previewEndedAt } = useSpotifyPlayerState();
+  const { enableFullPlayback, playTrackSmart } = useSpotifyPlayerActions();
 
   useEffect(() => {
     if (authenticated) {
@@ -39,6 +43,20 @@ export default function HeaderBar({ styleChoice, onStyleChange }: Props) {
 
   const resolvedStyleName =
     styleChoice === "surprise" ? "Surprise me" : styleChoice;
+
+  const handleAdvanceAndPlay = useCallback(() => {
+    if (!current || !queue.length) return;
+    const idx = queue.findIndex((t) => t.id === current.id);
+    if (idx < 0 || idx + 1 >= queue.length) return;
+    const next = queue[idx + 1];
+    handleTrackFinished();
+    playTrackSmart(next).catch(() => {});
+  }, [current, queue, handleTrackFinished, playTrackSmart]);
+
+  useEffect(() => {
+    if (!previewEndedAt) return;
+    handleAdvanceAndPlay();
+  }, [previewEndedAt, handleAdvanceAndPlay]);
 
   return (
     <div>
@@ -92,7 +110,7 @@ export default function HeaderBar({ styleChoice, onStyleChange }: Props) {
         resolvedStyleName={resolvedStyleName}
         styleChoice={styleChoice}
         onStyleChange={onStyleChange}
-        onTrackFinished={handleTrackFinished}
+        onTrackFinished={handleAdvanceAndPlay}
       />
     </div>
   );

@@ -29,6 +29,7 @@ export function useSpotifyWebPlayback() {
   const previewAudioRef = useRef<HTMLAudioElement | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [isPreviewPlaying, setIsPreviewPlaying] = useState(false);
+  const [previewEndedAt, setPreviewEndedAt] = useState<number | null>(null);
 
   const playerRef = useRef<Spotify.Player | null>(null);
   const positionThrottleRef = useRef<{
@@ -50,7 +51,10 @@ export function useSpotifyWebPlayback() {
       a.preload = "none";
       a.crossOrigin = "anonymous";
 
-      a.addEventListener("ended", () => setIsPreviewPlaying(false));
+      a.addEventListener("ended", () => {
+        setIsPreviewPlaying(false);
+        setPreviewEndedAt(Date.now());
+      });
       a.addEventListener("pause", () => setIsPreviewPlaying(false));
       a.addEventListener("play", () => setIsPreviewPlaying(true));
 
@@ -609,6 +613,7 @@ export function useSpotifyWebPlayback() {
     stopPreview,
     previewUrl,
     isPreviewPlaying,
+    previewEndedAt,
 
     isAuthenticated, // ✅ “SDK token success”
     loggedIn, // ✅ “cookie login status”
