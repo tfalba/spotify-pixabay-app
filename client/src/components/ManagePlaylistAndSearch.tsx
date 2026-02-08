@@ -10,10 +10,7 @@ import clsx from "clsx";
 
 import type { Track } from "@/types/types";
 import { useSectionsContext } from "@/context/SectionsContext";
-import {
-  useSpotifyPlayerActions,
-  useSpotifyPlayerState,
-} from "@/context/SpotifyPlayerProvider";
+import { useSpotifyPlayerActions } from "@/context/SpotifyPlayerProvider";
 import {
   usePlaylistsActions,
   usePlaylistsData,
@@ -136,8 +133,7 @@ export default function ManagePlaylistAndSearch({
     refreshPlaylistTracks,
   } = usePlaylistsActions();
 
-  const { fullPlaybackEnabled } = useSpotifyPlayerState();
-  const { enableFullPlayback, pause } = useSpotifyPlayerActions();
+  const { pause } = useSpotifyPlayerActions();
 
   const activeMode = useMemo(
     () => (showCurrentPlaylist ? "playlists" : "search"),
@@ -430,7 +426,7 @@ export default function ManagePlaylistAndSearch({
   }, []);
 
   return (
-    <section className={clsx(sectionClass, "h-full min-h-0 gap-4")}>
+    <section className={clsx(sectionClass, "h-full min-h-0 gap-2")}>
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex gap-3">
           {[
@@ -446,17 +442,12 @@ export default function ManagePlaylistAndSearch({
                 activeMode === tab.key
                   ? "bg-emerald-300/90 text-slate-900 shadow-[0_12px_25px_rgba(16,185,129,0.3)]"
                   : "bg-white/5 text-white/60 hover:bg-white/10",
+                tab.key === "search" && "ml-4",
               )}
             >
               {tab.label}
             </button>
           ))}
-        </div>
-
-        <div className="text-[14px] mr-10 pl-2 text-white/60">
-          {activeMode === "search"
-            ? "Search tracks and play previews (or full playback if enabled)."
-            : "Browse your Spotify playlists (login required)."}
         </div>
       </div>
 
@@ -471,7 +462,7 @@ export default function ManagePlaylistAndSearch({
               <div className="flex items-center gap-2">
                 <h2
                   className={clsx(
-                    "text-sm font-semibold uppercase tracking-[0.2em] text-slate-400",
+                    "text-xs font-semibold uppercase tracking-[0.2em] text-slate-400",
                   )}
                 >
                   Search
@@ -483,7 +474,7 @@ export default function ManagePlaylistAndSearch({
                     onChange={(e) => setSearchQuery(e.target.value)}
                     placeholder="Search Spotify tracks…"
                     className={clsx(
-                      "w-full min-w-[15rem] max-w-lg rounded-xl border border-white/15 bg-black/40 px-3 py-2 text-[15px] text-white placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-emerald-300/50",
+                      "w-full min-w-[13rem] max-w-lg rounded-2xl border border-white/15 bg-white/5 px-3 py-2 text-[15px] text-white placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-emerald-300/50",
                     )}
                   />
 
@@ -504,23 +495,7 @@ export default function ManagePlaylistAndSearch({
                 </div>
               </div>
               <div className="flex-wrap space-y-2 flex flex-col md:flex-[2] md:flex-row w-auto gap-4 justify-end">
-                {!loggedIn && (
-                  <LoginButton/>
-                )}
-
-                {loggedIn && !fullPlaybackEnabled && (
-                  <div className="flex items-center justify-end">
-                    <button
-                      type="button"
-                      onClick={enableFullPlayback}
-                      className={clsx(
-                        "rounded-full border border-amber-400/40 bg-amber-400/15 px-3 py-1 text-xs uppercase tracking-[0.2em] text-amber-100",
-                      )}
-                    >
-                      Enable full playback
-                    </button>
-                  </div>
-                )}
+                {!loggedIn && <LoginButton />}
               </div>
             </div>
 
@@ -548,7 +523,7 @@ export default function ManagePlaylistAndSearch({
         ) : (
           <section
             className={clsx(
-              "flex h-fit min-h-0 flex-col gap-4 rounded-[24px] border border-white/10 bg-white/5 p-3 text-white",
+              "flex h-fit min-h-0 flex-col gap-2 rounded-[24px] border border-white/10 bg-white/5 p-3 text-white",
             )}
           >
             <div className="flex items-start justify-between flex-wrap gap-3">
@@ -556,21 +531,10 @@ export default function ManagePlaylistAndSearch({
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <h2
                     className={clsx(
-                      "flex-1 text-sm font-semibold uppercase tracking-[0.2em] text-slate-400",
+                      "flex-1 text-xs font-semibold uppercase tracking-[0.2em] text-slate-400",
                     )}
                   >
                     Manage Playlists
-                    {!loggedIn && (
-                      <span className="normal-case tracking-[0] group relative ml-2 inline-flex h-5 w-5 font-cursive items-center justify-center rounded-full border border-white/20 text-[12px] font-semibold text-white/70">
-                        i
-                        <span
-                          role="tooltip"
-                          className="pointer-events-none absolute left-1/2 top-full z-10 mt-2 w-max max-w-[min(90vw,360px)] -translate-x-1/2 rounded-lg border border-white/10 bg-[#0a0f16] px-3 py-2 text-[14px] font-normal text-white/80 opacity-0 shadow-[0_14px_30px_rgba(15,23,42,0.45)] transition-opacity duration-200 group-hover:opacity-100 whitespace-normal break-words"
-                        >
-                          Sample playlist available while logged out.
-                        </span>
-                      </span>
-                    )}
                   </h2>
                   {loggedIn ? (
                     <div className="flex flex-[2] justify-end gap-4">
@@ -600,19 +564,7 @@ export default function ManagePlaylistAndSearch({
                 </div>
               </div>
 
-              {!loggedIn ? (
-                <LoginButton />
-              ) : (
-                !fullPlaybackEnabled && (
-                  <button
-                    type="button"
-                    onClick={enableFullPlayback}
-                    className="rounded-full border border-amber-400/40 bg-amber-400/15 px-3 py-1 text-xs uppercase tracking-[0.2em] text-amber-100"
-                  >
-                    Enable full playback
-                  </button>
-                )
-              )}
+              {!loggedIn ? <LoginButton /> : null}
             </div>
 
             {!loggedIn ? (
@@ -620,7 +572,7 @@ export default function ManagePlaylistAndSearch({
                 {sampleSelected ? (
                   <div className="mt-4 flex flex-1 min-h-0 flex-col gap-2">
                     <div className="relative flex flex-wrap items-start gap-3">
-                      <div className="min-w-0 flex items-center gap-col-4 flex-wrap flex-1">
+                      <div className="min-w-0 flex items-center gap-x-2 flex-wrap flex-1">
                         <div className="truncate text-base font-semibold">
                           {samplePlaylist.name}
                         </div>
@@ -646,7 +598,7 @@ export default function ManagePlaylistAndSearch({
                           onChange={(e) => handleFilterChange(e.target.value)}
                           placeholder="Filter tracks..."
                           className={clsx(
-                            "w-28 flex-2 mr-1 rounded-full border border-white/20 bg-white/5 px-3 py-1 text-[15px] text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300/60",
+                            "max-w-42 flex-2 mr-1 rounded-full border border-white/20 bg-white/5 px-3 py-1 text-[15px] text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300/60",
                           )}
                         />
                       </div>
@@ -732,7 +684,7 @@ export default function ManagePlaylistAndSearch({
                 ) : selected ? (
                   <div className="flex flex-1 min-h-0 flex-col gap-2">
                     <div className="relative flex flex-wrap items-start gap-3">
-                      <div className="min-w-0 flex items-center gap-col-4 flex-wrap flex-1">
+                      <div className="min-w-0 flex items-center gap-x-2 flex-wrap flex-1">
                         <div className="truncate text-base font-semibold">
                           {selected.name}
                         </div>

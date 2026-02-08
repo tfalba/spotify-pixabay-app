@@ -155,7 +155,7 @@ export default function PixabayGrid({
             >
               Visual Moodboard
             </h2>
-            <p className={clsx("text-[1.05rem] text-slate-400")}>
+            <p className={clsx("text-[14px] text-slate-400")}>
               Curated images from your selected song.
             </p>
           </div>

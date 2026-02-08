@@ -36,8 +36,8 @@ export default function LyricPlayerContainer() {
     setSource("");
     get<{ lyrics: string; source: string }>(
       `${API}/api/lyrics?artist=${encodeURIComponent(
-        current.artists[0].name
-      )}&title=${encodeURIComponent(current.name)}`
+        current.artists[0].name,
+      )}&title=${encodeURIComponent(current.name)}`,
     )
       .then((d) => {
         const payload = { lyrics: d.lyrics || "", source: d.source || "" };
@@ -54,7 +54,7 @@ export default function LyricPlayerContainer() {
   }, [current, API]);
 
   const nowPlayingClass = clsx(
-    "rounded-2xl mr-auto max-w-full border border-white/10 bg-gradient-to-br from-white/10 via-white/5 to-amber-500/10 py-2 px-6 shadow-[0_14px_30px_rgba(88,92,107,0.55)] overflow-x-hidden"
+    "rounded-2xl mr-auto max-w-full border border-white/10 bg-gradient-to-br from-white/10 via-white/5 to-amber-500/10 py-2 px-6 shadow-[0_14px_30px_rgba(88,92,107,0.55)] overflow-x-hidden",
   );
   const trackTitleClass = "text-white";
   const trackArtistClass = "text-slate-400";
@@ -64,7 +64,7 @@ export default function LyricPlayerContainer() {
       <div className="flex flex-col justify-end align-end gap-2 mb-2 mr-8 ">
         <h2
           className={clsx(
-            "text-[12px] uppercase tracking-[0.3em] font-semibold ml-auto"
+            "text-[12px] uppercase tracking-[0.3em] font-semibold ml-auto",
           )}
         >
           Lyrics
@@ -74,7 +74,7 @@ export default function LyricPlayerContainer() {
             <div
               className={clsx(
                 "text-base font-medium truncate",
-                trackTitleClass
+                trackTitleClass,
               )}
             >
               {current.name}
@@ -84,22 +84,23 @@ export default function LyricPlayerContainer() {
             </div>
           </div>
         )}
-        {!current?.name || !current?.artists[0]?.name ? (
-          <p className="text-[15px] text-slate-400 text-right">
-            Select a track to view lyrics and image prompts will appear here.
-          </p>
-        ) : null}
       </div>
+      {!current?.name || !current?.artists[0]?.name ? (
+        <p className="text-[14px] text-slate-400 text-right">
+          Select a track to view lyrics and image prompts will appear here.
+        </p>
+      ) : null}
       <div className="mt-2 flex-1 overflow-y-auto pr-1 min-h-0">
         <div className={clsx("space-y-4 text-slate-200")}>
           <div className="whitespace-pre-wrap text-[1rem] leading-relaxed px-2 lg:px-1">
-            {text || (
-              <span className="text-slate-500">Lyrics not available.</span>
-            )}
+            {text ||
+              (current?.name && (
+                <span className="text-slate-500">Lyrics not available.</span>
+              ))}
             {source && (
               <div
                 className={clsx(
-                  "mt-3 text-[0.9rem] uppercase tracking-wide text-slate-500"
+                  "mt-3 text-[0.9rem] uppercase tracking-wide text-slate-500",
                 )}
               >
                 Source: {source}
