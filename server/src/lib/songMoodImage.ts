@@ -99,12 +99,12 @@ const prompt =
       prompt,
       size: "1024x1536",
       quality: "low",
+      output_format: "webp",
+      output_compression: 70,
     });
 
     const b64 = res.data?.[0]?.b64_json;
-    const imageUrl = b64
-      ? `data:image/png;base64,${b64}`
-      : res.data?.[0]?.url;
+    const imageUrl = b64 ? `data:image/webp;base64,${b64}` : null;
     if (!imageUrl) return null;
 
     return {
