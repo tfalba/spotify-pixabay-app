@@ -30,6 +30,8 @@ export function useSpotifyWebPlayback() {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [isPreviewPlaying, setIsPreviewPlaying] = useState(false);
   const [previewEndedAt, setPreviewEndedAt] = useState<number | null>(null);
+  const [previewPositionMs, setPreviewPositionMs] = useState(0);
+  const [previewDurationMs, setPreviewDurationMs] = useState(0);
 
   const playerRef = useRef<Spotify.Player | null>(null);
   const positionThrottleRef = useRef<{
@@ -51,12 +53,26 @@ export function useSpotifyWebPlayback() {
       a.preload = "none";
       a.crossOrigin = "anonymous";
 
-      a.addEventListener("ended", () => {
+      const handleEnded = () => {
         setIsPreviewPlaying(false);
         setPreviewEndedAt(Date.now());
-      });
-      a.addEventListener("pause", () => setIsPreviewPlaying(false));
-      a.addEventListener("play", () => setIsPreviewPlaying(true));
+      };
+      const handlePause = () => setIsPreviewPlaying(false);
+      const handlePlay = () => setIsPreviewPlaying(true);
+      const handleTimeUpdate = () => {
+        setPreviewPositionMs(Math.floor(a.currentTime * 1000));
+      };
+      const handleDurationChange = () => {
+        const nextDuration = Number.isFinite(a.duration) ? a.duration : 0;
+        setPreviewDurationMs(Math.floor(nextDuration * 1000));
+      };
+
+      a.addEventListener("ended", handleEnded);
+      a.addEventListener("pause", handlePause);
+      a.addEventListener("play", handlePlay);
+      a.addEventListener("timeupdate", handleTimeUpdate);
+      a.addEventListener("loadedmetadata", handleDurationChange);
+      a.addEventListener("durationchange", handleDurationChange);
 
       previewAudioRef.current = a;
     }
@@ -71,6 +87,8 @@ export function useSpotifyWebPlayback() {
     a.src = "";
     setIsPreviewPlaying(false);
     setPreviewUrl(null);
+    setPreviewPositionMs(0);
+    setPreviewDurationMs(0);
   }, []);
 
   const playPreview = useCallback(
@@ -614,6 +632,8 @@ export function useSpotifyWebPlayback() {
     previewUrl,
     isPreviewPlaying,
     previewEndedAt,
+    previewPositionMs,
+    previewDurationMs,
 
     isAuthenticated, // ✅ “SDK token success”
     loggedIn, // ✅ “cookie login status”

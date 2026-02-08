@@ -98,12 +98,7 @@ export function AuthStatusProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
-  useEffect(() => {
-    const id = window.setInterval(() => {
-      refresh().catch(() => {});
-    }, 30_000);
-    return () => window.clearInterval(id);
-  }, []);
+  // Polling removed; refresh only on initial load + focus/visibility.
 
   const value = useMemo(
     () => ({ authenticated, checked, profile, refresh }),

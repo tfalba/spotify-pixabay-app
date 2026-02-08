@@ -15,7 +15,9 @@ type SpotifyPlayerStateKeys =
   | "authChecked"
   | "previewUrl"
   | "isPreviewPlaying"
-  | "previewEndedAt";
+  | "previewEndedAt"
+  | "previewPositionMs"
+  | "previewDurationMs";
 
 type SpotifyPlayerState = Pick<SpotifyPlayer, SpotifyPlayerStateKeys>;
 type SpotifyPlayerActions = Omit<SpotifyPlayer, SpotifyPlayerStateKeys>;
@@ -40,6 +42,8 @@ export function SpotifyPlayerProvider({ children }: { children: ReactNode }) {
       previewUrl: player.previewUrl,
       isPreviewPlaying: player.isPreviewPlaying,
       previewEndedAt: player.previewEndedAt,
+      previewPositionMs: player.previewPositionMs,
+      previewDurationMs: player.previewDurationMs,
     }),
     [
       player.sdkReady,
@@ -54,6 +58,8 @@ export function SpotifyPlayerProvider({ children }: { children: ReactNode }) {
       player.previewUrl,
       player.isPreviewPlaying,
       player.previewEndedAt,
+      player.previewPositionMs,
+      player.previewDurationMs,
     ]
   );
   const actions = useMemo<SpotifyPlayerActions>(

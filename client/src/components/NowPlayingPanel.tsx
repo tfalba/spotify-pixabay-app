@@ -17,13 +17,24 @@ function formatTime(ms = 0) {
 export function NowPlayingPanel({ onTrackFinished }: { onTrackFinished?: () => void }) {
   const { current } = useCurrentTrackData();
 
-  const { playerState, playbackPositionMs, isPreviewPlaying } =
+  const {
+    playerState,
+    playbackPositionMs,
+    isPreviewPlaying,
+    previewUrl,
+    previewPositionMs,
+    previewDurationMs,
+  } =
     useSpotifyPlayerState();
   const { pause, seek, playTrackSmart } = useSpotifyPlayerActions();
 
   const [pos, setPos] = useState(0);
-  const duration = playerState?.duration ?? 0;
-  const paused = playerState?.paused ?? true;
+  const usingPreview =
+    isPreviewPlaying || (Boolean(previewUrl) && !playerState?.track_window?.current_track);
+  const duration = usingPreview
+    ? previewDurationMs
+    : playerState?.duration ?? 0;
+  const paused = usingPreview ? !isPreviewPlaying : playerState?.paused ?? true;
 
   const cover =
     current?.album?.images?.[0]?.url || current?.image || backgroundLogo;
@@ -34,8 +45,12 @@ export function NowPlayingPanel({ onTrackFinished }: { onTrackFinished?: () => v
 
   // Keep seek slider roughly in sync with Spotify player state (preview audio has its own timing)
   useEffect(() => {
+    if (usingPreview) {
+      if (typeof previewPositionMs === "number") setPos(previewPositionMs);
+      return;
+    }
     if (typeof playbackPositionMs === "number") setPos(playbackPositionMs);
-  }, [playbackPositionMs]);
+  }, [usingPreview, playbackPositionMs, previewPositionMs]);
 
   useEffect(() => {
     if (!current) setPos(0);
